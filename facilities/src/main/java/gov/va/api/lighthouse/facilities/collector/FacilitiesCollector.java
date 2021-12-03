@@ -8,6 +8,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,12 +24,16 @@ import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
-/** Base facilities collector. */
+/** Version agnostic facilities collector. */
 @Slf4j
-public abstract class FacilitiesCollector {
+@Component
+public class FacilitiesCollector {
   private static final String WEBSITES_CSV_RESOURCE_NAME = "websites.csv";
 
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
@@ -42,18 +48,22 @@ public abstract class FacilitiesCollector {
 
   protected final String cemeteriesBaseUrl;
 
+  private final CmsOverlayCollector cmsOverlayCollector;
+
   /** Primary facilities collector constructor. */
   public FacilitiesCollector(
-      @NonNull InsecureRestTemplateProvider insecureRestTemplateProvider,
-      @NonNull JdbcTemplate jdbcTemplate,
-      @NonNull String atcBaseUrl,
-      @NonNull String atpBaseUrl,
-      @NonNull String cemeteriesBaseUrl) {
+      @Autowired InsecureRestTemplateProvider insecureRestTemplateProvider,
+      @Autowired JdbcTemplate jdbcTemplate,
+      @Autowired CmsOverlayCollector cmsOverlayCollector,
+      @Value("${access-to-care.url}") String atcBaseUrl,
+      @Value("${access-to-pwt.url}") String atpBaseUrl,
+      @Value("${cemeteries.url}") String cemeteriesBaseUrl) {
     this.insecureRestTemplateProvider = insecureRestTemplateProvider;
     this.jdbcTemplate = jdbcTemplate;
     this.atcBaseUrl = withTrailingSlash(atcBaseUrl);
     this.atpBaseUrl = withTrailingSlash(atpBaseUrl);
     this.cemeteriesBaseUrl = withTrailingSlash(cemeteriesBaseUrl);
+    this.cmsOverlayCollector = cmsOverlayCollector;
   }
 
   /** Caregiver support facilities given a resource name. */
@@ -236,6 +246,22 @@ public abstract class FacilitiesCollector {
     return entities;
   }
 
-  protected abstract void updateOperatingStatusFromCmsOverlay(
-      List<DatamartFacility> datamartFacilities);
+  @SneakyThrows
+  void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+    HashMap<String, DatamartCmsOverlay> cmsOverlays;
+    try {
+      cmsOverlays = cmsOverlayCollector.loadAndUpdateCmsOverlays();
+    } catch (Exception e) {
+      throw new CollectorExceptions.CollectorException(e);
+    }
+    for (DatamartFacility datamartFacility : datamartFacilities) {
+      if (cmsOverlays.containsKey(datamartFacility.id())) {
+        DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
+        datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
+        datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
+      } else {
+        log.warn("No cms overlay for facility: {}", datamartFacility.id());
+      }
+    }
+  }
 }

@@ -1,7 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
 import gov.va.api.health.autoconfig.logging.Loggable;
-import gov.va.api.lighthouse.facilities.collector.FacilitiesCollectorV0;
+import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalCollectorController {
   private final JdbcTemplate jdbc;
 
-  private final FacilitiesCollectorV0 collector;
+  private final FacilitiesCollector collector;
 
   @Builder
   InternalCollectorController(
-      @Autowired JdbcTemplate jdbc, @Autowired FacilitiesCollectorV0 collector) {
+      @Autowired JdbcTemplate jdbc, @Autowired FacilitiesCollector collector) {
     this.jdbc = jdbc;
     this.collector = collector;
   }

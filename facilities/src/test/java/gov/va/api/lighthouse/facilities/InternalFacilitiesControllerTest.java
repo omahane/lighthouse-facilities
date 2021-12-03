@@ -28,7 +28,7 @@ import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
-import gov.va.api.lighthouse.facilities.collector.FacilitiesCollectorV0;
+import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -60,7 +60,7 @@ public class InternalFacilitiesControllerTest {
 
   @Autowired FacilityGraveyardRepository graveyardRepository;
 
-  FacilitiesCollectorV0 collector = mock(FacilitiesCollectorV0.class);
+  FacilitiesCollector collector = mock(FacilitiesCollector.class);
 
   private static DatamartFacility _facility(
       String id,

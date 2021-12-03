@@ -4,7 +4,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Cardiology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.CaregiverSupport;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.Type.va_facilities;
-import static gov.va.api.lighthouse.facilities.collector.FacilitiesCollectorV0.loadCaregiverSupport;
+import static gov.va.api.lighthouse.facilities.collector.FacilitiesCollector.loadCaregiverSupport;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 

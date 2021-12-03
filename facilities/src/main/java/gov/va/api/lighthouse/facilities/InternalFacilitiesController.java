@@ -24,9 +24,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
-import gov.va.api.lighthouse.facilities.collector.FacilitiesCollectorV0;
+import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,12 +85,10 @@ public class InternalFacilitiesController {
 
   private static final Pattern ZIP_PATTERN = Pattern.compile(ZIP_REGEX);
 
-  private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
-
   private static final ObjectMapper DATAMART_MAPPER =
       DatamartFacilitiesJacksonConfig.createMapper();
 
-  private final FacilitiesCollectorV0 collector;
+  private final FacilitiesCollector collector;
 
   private final CmsOverlayRepository cmsOverlayRepository;
 
@@ -357,24 +354,24 @@ public class InternalFacilitiesController {
                                     DatamartFacilitiesJacksonConfig.quietlyMap(
                                         DATAMART_MAPPER, z.facility(), DatamartFacility.class)))
                             .cmsOverlay(
-                                CmsOverlay.builder()
-                                    .operatingStatus(
-                                        z.cmsOperatingStatus() == null
-                                            ? null
-                                            : FacilitiesJacksonConfigV0.quietlyMap(
-                                                MAPPER_V0,
-                                                z.cmsOperatingStatus(),
-                                                gov.va.api.lighthouse.facilities.api.v0.Facility
-                                                    .OperatingStatus.class))
-                                    .detailedServices(
-                                        z.cmsServices() == null
-                                            ? null
-                                            : List.of(
-                                                FacilitiesJacksonConfigV0.quietlyMap(
-                                                    MAPPER_V0,
-                                                    z.cmsServices(),
-                                                    DetailedService[].class)))
-                                    .build())
+                                CmsOverlayTransformerV0.toCmsOverlay(
+                                    DatamartCmsOverlay.builder()
+                                        .operatingStatus(
+                                            z.cmsOperatingStatus() == null
+                                                ? null
+                                                : DatamartFacilitiesJacksonConfig.quietlyMap(
+                                                    DATAMART_MAPPER,
+                                                    z.cmsOperatingStatus(),
+                                                    DatamartFacility.OperatingStatus.class))
+                                        .detailedServices(
+                                            z.cmsServices() == null
+                                                ? null
+                                                : List.of(
+                                                    DatamartFacilitiesJacksonConfig.quietlyMap(
+                                                        DATAMART_MAPPER,
+                                                        z.cmsServices(),
+                                                        DetailedService[].class)))
+                                        .build()))
                             .overlayServices(z.graveyardOverlayServices())
                             .missing(
                                 z.missingTimestamp() == null

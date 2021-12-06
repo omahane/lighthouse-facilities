@@ -51,7 +51,7 @@ public final class FacilityTransformerV0 {
   }
 
   /** Transform DatamartFacility operating status to version 0 facility operating status. */
-  private static Facility.OperatingStatus toFacilityOperatingStatus(
+  public static Facility.OperatingStatus toFacilityOperatingStatus(
       DatamartFacility.OperatingStatus datamartFacilityOperatingStatus) {
     return (datamartFacilityOperatingStatus != null)
         ? Facility.OperatingStatus.builder()

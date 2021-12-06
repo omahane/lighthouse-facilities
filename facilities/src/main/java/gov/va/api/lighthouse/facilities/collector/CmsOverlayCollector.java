@@ -3,15 +3,13 @@ package gov.va.api.lighthouse.facilities.collector;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
-import gov.va.api.lighthouse.facilities.CmsOverlayHelperV0;
+import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
-import gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV0;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
-import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor(onConstructor = @__(@Autowired))
-public class CmsOverlayCollectorV0 {
+public class CmsOverlayCollector {
   private final CmsOverlayRepository cmsOverlayRepository;
 
   /** Method for determining whether Covid service is contained within detailed services. */
@@ -46,8 +44,8 @@ public class CmsOverlayCollectorV0 {
   }
 
   /** Load and return map of CMS overlays for each facility id. */
-  public HashMap<String, CmsOverlay> loadAndUpdateCmsOverlays() {
-    HashMap<String, CmsOverlay> overlays =
+  public HashMap<String, DatamartCmsOverlay> loadAndUpdateCmsOverlays() {
+    HashMap<String, DatamartCmsOverlay> overlays =
         Streams.stream(cmsOverlayRepository.findAll())
             // .parallel()
             .map(this::makeOverlayFromEntity)
@@ -58,34 +56,30 @@ public class CmsOverlayCollectorV0 {
     return overlays;
   }
 
-  private AbstractMap.SimpleEntry<String, CmsOverlay> makeOverlayFromEntity(
+  private AbstractMap.SimpleEntry<String, DatamartCmsOverlay> makeOverlayFromEntity(
       CmsOverlayEntity cmsOverlayEntity) {
-    final ObjectMapper mapper = FacilitiesJacksonConfigV0.createMapper();
-    CmsOverlay overlay;
+    DatamartCmsOverlay overlay;
     try {
       overlay =
-          CmsOverlay.builder()
+          DatamartCmsOverlay.builder()
               .operatingStatus(
-                  CmsOverlayHelperV0.getOperatingStatus(
-                      mapper, cmsOverlayEntity.cmsOperatingStatus()))
+                  CmsOverlayHelper.getOperatingStatus(cmsOverlayEntity.cmsOperatingStatus()))
               .detailedServices(
                   cmsOverlayEntity.cmsServices() != null
                       ? // updateServiceUrlPaths(
                       //  cmsOverlayEntity.id().toIdString(),
-                      CmsOverlayHelperV0.getDetailedServices(
-                          mapper, cmsOverlayEntity.cmsServices()) // )
+                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()) // )
                       : null)
               .build();
       // Save updates made to overlay with Covid services
-      final Facility.OperatingStatus operatingStatus = overlay.operatingStatus();
+      final OperatingStatus operatingStatus = overlay.operatingStatus();
       final List<DetailedService> detailedServices = overlay.detailedServices();
       if (containsCovidService(detailedServices)) {
         cmsOverlayRepository.save(
             CmsOverlayEntity.builder()
                 .id(cmsOverlayEntity.id())
-                .cmsOperatingStatus(
-                    CmsOverlayHelperV0.serializeOperatingStatus(mapper, operatingStatus))
-                .cmsServices(CmsOverlayHelperV0.serializeDetailedServices(mapper, detailedServices))
+                .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
+                .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
                 .build());
         log.info(
             "CMS overlay updated for {} facility", sanitize(cmsOverlayEntity.id().toIdString()));

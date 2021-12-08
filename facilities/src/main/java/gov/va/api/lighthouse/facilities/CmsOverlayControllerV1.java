@@ -43,12 +43,25 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   private final CmsOverlayRepository cmsOverlayRepository;
 
   @GetMapping(
+      value = {"/v1/facilities/{id}/services"},
+      produces = "application/json")
+  @SneakyThrows
+  ResponseEntity<List<DetailedService>> getDetailedServices(@PathVariable("id") String id) {
+    return ResponseEntity.ok(getOverlayDetailedServices(id));
+  }
+
+  @SneakyThrows
+  protected Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.Pk pk) {
+    return cmsOverlayRepository.findById(pk);
+  }
+
+  @GetMapping(
       value = {"/v1/facilities/{id}/cms-overlay"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<CmsOverlayResponse> getOverlay(@PathVariable("id") String id) {
     FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(id);
-    Optional<CmsOverlayEntity> existingOverlayEntity = cmsOverlayRepository.findById(pk);
+    Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
     if (!existingOverlayEntity.isPresent()) {
       throw new ExceptionsUtils.NotFound(id);
     }
@@ -83,7 +96,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     Optional<FacilityEntity> existingFacilityEntity =
         facilityRepository.findById(FacilityEntity.Pk.fromIdString(id));
     Optional<CmsOverlayEntity> existingCmsOverlayEntity =
-        cmsOverlayRepository.findById(FacilityEntity.Pk.fromIdString(id));
+        getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
     DatamartCmsOverlay datamartCmsOverlay = CmsOverlayTransformerV1.toVersionAgnostic(overlay);
     updateCmsOverlayData(existingCmsOverlayEntity, id, datamartCmsOverlay);
     if (existingFacilityEntity.isEmpty()) {

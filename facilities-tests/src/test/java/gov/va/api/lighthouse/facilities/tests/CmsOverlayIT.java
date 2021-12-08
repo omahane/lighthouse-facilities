@@ -199,16 +199,8 @@ public class CmsOverlayIT {
         .expect(200);
   }
 
-  @Test
-  @SneakyThrows
-  void multiOverlayUpdate() {
-    OperatingStatus ops =
-        OperatingStatus.builder()
-            .code(OperatingStatusCode.NOTICE)
-            .additionalInfo("Update1")
-            .build();
-
-    DetailedService detailedService =
+  private List<DetailedService> detailedServices() {
+    return List.of(
         DetailedService.builder()
             .name("COVID-19 vaccines")
             .descriptionFacility("I'm a facility service!")
@@ -278,20 +270,77 @@ public class CmsOverlayIT {
                                 .build())
                         .build()))
             .walkInsAccepted("True")
+            .build());
+  }
+
+  @Test
+  @SneakyThrows
+  void getDetailedServicesErrorStatuses() {
+    var id = SystemDefinitions.systemDefinition().ids().facility();
+    SystemDefinitions.Service svc = systemDefinition().facilities();
+    // ==== V0 CMS Overlays ====
+    // 400 - Bad Request
+    // Note: Performing a GET request to /v0/facilities/%/services through Postman produces an
+    //       HTTP 400 error as expected.
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/%/services"))
+        .expect(500);
+    // 404 - Facility Not Found
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET, svc.urlWithApiPath() + "v0/facilities/{id}/services", "vba_1234"))
+        .expect(404);
+    // 406 - Request Format Unacceptable
+    ExpectedResponse.of(
+            requestSpecification()
+                .accept("application/xml")
+                .request(
+                    Method.GET, svc.urlWithApiPath() + "v0/facilities/{id}/services", "vha_558GA"))
+        .expect(406);
+
+    // ==== V1 CMS Overlays ====
+    // 400 - Bad Request
+    // Note: Performing a GET request to /v1/facilities/%/services through Postman produces an
+    //       HTTP 400 error as expected.
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services"))
+        .expect(500);
+    // 404 - Facility Not Found
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET, svc.urlWithApiPath() + "v1/facilities/{id}/services", "vba_1234"))
+        .expect(404);
+    // 406 - Request Format Unavailable
+    ExpectedResponse.of(
+            requestSpecification()
+                .accept("application/xml")
+                .request(
+                    Method.GET, svc.urlWithApiPath() + "v1/facilities/{id}/services", "vha_558GA"))
+        .expect(406);
+  }
+
+  @Test
+  @SneakyThrows
+  void multiOverlayUpdate() {
+    OperatingStatus ops =
+        OperatingStatus.builder()
+            .code(OperatingStatusCode.NOTICE)
+            .additionalInfo("Update1")
             .build();
-
     var id = systemDefinition().ids().facility();
-
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
-
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
     ExpectedResponse.of(
         requestSpecificationInternal()
             .request(
                 Method.DELETE,
                 svcInternal.urlWithApiPath() + "internal/management/cms-overlay/" + id));
-
     ExpectedResponse.of(
         requestSpecificationInternal()
             .request(
@@ -300,19 +349,16 @@ public class CmsOverlayIT {
                     + "internal/management/facilities/"
                     + id
                     + "/cms-overlay"));
-
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
         .expect(200);
-
     // Attempt to get an overlay that does not exist
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
                 .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
         .expect(404);
-
     // Create an overlay
     ExpectedResponse.of(
             requestSpecification()
@@ -321,7 +367,6 @@ public class CmsOverlayIT {
                 .request(
                     Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
         .expect(200);
-
     // Retrieve the overlay
     var cmsOverlay =
         ExpectedResponse.of(
@@ -330,10 +375,8 @@ public class CmsOverlayIT {
                         Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
             .expect(200)
             .expectValid(CmsOverlayResponse.class);
-
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
-    assertThat(cmsOverlay.overlay().detailedServices()).isNull();
-
+    assertThat(cmsOverlay.overlay().detailedServices()).isEmpty();
     var facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -341,10 +384,8 @@ public class CmsOverlayIT {
             .expect(200)
             .expectValid(FacilityReadResponse.class)
             .facility();
-
     assertThat(facility.attributes().operatingStatus()).isEqualTo(ops);
     assertThat(facility.attributes().detailedServices()).isNull();
-
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
@@ -352,7 +393,6 @@ public class CmsOverlayIT {
                 .request(
                     Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
         .expect(200);
-
     cmsOverlay =
         ExpectedResponse.of(
                 requestSpecification()
@@ -360,10 +400,10 @@ public class CmsOverlayIT {
                         Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
             .expect(200)
             .expectValid(CmsOverlayResponse.class);
-
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
-    assertThat(cmsOverlay.overlay().detailedServices()).isEqualTo(List.of(detailedService));
-
+    assertThat(cmsOverlay.overlay().detailedServices())
+        .usingRecursiveComparison()
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -371,9 +411,10 @@ public class CmsOverlayIT {
             .expect(200)
             .expectValid(FacilityReadResponse.class)
             .facility();
-
     assertThat(facility.attributes().operatingStatus()).isEqualTo(ops);
-    assertThat(facility.attributes().detailedServices()).isEqualTo(List.of(detailedService));
+    assertThat(facility.attributes().detailedServices())
+        .usingRecursiveComparison()
+        .isEqualTo(detailedServices());
   }
 
   @Test

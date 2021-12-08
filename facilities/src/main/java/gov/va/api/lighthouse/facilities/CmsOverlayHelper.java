@@ -18,7 +18,7 @@ public final class CmsOverlayHelper {
   @SneakyThrows
   public static List<DetailedService> getDetailedServices(String detailedServices) {
     return (detailedServices == null)
-        ? null
+        ? List.of()
         : List.of(DATAMART_MAPPER.readValue(detailedServices, DetailedService[].class));
   }
 

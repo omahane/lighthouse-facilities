@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 
@@ -50,5 +51,18 @@ public abstract class BaseCmsOverlayController {
     updateServiceUrlPaths(id, activeServices);
     activeServices.sort(Comparator.comparing(DetailedService::name));
     return activeServices;
+  }
+
+  protected abstract Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.Pk pk);
+
+  @SneakyThrows
+  protected List<DetailedService> getOverlayDetailedServices(String id) {
+    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(id);
+    Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
+    if (!existingOverlayEntity.isPresent()) {
+      throw new ExceptionsUtils.NotFound(id);
+    }
+    CmsOverlayEntity cmsOverlayEntity = existingOverlayEntity.get();
+    return CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices());
   }
 }

@@ -275,6 +275,69 @@ public class CmsOverlayIT {
 
   @Test
   @SneakyThrows
+  void getDetailedServiceErrorStatuses() {
+    var id = SystemDefinitions.systemDefinition().ids().facility();
+    SystemDefinitions.Service svc = systemDefinition().facilities();
+    // ==== V0 CMS Overlays ====
+    // 400 - Bad Request
+    // Note: Performing a GET request to /v0/facilities/%/services/%/ through Postman produces an
+    //       HTTP 400 error as expected.
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/%/services/%/"))
+        .expect(500);
+    // 404 - Facility Not Found
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v0/facilities/{facility_id}/services/{service_id}/",
+                    "vba_1234",
+                    "COVID-19%20vaccines"))
+        .expect(404);
+    // 406 - Request Format Unacceptable
+    ExpectedResponse.of(
+            requestSpecification()
+                .accept("application/xml")
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v0/facilities/{facility_id}/services/{service_id}/",
+                    "vha_558GA",
+                    "COVID-19%20vaccines"))
+        .expect(406);
+
+    // ==== V1 CMS Overlays ====
+    // 400 - Bad Request
+    // Note: Performing a GET request to /v1/facilities/%/services/%/ through Postman produces an
+    //       HTTP 400 error as expected.
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services/%/"))
+        .expect(500);
+    // 404 - Facility Not Found
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    "vba_1234",
+                    "COVID-19%20vaccines"))
+        .expect(404);
+    // 406 - Request Format Unavailable
+    ExpectedResponse.of(
+            requestSpecification()
+                .accept("application/xml")
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    "vha_558GA",
+                    "COVID-19%20vaccines"))
+        .expect(406);
+  }
+
+  @Test
+  @SneakyThrows
   void getDetailedServicesErrorStatuses() {
     var id = SystemDefinitions.systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();

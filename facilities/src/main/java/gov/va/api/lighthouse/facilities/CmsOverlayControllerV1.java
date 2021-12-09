@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,15 +44,25 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   private final CmsOverlayRepository cmsOverlayRepository;
 
   @GetMapping(
+      value = {"/v1/facilities/{facility_id}/services/{service_id}"},
+      produces = "application/json")
+  @SneakyThrows
+  ResponseEntity<DetailedService> getDetailedService(
+      @PathVariable("facility_id") String facilityId,
+      @PathVariable("service_id") String serviceId) {
+    return ResponseEntity.ok(getOverlayDetailedService(facilityId, serviceId));
+  }
+
+  @GetMapping(
       value = {"/v1/facilities/{id}/services"},
       produces = "application/json")
   @SneakyThrows
-  ResponseEntity<List<DetailedService>> getDetailedServices(@PathVariable("id") String id) {
-    return ResponseEntity.ok(getOverlayDetailedServices(id));
+  ResponseEntity<List<DetailedService>> getDetailedServices(@PathVariable("id") String facilityId) {
+    return ResponseEntity.ok(getOverlayDetailedServices(facilityId));
   }
 
   @SneakyThrows
-  protected Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.Pk pk) {
+  protected Optional<CmsOverlayEntity> getExistingOverlayEntity(@NonNull FacilityEntity.Pk pk) {
     return cmsOverlayRepository.findById(pk);
   }
 

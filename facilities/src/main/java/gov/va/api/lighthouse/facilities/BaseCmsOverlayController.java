@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 public abstract class BaseCmsOverlayController {
@@ -56,13 +57,22 @@ public abstract class BaseCmsOverlayController {
   protected abstract Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.Pk pk);
 
   @SneakyThrows
-  protected List<DetailedService> getOverlayDetailedServices(String id) {
-    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(id);
+  protected DetailedService getOverlayDetailedService(
+      @NonNull String facilityId, @NonNull String serviceId) {
+    List<DetailedService> detailedServices =
+        getOverlayDetailedServices(facilityId).parallelStream()
+            .filter(ds -> ds.name().equals(serviceId))
+            .collect(Collectors.toList());
+    return detailedServices.isEmpty() ? null : detailedServices.get(0);
+  }
+
+  @SneakyThrows
+  protected List<DetailedService> getOverlayDetailedServices(@NonNull String facilityId) {
+    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(facilityId);
     Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
     if (!existingOverlayEntity.isPresent()) {
-      throw new ExceptionsUtils.NotFound(id);
+      throw new ExceptionsUtils.NotFound(facilityId);
     }
-    CmsOverlayEntity cmsOverlayEntity = existingOverlayEntity.get();
-    return CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices());
+    return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
   }
 }

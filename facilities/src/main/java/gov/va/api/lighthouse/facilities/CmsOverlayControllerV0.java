@@ -42,14 +42,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
 
   private final CmsOverlayRepository cmsOverlayRepository;
 
-  @GetMapping(
-      value = {"/v0/facilities/{id}/services"},
-      produces = "application/json")
-  @SneakyThrows
-  ResponseEntity<List<DetailedService>> getDetailedServices(@PathVariable("id") String id) {
-    return ResponseEntity.ok(getOverlayDetailedServices(id));
-  }
-
   @SneakyThrows
   protected Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.Pk pk) {
     return cmsOverlayRepository.findById(pk);

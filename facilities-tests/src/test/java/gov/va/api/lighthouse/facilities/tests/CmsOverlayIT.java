@@ -278,30 +278,7 @@ public class CmsOverlayIT {
   void getDetailedServicesErrorStatuses() {
     var id = SystemDefinitions.systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
-    // ==== V0 CMS Overlays ====
-    // 400 - Bad Request
-    // Note: Performing a GET request to /v0/facilities/%/services through Postman produces an
-    //       HTTP 400 error as expected.
-    ExpectedResponse.of(
-            requestSpecification()
-                .contentType("application/json")
-                .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/%/services"))
-        .expect(500);
-    // 404 - Facility Not Found
-    ExpectedResponse.of(
-            requestSpecification()
-                .request(
-                    Method.GET, svc.urlWithApiPath() + "v0/facilities/{id}/services", "vba_1234"))
-        .expect(404);
-    // 406 - Request Format Unacceptable
-    ExpectedResponse.of(
-            requestSpecification()
-                .accept("application/xml")
-                .request(
-                    Method.GET, svc.urlWithApiPath() + "v0/facilities/{id}/services", "vha_558GA"))
-        .expect(406);
-
-    // ==== V1 CMS Overlays ====
+    // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
     // Note: Performing a GET request to /v1/facilities/%/services through Postman produces an
     //       HTTP 400 error as expected.

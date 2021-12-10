@@ -108,36 +108,11 @@ public class CmsOverlayControllerV0Test {
     assertThatThrownBy(() -> controller().getExistingOverlayEntity(pk))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
-    assertThatThrownBy(() -> controller().getDetailedServices(id))
-        .isInstanceOf(NullPointerException.class)
-        .hasMessage("oh noes");
     when(mockFacilityRepository.findById(pk)).thenThrow(new NullPointerException("oh noes"));
     assertThatThrownBy(
             () -> controller().saveOverlay(id, CmsOverlayTransformerV0.toCmsOverlay(overlay())))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
-  }
-
-  @Test
-  @SneakyThrows
-  public void getDetailedServices() {
-    DatamartCmsOverlay overlay = overlay();
-    var id = "vha_402";
-    var pk = FacilityEntity.Pk.fromIdString(id);
-    CmsOverlayEntity cmsOverlayEntity =
-        CmsOverlayEntity.builder()
-            .id(pk)
-            .cmsOperatingStatus(
-                DatamartFacilitiesJacksonConfig.createMapper()
-                    .writeValueAsString(overlay.operatingStatus()))
-            .cmsServices(
-                DatamartFacilitiesJacksonConfig.createMapper()
-                    .writeValueAsString(overlay.detailedServices()))
-            .build();
-    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    assertThat(controller().getDetailedServices(id))
-        .usingRecursiveComparison()
-        .isEqualTo(ResponseEntity.ok(detailedServices(false)));
   }
 
   @Test

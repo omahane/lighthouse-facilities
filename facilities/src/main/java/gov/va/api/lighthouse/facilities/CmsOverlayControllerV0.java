@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** CMS Overlay Controller for version 0 facilities. */
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Builder
 @Validated
 @RestController
+@RequestMapping(value = "/v0")
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
 
@@ -48,7 +50,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/v0/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{id}/cms-overlay"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<CmsOverlayResponse> getOverlay(@PathVariable("id") String id) {
@@ -79,7 +81,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
   }
 
   @PostMapping(
-      value = {"/v0/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{id}/cms-overlay"},
       produces = "application/json",
       consumes = "application/json")
   @SneakyThrows

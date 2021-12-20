@@ -1,10 +1,14 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static gov.va.api.lighthouse.facilities.ControllersV1.page;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
+import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
+import gov.va.api.lighthouse.facilities.api.cms.DetailedServiceResponse;
+import gov.va.api.lighthouse.facilities.api.cms.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
 import java.util.HashSet;
@@ -12,12 +16,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.validation.Valid;
-import lombok.AllArgsConstructor;
+import javax.validation.constraints.Min;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.annotation.Validated;
@@ -26,14 +31,15 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** CMS Overlay Controller for version 1 facilities. */
 @Slf4j
-@Builder
 @Validated
 @RestController
-@AllArgsConstructor(onConstructor = @__(@Autowired))
+@RequestMapping(value = "/v1")
 public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
 
   private static final ObjectMapper DATAMART_MAPPER =
@@ -43,22 +49,61 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
 
   private final CmsOverlayRepository cmsOverlayRepository;
 
-  @GetMapping(
-      value = {"/v1/facilities/{facility_id}/services/{service_id}"},
-      produces = "application/json")
-  @SneakyThrows
-  ResponseEntity<DetailedService> getDetailedService(
-      @PathVariable("facility_id") String facilityId,
-      @PathVariable("service_id") String serviceId) {
-    return ResponseEntity.ok(getOverlayDetailedService(facilityId, serviceId));
+  private final String linkerUrl;
+
+  @Builder
+  CmsOverlayControllerV1(
+      @Autowired FacilityRepository facilityRepository,
+      @Autowired CmsOverlayRepository cmsOverlayRepository,
+      @Value("${facilities.url}") String baseUrl,
+      @Value("${facilities.base-path}") String basePath) {
+    this.facilityRepository = facilityRepository;
+    this.cmsOverlayRepository = cmsOverlayRepository;
+    String url = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+    String path = basePath.replaceAll("/$", "");
+    path = path.isEmpty() ? path : path + "/";
+    linkerUrl = url + path + "v1/";
   }
 
   @GetMapping(
-      value = {"/v1/facilities/{id}/services"},
+      value = {"/facilities/{facility_id}/services/{service_id}"},
       produces = "application/json")
   @SneakyThrows
-  ResponseEntity<List<DetailedService>> getDetailedServices(@PathVariable("id") String facilityId) {
-    return ResponseEntity.ok(getOverlayDetailedServices(facilityId));
+  ResponseEntity<DetailedServiceResponse> getDetailedService(
+      @PathVariable("facility_id") String facilityId,
+      @PathVariable("service_id") String serviceId) {
+    return ResponseEntity.ok(
+        DetailedServiceResponse.builder()
+            .data(getOverlayDetailedService(facilityId, serviceId))
+            .build());
+  }
+
+  @GetMapping(
+      value = {"/facilities/{id}/services"},
+      produces = "application/json")
+  @SneakyThrows
+  ResponseEntity<DetailedServicesResponse> getDetailedServices(
+      @PathVariable("id") String facilityId,
+      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
+      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
+    List<DetailedService> services = getOverlayDetailedServices(facilityId);
+    PageLinkerV1 linker =
+        PageLinkerV1.builder()
+            .url(linkerUrl + "facilities/" + facilityId + "/services")
+            .params(Parameters.builder().add("page", page).add("per_page", perPage).build())
+            .totalEntries(services.size())
+            .build();
+    List<DetailedService> servicesPage = page(services, page, perPage);
+    DetailedServicesResponse response =
+        DetailedServicesResponse.builder()
+            .data(servicesPage.stream().collect(toList()))
+            .links(linker.links())
+            .meta(
+                DetailedServicesResponse.DetailedServicesMetadata.builder()
+                    .pagination(linker.pagination())
+                    .build())
+            .build();
+    return ResponseEntity.ok(response);
   }
 
   @SneakyThrows
@@ -67,7 +112,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/v1/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{id}/cms-overlay"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<CmsOverlayResponse> getOverlay(@PathVariable("id") String id) {
@@ -98,7 +143,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @PostMapping(
-      value = {"/v1/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{id}/cms-overlay"},
       produces = "application/json",
       consumes = "application/json")
   @SneakyThrows

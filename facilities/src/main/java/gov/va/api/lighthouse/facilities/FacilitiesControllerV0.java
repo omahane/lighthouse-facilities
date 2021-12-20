@@ -52,8 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class FacilitiesControllerV0 {
   private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
 
-  private static final FacilityOverlayV0 FACILITY_OVERLAY =
-      FacilityOverlayV0.builder().mapper(DatamartFacilitiesJacksonConfig.createMapper()).build();
+  private static final FacilityOverlayV0 FACILITY_OVERLAY = FacilityOverlayV0.builder().build();
 
   private final FacilityRepository facilityRepository;
 

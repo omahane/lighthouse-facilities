@@ -496,3 +496,17 @@ databaseChangeLog:
                   name: station_number
               - column:
                   name: type
+  - changeSet:
+      id: 17
+      author: axolotl
+      changes:
+        - dropTable:
+            tableName: facility_graveyard
+            schemaName: app
+  - changeSet:
+      id: 18
+      author: axolotl
+      changes:
+        - dropTable:
+            tableName: cms_graveyard_overlay_detailed_services
+            schemaName: app

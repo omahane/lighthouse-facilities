@@ -27,7 +27,7 @@ public class FacilityOverlayV0Test {
       OperatingStatus expectedOperatingStatus,
       List<Facility.HealthService> expectedHealthServices,
       FacilityEntity entity) {
-    Facility facility = FacilityOverlayV0.builder().mapper(DATAMART_MAPPER).build().apply(entity);
+    Facility facility = FacilityOverlayV0.builder().build().apply(entity);
     assertThat(facility.attributes().activeStatus()).isEqualTo(expectedActiveStatus);
     assertThat(facility.attributes().operatingStatus()).isEqualTo(expectedOperatingStatus);
     assertThat(facility.attributes().services().health()).isEqualTo(expectedHealthServices);

@@ -10,7 +10,6 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.isBlank;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +22,6 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
@@ -93,8 +91,6 @@ public class InternalFacilitiesController {
   private final CmsOverlayRepository cmsOverlayRepository;
 
   private final FacilityRepository facilityRepository;
-
-  private final FacilityGraveyardRepository graveyardRepository;
 
   // Max distance in miles where two facilities are considered to be duplicates
   private final Double duplicateFacilityOverlapRange = 0.02;
@@ -269,24 +265,6 @@ public class InternalFacilitiesController {
     return ResponseEntity.ok().build();
   }
 
-  void deleteFromGraveyard(ReloadResponse response, FacilityGraveyardEntity entity) {
-    try {
-      graveyardRepository.delete(entity);
-    } catch (Exception e) {
-      log.error(
-          "Failed to delete facility {} from graveyard: {}",
-          entity.id().toIdString(),
-          e.getMessage());
-      response
-          .problems()
-          .add(
-              ReloadResponse.Problem.of(
-                  entity.id().toIdString(),
-                  "Failed to delete facility from graveyard: " + e.getMessage()));
-      throw e;
-    }
-  }
-
   // Checks a facility to make sure it is not within 0.02 miles of another
   private List<String> detectDuplicateFacilities(FacilityEntity newFacility) {
     List<String> duplicateIds = new ArrayList<>();
@@ -341,48 +319,6 @@ public class InternalFacilitiesController {
     return facilityEntities;
   }
 
-  @GetMapping("/graveyard")
-  GraveyardResponse graveyardAll() {
-    return GraveyardResponse.builder()
-        .facilities(
-            Streams.stream(graveyardRepository.findAll())
-                .map(
-                    z ->
-                        GraveyardResponse.Item.builder()
-                            .facility(
-                                FacilityTransformerV0.toFacility(
-                                    DatamartFacilitiesJacksonConfig.quietlyMap(
-                                        DATAMART_MAPPER, z.facility(), DatamartFacility.class)))
-                            .cmsOverlay(
-                                CmsOverlayTransformerV0.toCmsOverlay(
-                                    DatamartCmsOverlay.builder()
-                                        .operatingStatus(
-                                            z.cmsOperatingStatus() == null
-                                                ? null
-                                                : DatamartFacilitiesJacksonConfig.quietlyMap(
-                                                    DATAMART_MAPPER,
-                                                    z.cmsOperatingStatus(),
-                                                    DatamartFacility.OperatingStatus.class))
-                                        .detailedServices(
-                                            z.cmsServices() == null
-                                                ? null
-                                                : List.of(
-                                                    DatamartFacilitiesJacksonConfig.quietlyMap(
-                                                        DATAMART_MAPPER,
-                                                        z.cmsServices(),
-                                                        DetailedService[].class)))
-                                        .build()))
-                            .overlayServices(z.graveyardOverlayServices())
-                            .missing(
-                                z.missingTimestamp() == null
-                                    ? null
-                                    : Instant.ofEpochMilli(z.missingTimestamp()))
-                            .lastUpdated(z.lastUpdated())
-                            .build())
-                .collect(toList()))
-        .build();
-  }
-
   private Set<FacilityEntity.Pk> missingIds(List<DatamartFacility> collectedFacilities) {
     Set<FacilityEntity.Pk> newIds =
         collectedFacilities.stream()
@@ -391,35 +327,6 @@ public class InternalFacilitiesController {
             .collect(toCollection(LinkedHashSet::new));
     Set<FacilityEntity.Pk> oldIds = new LinkedHashSet<>(facilityRepository.findAllIds());
     return ImmutableSet.copyOf(Sets.difference(oldIds, newIds));
-  }
-
-  private void moveToGraveyard(ReloadResponse response, FacilityEntity entity) {
-    FacilityEntity.Pk id = FacilityEntity.Pk.of(entity.id().type(), entity.id().stationNumber());
-    try {
-      Instant now = response.timing().completeCollection();
-      response.facilitiesRemoved().add(id.toIdString());
-      log.warn("Moving facility {} to graveyard.", id.toIdString());
-      graveyardRepository.save(
-          FacilityGraveyardEntity.builder()
-              .id(id)
-              .facility(entity.facility())
-              .cmsOperatingStatus(entity.cmsOperatingStatus())
-              .cmsServices(entity.cmsServices())
-              .graveyardOverlayServices(
-                  entity.overlayServices() == null ? null : new HashSet<>(entity.overlayServices()))
-              .missingTimestamp(entity.missingTimestamp())
-              .lastUpdated(now)
-              .build());
-      facilityRepository.delete(entity);
-    } catch (Exception e) {
-      log.error("Failed to move facility {} to graveyard: {}", id.toIdString(), e.getMessage());
-      response
-          .problems()
-          .add(
-              ReloadResponse.Problem.of(
-                  id.toIdString(), "Failed to move facility to graveyard: " + e.getMessage()));
-      throw e;
-    }
   }
 
   @GetMapping(value = "/populate-cms-overlay-table")
@@ -484,7 +391,8 @@ public class InternalFacilitiesController {
       saveAsMissing(response, entity);
       return;
     }
-    moveToGraveyard(response, entity);
+
+    facilityRepository.delete(entity);
   }
 
   @GetMapping(value = "/reload")
@@ -713,27 +621,6 @@ public class InternalFacilitiesController {
       response.facilitiesUpdated().add(datamartFacility.id());
       log.warn("Updating facility {}", datamartFacility.id());
       updateAndSave(response, existing.get(), datamartFacility);
-      return;
-    }
-    var zombie = graveyardRepository.findById(pk);
-    if (zombie.isPresent()) {
-      response.facilitiesRevived().add(datamartFacility.id());
-      log.warn("Reviving facility {}", datamartFacility.id());
-      FacilityGraveyardEntity zombieEntity = zombie.get();
-      // only thing to retain from graveyard is CMS overlay
-      // all other fields will be populated in updateAndSave()
-      FacilityEntity facilityEntity =
-          FacilityEntity.builder()
-              .id(pk)
-              .cmsOperatingStatus(zombieEntity.cmsOperatingStatus())
-              .cmsServices(zombieEntity.cmsServices())
-              .overlayServices(
-                  zombieEntity.graveyardOverlayServices() == null
-                      ? null
-                      : new HashSet<>(zombieEntity.graveyardOverlayServices()))
-              .build();
-      updateAndSave(response, facilityEntity, datamartFacility);
-      deleteFromGraveyard(response, zombieEntity);
       return;
     }
     response.facilitiesCreated().add(datamartFacility.id());

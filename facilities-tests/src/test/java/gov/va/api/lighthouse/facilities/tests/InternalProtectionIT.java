@@ -60,15 +60,6 @@ public class InternalProtectionIT {
   }
 
   @Test
-  void graveyard() {
-    SystemDefinitions.Service svc = systemDefinition().facilitiesInternal();
-    ExpectedResponse.of(
-            requestSpecification()
-                .request(Method.GET, svc.urlWithApiPath() + "internal/management/graveyard"))
-        .expect(401);
-  }
-
-  @Test
   void reload() {
     // In case endpoint is not secure
     // Don't reload in SLA'd environments

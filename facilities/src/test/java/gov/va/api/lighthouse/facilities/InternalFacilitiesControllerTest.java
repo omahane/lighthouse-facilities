@@ -2,14 +2,18 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet_center;
-import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.*;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_1;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_2;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_3;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_1;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_2;
+import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_3;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,8 +37,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -57,8 +59,6 @@ public class InternalFacilitiesControllerTest {
   @Autowired FacilityRepository facilityRepository;
 
   @Autowired CmsOverlayRepository overlayRepository;
-
-  @Autowired FacilityGraveyardRepository graveyardRepository;
 
   FacilitiesCollector collector = mock(FacilitiesCollector.class);
 
@@ -201,7 +201,6 @@ public class InternalFacilitiesControllerTest {
         .collector(collector)
         .facilityRepository(facilityRepository)
         .cmsOverlayRepository(overlayRepository)
-        .graveyardRepository(graveyardRepository)
         .build();
   }
 
@@ -243,40 +242,6 @@ public class InternalFacilitiesControllerTest {
   }
 
   @SneakyThrows
-  private FacilityGraveyardEntity _graveyardEntityWithOverlay(
-      DatamartFacility fac, CmsOverlay overlay) {
-    String operatingStatusString = null;
-    Set<String> cmsServicesNames = new HashSet<>();
-    String cmsServicesString = null;
-    if (overlay != null) {
-      operatingStatusString =
-          overlay.operatingStatus() == null
-              ? null
-              : JacksonConfig.createMapper().writeValueAsString(overlay.operatingStatus());
-      if (overlay.detailedServices() != null) {
-        for (DetailedService service : overlay.detailedServices()) {
-          if (service.active()) {
-            cmsServicesNames.add(service.name());
-          }
-        }
-      }
-      cmsServicesString =
-          overlay.detailedServices() == null
-              ? null
-              : JacksonConfig.createMapper().writeValueAsString(overlay.detailedServices());
-    }
-    return FacilityGraveyardEntity.builder()
-        .id(FacilityEntity.Pk.fromIdString(fac.id()))
-        .facility(DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString(fac))
-        .cmsOperatingStatus(operatingStatusString)
-        .graveyardOverlayServices(cmsServicesNames)
-        .cmsServices(cmsServicesString)
-        .missingTimestamp(LocalDateTime.now().minusDays(4).toInstant(ZoneOffset.UTC).toEpochMilli())
-        .lastUpdated(Instant.now())
-        .build();
-  }
-
-  @SneakyThrows
   private CmsOverlayEntity _overlayEntity(CmsOverlay overlay, String id) {
     return CmsOverlayEntity.builder()
         .id(FacilityEntity.Pk.fromIdString(id))
@@ -314,31 +279,6 @@ public class InternalFacilitiesControllerTest {
     assertThat(facilityRepository.findAll())
         .usingRecursiveFieldByFieldElementComparator(comparisonConfig)
         .containsExactlyInAnyOrder(_facilityEntity(f1), _facilityEntity(f2));
-  }
-
-  @Test
-  @SneakyThrows
-  void collect_fromTheGraveyard() {
-    DatamartFacility f1 =
-        _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
-    DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
-    FacilityGraveyardEntity entity = _graveyardEntityWithOverlay(f1Old, _overlay());
-    graveyardRepository.save(entity);
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
-    ReloadResponse response = _controller().reload().getBody();
-    assertThat(response.facilitiesRevived()).isEqualTo(List.of("vha_f1"));
-    assertThat(graveyardRepository.findAll()).isEmpty();
-    FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
-    assertThat(result.id()).isEqualTo(entity.id());
-    assertThat(result.facility())
-        .isEqualTo(DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString(f1));
-    assertThat(result.cmsOperatingStatus()).isEqualTo(entity.cmsOperatingStatus());
-    assertThat(result.overlayServices()).isEqualTo(entity.graveyardOverlayServices());
-    assertThat(result.cmsServices()).isEqualTo(entity.cmsServices());
-    assertThat(result.missingTimestamp()).isNull();
-    assertThat(result.lastUpdated()).isEqualTo(response.timing().completeCollection());
   }
 
   @Test
@@ -502,28 +442,6 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
-  @SneakyThrows
-  void collect_toTheGraveyard() {
-    DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
-    long threeDaysAgo = LocalDateTime.now().minusDays(3).toInstant(ZoneOffset.UTC).toEpochMilli();
-    FacilityEntity entity = _facilityEntity(f1Old, _overlay()).missingTimestamp(threeDaysAgo);
-    facilityRepository.save(entity);
-    when(collector.collectFacilities()).thenReturn(emptyList());
-    ReloadResponse response = _controller().reload().getBody();
-    assertThat(response.facilitiesRemoved()).isEqualTo(List.of("vha_f1"));
-    assertThat(facilityRepository.findAllIds()).isEmpty();
-    FacilityGraveyardEntity result = Iterables.getOnlyElement(graveyardRepository.findAll());
-    assertThat(result.id()).isEqualTo(entity.id());
-    assertThat(result.facility()).isEqualTo(entity.facility());
-    assertThat(result.cmsOperatingStatus()).isEqualTo(entity.cmsOperatingStatus());
-    assertThat(result.graveyardOverlayServices()).isEqualTo(entity.overlayServices());
-    assertThat(result.cmsServices()).isEqualTo(entity.cmsServices());
-    assertThat(result.missingTimestamp()).isEqualTo(threeDaysAgo);
-    assertThat(result.lastUpdated()).isEqualTo(response.timing().completeCollection());
-  }
-
-  @Test
   void deleteFacilityByIdWithOverlay() {
     DatamartFacility f =
         _facility(
@@ -631,28 +549,6 @@ public class InternalFacilitiesControllerTest {
     assertThatThrownBy(() -> _controller().deleteCmsOverlayById("vha_f1", "foo"))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
         .hasMessage("The record identified by foo could not be found");
-  }
-
-  @Test
-  void deleteFromGraveyard_error() {
-    FacilityGraveyardRepository repo = mock(FacilityGraveyardRepository.class);
-    doThrow(new RuntimeException("oh noez")).when(repo).delete(any(FacilityGraveyardEntity.class));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder().graveyardRepository(repo).build();
-    ReloadResponse response = ReloadResponse.start();
-    assertThrows(
-        RuntimeException.class,
-        () ->
-            controller.deleteFromGraveyard(
-                response,
-                FacilityGraveyardEntity.builder()
-                    .id(FacilityEntity.Pk.fromIdString("vha_f1"))
-                    .build()));
-    assertThat(response.problems())
-        .isEqualTo(
-            List.of(
-                ReloadResponse.Problem.of(
-                    "vha_f1", "Failed to delete facility from graveyard: oh noez")));
   }
 
   @Test
@@ -820,36 +716,6 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
-  void graveyardAll() {
-    DatamartFacility f1 =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
-    CmsOverlay overlay = _overlay();
-    FacilityGraveyardEntity entity = _graveyardEntityWithOverlay(f1, overlay);
-    graveyardRepository.save(entity);
-    // Since we don't save active status to the database, make it false
-    for (DetailedService d : overlay.detailedServices()) {
-      d.active(false);
-    }
-    assertThat(_controller().graveyardAll())
-        .isEqualTo(
-            GraveyardResponse.builder()
-                .facilities(
-                    List.of(
-                        GraveyardResponse.Item.builder()
-                            .facility(
-                                FacilityTransformerV0.toFacility(
-                                    JacksonConfig.createMapper()
-                                        .readValue(entity.facility(), DatamartFacility.class)))
-                            .cmsOverlay(overlay)
-                            .overlayServices(entity.graveyardOverlayServices())
-                            .missing(Instant.ofEpochMilli(entity.missingTimestamp()))
-                            .lastUpdated(entity.lastUpdated())
-                            .build()))
-                .build());
-  }
-
-  @Test
-  @SneakyThrows
   public void isHoursNull() {
     InternalFacilitiesController controller = InternalFacilitiesController.builder().build();
     Method isHoursNullMethod =
@@ -907,41 +773,6 @@ public class InternalFacilitiesControllerTest {
                     .mobile(true)
                     .build()))
         .isEqualTo(Boolean.TRUE);
-  }
-
-  @Test
-  @SneakyThrows
-  public void moveToGraveyardException() {
-    Method moveToGraveyardMethod =
-        InternalFacilitiesController.class.getDeclaredMethod(
-            "moveToGraveyard", ReloadResponse.class, FacilityEntity.class);
-    moveToGraveyardMethod.setAccessible(true);
-    final FacilityEntity entity =
-        FacilityEntity.builder().id(FacilityEntity.Pk.fromIdString("vha_123")).build();
-    final FacilityGraveyardEntity graveyardEntity =
-        FacilityGraveyardEntity.builder()
-            .id(entity.id())
-            .facility(entity.facility())
-            .cmsOperatingStatus(entity.cmsOperatingStatus())
-            .cmsServices(entity.cmsServices())
-            .graveyardOverlayServices(
-                entity.overlayServices() == null ? null : new HashSet<>(entity.overlayServices()))
-            .missingTimestamp(entity.missingTimestamp())
-            .build();
-    FacilityGraveyardRepository mockGraveyardRepo = mock(FacilityGraveyardRepository.class);
-    when(mockGraveyardRepo.save(graveyardEntity)).thenThrow(new NullPointerException("oh noes"));
-    final InternalFacilitiesController controllerEx =
-        InternalFacilitiesController.builder().graveyardRepository(mockGraveyardRepo).build();
-    final ReloadResponse reloadResponseEx = ReloadResponse.start();
-    assertThrows(
-        InvocationTargetException.class,
-        () -> moveToGraveyardMethod.invoke(controllerEx, reloadResponseEx, entity));
-    assertThat(reloadResponseEx.problems())
-        .usingRecursiveComparison()
-        .isEqualTo(
-            List.of(
-                ReloadResponse.Problem.of(
-                    "vha_123", "Failed to move facility to graveyard: oh noes")));
   }
 
   @Test

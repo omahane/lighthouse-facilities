@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import lombok.Builder;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 @Value
 @Slf4j
 public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility> {
-  @NonNull ObjectMapper mapper;
+
+  private static final ObjectMapper DATAMART_MAPPER =
+      DatamartFacilitiesJacksonConfig.createMapper();
 
   private static void applyCmsOverlayServices(Facility facility, Set<String> overlayServices) {
     if (overlayServices == null) {
@@ -59,7 +60,7 @@ public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility>
   public Facility apply(HasFacilityPayload entity) {
     Facility facility =
         FacilityTransformerV0.toFacility(
-            mapper.readValue(entity.facility(), DatamartFacility.class));
+            DATAMART_MAPPER.readValue(entity.facility(), DatamartFacility.class));
 
     if (facility.attributes().operatingStatus() == null) {
       facility

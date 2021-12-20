@@ -6,7 +6,7 @@ import static gov.va.api.lighthouse.facilities.NearbyUtils.NearbyId;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.intersections;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.validateDriveTime;
 import static java.util.stream.Collectors.toList;
-import static org.apache.logging.log4j.util.Strings.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.google.common.base.Stopwatch;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;

@@ -9,11 +9,12 @@
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities</artifactId>
-  <version>3.0.63-SNAPSHOT</version>
+  <version>3.0.69-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <commons-csv.version>1.8</commons-csv.version>
     <docker.imageName>lighthouse-facilities</docker.imageName>
+    <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <guava.version>[30.0-jre,)</guava.version>
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.1</swagger-maven-plugin.version>

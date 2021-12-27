@@ -61,7 +61,7 @@ public abstract class BaseCmsOverlayController {
       @NonNull String facilityId, @NonNull String serviceId) {
     List<DetailedService> detailedServices =
         getOverlayDetailedServices(facilityId).parallelStream()
-            .filter(ds -> ds.name().equals(serviceId))
+            .filter(ds -> ds.name().equalsIgnoreCase(serviceId))
             .collect(Collectors.toList());
     return detailedServices.isEmpty() ? null : detailedServices.get(0);
   }

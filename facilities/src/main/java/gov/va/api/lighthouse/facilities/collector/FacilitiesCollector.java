@@ -10,16 +10,20 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -194,6 +198,7 @@ public class FacilitiesCollector {
             .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
+    updateServicesFromCmsOverlay(datamartFacilities);
     return datamartFacilities;
   }
 
@@ -261,6 +266,28 @@ public class FacilitiesCollector {
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
+      }
+    }
+  }
+
+  private void updateServicesFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+    Map<String, DatamartFacility.HealthService> facilityCovid19Services;
+    try {
+      facilityCovid19Services = cmsOverlayCollector.getCovid19VaccineServices();
+    } catch (Exception e) {
+      throw new CollectorExceptions.CollectorException(e);
+    }
+    for (DatamartFacility datamartFacility : datamartFacilities) {
+      if (facilityCovid19Services.containsKey(datamartFacility.id())) {
+        Set<HealthService> facilityHealthServices = new HashSet<>();
+        facilityHealthServices.add(facilityCovid19Services.get(datamartFacility.id()));
+        if (datamartFacility.attributes().services().health() != null) {
+          facilityHealthServices.addAll(datamartFacility.attributes().services().health());
+        }
+        List<DatamartFacility.HealthService> facilityHealthServiceList =
+            new ArrayList<>(facilityHealthServices);
+        Collections.sort(facilityHealthServiceList);
+        datamartFacility.attributes().services().health(facilityHealthServiceList);
       }
     }
   }

@@ -2,27 +2,33 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.ControllersV1.page;
-import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
+import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v1")
 public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
-
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private final FacilityRepository facilityRepository;
 
@@ -65,6 +69,29 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     String path = basePath.replaceAll("/$", "");
     path = path.isEmpty() ? path : path + "/";
     linkerUrl = url + path + "v1/";
+  }
+
+  /** Obtain service id for specified service name. */
+  private static String getServiceIdFromServiceName(@NonNull String serviceName) {
+    return Facility.HealthService.isRecognizedServiceName(serviceName)
+        ? Facility.HealthService.fromString(serviceName).serviceId()
+        : Facility.BenefitsService.isRecognizedServiceName(serviceName)
+            ? Facility.BenefitsService.fromString(serviceName).serviceId()
+            : Facility.OtherService.isRecognizedServiceName(serviceName)
+                ? Facility.OtherService.valueOf(serviceName).serviceId()
+                : TypedService.INVALID_SVC_ID;
+  }
+
+  /** Obtain typed service for specified service id. */
+  private static Optional<? extends TypedService> getTypedServiceForServiceId(
+      @NonNull String serviceId) {
+    return Facility.HealthService.isRecognizedServiceId(serviceId)
+        ? Facility.HealthService.fromServiceId(serviceId)
+        : Facility.BenefitsService.isRecognizedServiceId(serviceId)
+            ? Facility.BenefitsService.fromServiceId(serviceId)
+            : Facility.OtherService.isRecognizedServiceId(serviceId)
+                ? Facility.OtherService.fromServiceId(serviceId)
+                : Optional.empty();
   }
 
   @GetMapping(
@@ -136,7 +163,10 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                             CmsOverlayHelper.getOperatingStatus(
                                 cmsOverlayEntity.cmsOperatingStatus()))
                         .detailedServices(
-                            CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
+                            CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices())
+                                .parallelStream()
+                                .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+                                .collect(Collectors.toList()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);
@@ -147,6 +177,41 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     dataBinder.initDirectFieldAccess();
   }
 
+  /** Determine whether specified service id matches that for V1 service. */
+  protected boolean isRecognizedServiceId(String serviceId) {
+    return Facility.HealthService.isRecognizedServiceId(serviceId)
+        || Facility.BenefitsService.isRecognizedServiceId(serviceId)
+        || Facility.OtherService.isRecognizedServiceId(serviceId);
+  }
+
+  private void populateServiceInfoAndFilterOutInvalid(@NonNull CmsOverlay overlay) {
+    if (isNotEmpty(overlay.detailedServices())) {
+      overlay.detailedServices(
+          overlay.detailedServices().parallelStream()
+              .filter(ds -> ds.serviceInfo() != null)
+              .map(
+                  ds -> {
+                    if (StringUtils.isEmpty(ds.serviceInfo().serviceId())) {
+                      ds.serviceInfo()
+                          .serviceId(getServiceIdFromServiceName(ds.serviceInfo().name()));
+                    }
+                    if (ds.serviceInfo().serviceType() == null) {
+                      final Optional<? extends TypedService> typedService =
+                          getTypedServiceForServiceId(ds.serviceInfo().serviceId());
+                      ds.serviceInfo()
+                          .serviceType(
+                              typedService.isPresent()
+                                  ? typedService.get().serviceType()
+                                  : TypeOfService.Health);
+                    }
+                    return ds;
+                  })
+              .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              .collect(Collectors.toList()));
+    }
+  }
+
+  /** Upload CMS overlay associated with specified facility. */
   @PostMapping(
       value = {"/facilities/{id}/cms-overlay"},
       produces = "application/json",
@@ -154,14 +219,17 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   @SneakyThrows
   ResponseEntity<Void> saveOverlay(
       @PathVariable("id") String id, @Valid @RequestBody CmsOverlay overlay) {
-    Optional<FacilityEntity> existingFacilityEntity =
-        facilityRepository.findById(FacilityEntity.Pk.fromIdString(id));
+    populateServiceInfoAndFilterOutInvalid(overlay);
+    DatamartCmsOverlay datamartCmsOverlay =
+        filterOutUnrecognizedServicesFromOverlay(
+            CmsOverlayTransformerV1.toVersionAgnostic(overlay));
     Optional<CmsOverlayEntity> existingCmsOverlayEntity =
         getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
-    DatamartCmsOverlay datamartCmsOverlay = CmsOverlayTransformerV1.toVersionAgnostic(overlay);
     updateCmsOverlayData(existingCmsOverlayEntity, id, datamartCmsOverlay);
     overlay.detailedServices(
         DetailedServiceTransformerV1.toDetailedServices(datamartCmsOverlay.detailedServices()));
+    Optional<FacilityEntity> existingFacilityEntity =
+        facilityRepository.findById(FacilityEntity.Pk.fromIdString(id));
     if (existingFacilityEntity.isEmpty()) {
       log.info("Received Unknown Facility ID ({}) for CMS Overlay", sanitize(id));
       return ResponseEntity.accepted().build();
@@ -225,16 +293,22 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     if (!toSaveDetailedServices.isEmpty()) {
       Set<String> detailedServices = new HashSet<>();
       for (DatamartDetailedService service : toSaveDetailedServices) {
-        if (service.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
-          detailedServices.add("Covid19Vaccine");
+        if (service
+            .serviceInfo()
+            .serviceId()
+            .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
+          detailedServices.add(DatamartFacility.HealthService.Covid19Vaccine.serviceId());
           if (facilityEntity.services() != null) {
-            facilityEntity.services().add("Covid19Vaccine");
+            facilityEntity
+                .services()
+                .add(DatamartFacility.HealthService.Covid19Vaccine.serviceId());
           } else {
-            facilityEntity.services(Set.of("Covid19Vaccine"));
+            facilityEntity.services(
+                Set.of(DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
           }
           facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
         } else {
-          detailedServices.add(service.name());
+          detailedServices.add(service.serviceInfo().serviceId());
         }
       }
       facilityEntity.overlayServices(detailedServices);
@@ -244,12 +318,14 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
       DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
       if (operatingStatus != null) {
         facility.attributes().operatingStatus(operatingStatus);
-        if (operatingStatus.code() == DatamartFacility.OperatingStatusCode.CLOSED) {
-          facility.attributes().activeStatus(DatamartFacility.ActiveStatus.T);
-        } else {
-          facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
-        }
+        facility
+            .attributes()
+            .activeStatus(
+                operatingStatus.code() == DatamartFacility.OperatingStatusCode.CLOSED
+                    ? DatamartFacility.ActiveStatus.T
+                    : DatamartFacility.ActiveStatus.A);
       }
+
       if (overlay.detailedServices() != null) {
         facility
             .attributes()

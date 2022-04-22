@@ -11,8 +11,22 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ObjectUtils;
 
 public abstract class BaseCmsOverlayController {
+  /** Filter out unrecognized datamart detailed services from overlay. */
+  @SneakyThrows
+  protected DatamartCmsOverlay filterOutUnrecognizedServicesFromOverlay(
+      @NonNull DatamartCmsOverlay overlay) {
+    if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
+      overlay.detailedServices(
+          overlay.detailedServices().parallelStream()
+              .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              .collect(Collectors.toList()));
+    }
+    return overlay;
+  }
+
   @SneakyThrows
   protected List<DatamartDetailedService> findServicesToSave(
       CmsOverlayEntity cmsOverlayEntity,
@@ -21,24 +35,30 @@ public abstract class BaseCmsOverlayController {
       ObjectMapper mapper) {
     final List<DatamartDetailedService> ds =
         (detailedServices == null) ? Collections.emptyList() : detailedServices;
-    List<DatamartDetailedService> currentDetailedServices =
+    final List<String> overlayServiceIds =
+        ds.parallelStream().map(dds -> dds.serviceInfo().serviceId()).collect(Collectors.toList());
+    // Detailed services represented in pre-serviceInfo block format that have unrecognized service
+    // names will have null serviceInfo block when deserialized.
+    final List<DatamartDetailedService> currentDetailedServices =
         cmsOverlayEntity.cmsServices() == null
             ? Collections.emptyList()
             : List.of(
-                mapper.readValue(cmsOverlayEntity.cmsServices(), DatamartDetailedService[].class));
-    final List<String> overlayServiceNames =
-        ds.stream().map(DatamartDetailedService::name).collect(Collectors.toList());
+                    mapper.readValue(
+                        cmsOverlayEntity.cmsServices(), DatamartDetailedService[].class))
+                .parallelStream()
+                .filter(dds -> dds.serviceInfo() != null)
+                .collect(Collectors.toList());
     final List<DatamartDetailedService> finalDetailedServices = new ArrayList<>();
     finalDetailedServices.addAll(
         currentDetailedServices.parallelStream()
             .filter(
                 currentDetailedService ->
-                    !overlayServiceNames.contains(currentDetailedService.name()))
+                    !overlayServiceIds.contains(currentDetailedService.serviceInfo().serviceId()))
             .collect(Collectors.toList()));
     finalDetailedServices.addAll(
         ds.parallelStream().filter(d -> d.active()).collect(Collectors.toList()));
     updateServiceUrlPaths(id, finalDetailedServices);
-    finalDetailedServices.sort(Comparator.comparing(DatamartDetailedService::name));
+    finalDetailedServices.sort(Comparator.comparing(dds -> dds.serviceInfo().serviceId()));
     return finalDetailedServices;
   }
 
@@ -50,7 +70,7 @@ public abstract class BaseCmsOverlayController {
           detailedServices.parallelStream().filter(d -> d.active()).collect(Collectors.toList()));
     }
     updateServiceUrlPaths(id, activeServices);
-    activeServices.sort(Comparator.comparing(DatamartDetailedService::name));
+    activeServices.sort(Comparator.comparing(dds -> dds.serviceInfo().serviceId()));
     return activeServices;
   }
 
@@ -61,7 +81,7 @@ public abstract class BaseCmsOverlayController {
       @NonNull String facilityId, @NonNull String serviceId) {
     List<DatamartDetailedService> detailedServices =
         getOverlayDetailedServices(facilityId).parallelStream()
-            .filter(ds -> ds.name().equalsIgnoreCase(serviceId))
+            .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
             .collect(Collectors.toList());
     return detailedServices.isEmpty() ? null : detailedServices.get(0);
   }
@@ -75,4 +95,7 @@ public abstract class BaseCmsOverlayController {
     }
     return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
   }
+
+  /** Determine whether specified service id matches that for service. */
+  protected abstract boolean isRecognizedServiceId(String serviceId);
 }

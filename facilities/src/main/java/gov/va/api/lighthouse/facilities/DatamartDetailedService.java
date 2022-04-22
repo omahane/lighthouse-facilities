@@ -1,17 +1,26 @@
 package gov.va.api.lighthouse.facilities;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Data
 @Builder
@@ -24,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "name",
+  "serviceInfo",
   "description_facility",
   "appointment_leadin",
   "appointment_phones",
@@ -34,7 +43,7 @@ import lombok.NoArgsConstructor;
   "service_locations"
 })
 public class DatamartDetailedService {
-  String name;
+  @NonNull ServiceInfo serviceInfo;
 
   boolean active;
 
@@ -62,6 +71,63 @@ public class DatamartDetailedService {
 
   @JsonProperty("walk_ins_accepted")
   String walkInsAccepted;
+
+  private static boolean isRecognizedServiceName(String serviceName) {
+    return isNotEmpty(serviceName)
+        && (HealthService.isRecognizedServiceName(serviceName)
+            || BenefitsService.isRecognizedServiceName(serviceName)
+            || OtherService.isRecognizedServiceName(serviceName));
+  }
+
+  /** Provide backwards compatability with version 0 detailed services. */
+  @JsonProperty("name")
+  public DatamartDetailedService serviceName(String serviceName) {
+    if (isRecognizedServiceName(serviceName)) {
+      // Update service info based on recognized service name
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder()
+                  .serviceId(
+                      HealthService.isRecognizedServiceName(serviceName)
+                          ? HealthService.fromString(serviceName).serviceId()
+                          : BenefitsService.isRecognizedServiceName(serviceName)
+                              ? BenefitsService.fromString(serviceName).serviceId()
+                              : OtherService.isRecognizedServiceName(serviceName)
+                                  ? OtherService.valueOf(serviceName).serviceId()
+                                  : TypedService.INVALID_SVC_ID)
+                  .name(serviceName)
+                  .serviceType(
+                      HealthService.isRecognizedServiceName(serviceName)
+                          ? TypeOfService.Health
+                          : BenefitsService.isRecognizedServiceName(serviceName)
+                              ? TypeOfService.Benefits
+                              : OtherService.isRecognizedServiceName(serviceName)
+                                  ? TypeOfService.Other
+                                  : TypeOfService.Health)
+                  .build()
+              : serviceInfo().name(serviceName));
+    }
+    return this;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = JsonInclude.Include.NON_EMPTY, content = JsonInclude.Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId", "serviceType"})
+  @Schema(description = "Service information.")
+  public static final class ServiceInfo {
+    @Schema(description = "Service id.", example = "covid19Vaccine")
+    @NonNull
+    String serviceId;
+
+    @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
+    String name;
+
+    @Schema(description = "Service type.", example = "Health")
+    @NonNull
+    TypeOfService serviceType;
+  }
 
   @Data
   @Builder

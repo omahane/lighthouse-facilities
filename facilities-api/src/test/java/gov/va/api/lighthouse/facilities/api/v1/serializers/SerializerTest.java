@@ -126,14 +126,42 @@ public class SerializerTest {
   @Test
   @SneakyThrows
   void serializeDetailedService() {
-    // Empty
-    DetailedService detailedService = DetailedService.builder().build();
-    assertJsonIsEmpty(detailedService);
-    detailedService = DetailedService.builder().serviceLocations(emptyList()).build();
-    assertJsonIsEmpty(detailedService);
     // Not empty
-    detailedService = DetailedService.builder().name("COVID-19 vaccines").build();
-    assertJson(detailedService, "{\"name\":\"COVID-19 vaccines\"}");
+    DetailedService detailedService =
+        DetailedService.builder()
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId(Facility.HealthService.Cardiology.serviceId())
+                    .serviceType(Facility.HealthService.Cardiology.serviceType())
+                    .build())
+            .build();
+    assertJson(
+        detailedService,
+        "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
+    detailedService =
+        DetailedService.builder()
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId(Facility.HealthService.Cardiology.serviceId())
+                    .serviceType(Facility.HealthService.Cardiology.serviceType())
+                    .build())
+            .serviceLocations(emptyList())
+            .build();
+    assertJson(
+        detailedService,
+        "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
+    detailedService =
+        DetailedService.builder()
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                    .name("COVID-19 vaccines")
+                    .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
+            .build();
+    assertJson(
+        detailedService,
+        "{\"serviceInfo\":{\"name\":\"COVID-19 vaccines\",\"serviceId\":\"covid19Vaccine\",\"serviceType\":\"health\"}}");
   }
 
   @Test
@@ -223,14 +251,36 @@ public class SerializerTest {
     // Empty
     DetailedServiceResponse response = DetailedServiceResponse.builder().build();
     assertJsonIsEmpty(response);
-    response = DetailedServiceResponse.builder().data(DetailedService.builder().build()).build();
-    assertJsonIsEmpty(response);
     // Not empty
     response =
         DetailedServiceResponse.builder()
-            .data(DetailedService.builder().name("COVID-19 vaccines").build())
+            .data(
+                DetailedService.builder()
+                    .serviceInfo(
+                        DetailedService.ServiceInfo.builder()
+                            .serviceId(Facility.HealthService.Cardiology.serviceId())
+                            .serviceType(Facility.HealthService.Cardiology.serviceType())
+                            .build())
+                    .build())
             .build();
-    assertJson(response, "{\"data\":{\"name\":\"COVID-19 vaccines\"}}");
+    assertJson(
+        response,
+        "{\"data\":{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}}");
+    response =
+        DetailedServiceResponse.builder()
+            .data(
+                DetailedService.builder()
+                    .serviceInfo(
+                        DetailedService.ServiceInfo.builder()
+                            .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                            .name("COVID-19 vaccines")
+                            .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                            .build())
+                    .build())
+            .build();
+    assertJson(
+        response,
+        "{\"data\":{\"serviceInfo\":{\"name\":\"COVID-19 vaccines\",\"serviceId\":\"covid19Vaccine\",\"serviceType\":\"health\"}}}");
   }
 
   @Test

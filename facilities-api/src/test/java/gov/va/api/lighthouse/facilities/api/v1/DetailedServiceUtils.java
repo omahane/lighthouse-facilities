@@ -1,11 +1,18 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import java.util.List;
+import lombok.NonNull;
 
 public class DetailedServiceUtils {
-  public static DetailedService getDetailedService(String name) {
+  public static DetailedService getDetailedService(@NonNull TypedService serviceType) {
     return DetailedService.builder()
-        .name(name)
+        .serviceInfo(
+            DetailedService.ServiceInfo.builder()
+                .serviceId(serviceType.serviceId())
+                .name(serviceType.name())
+                .serviceType(serviceType.serviceType())
+                .build())
         .active(true)
         .changed(null)
         .descriptionFacility("Most advanced healthcare facility nationally.")

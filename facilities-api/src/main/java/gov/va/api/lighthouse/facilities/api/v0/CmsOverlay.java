@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -18,8 +19,10 @@ import lombok.Data;
 public class CmsOverlay {
   @Valid
   @JsonProperty("operating_status")
+  @JsonAlias("operatingStatus")
   Facility.OperatingStatus operatingStatus;
 
   @JsonProperty("detailed_services")
+  @JsonAlias("detailedServices")
   List<@Valid DetailedService> detailedServices;
 }

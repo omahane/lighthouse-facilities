@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static gov.va.api.lighthouse.facilities.ControllersV0.page;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateServices;
+import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV0.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
@@ -37,6 +38,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
@@ -50,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class FacilitiesControllerV0 {
-  private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
+  private static final ObjectMapper MAPPER_V0 = createMapper();
 
   private static final FacilityOverlayV0 FACILITY_OVERLAY = FacilityOverlayV0.builder().build();
 
@@ -81,10 +83,11 @@ public class FacilitiesControllerV0 {
 
   /** Get all facilities. */
   @SneakyThrows
+  @Cacheable("v0-all-facilities")
   @GetMapping(
       value = "/facilities/all",
       produces = {"application/json", "application/geo+json", "application/vnd.geo+json"})
-  String all() {
+  public String all() {
     StringBuilder sb = new StringBuilder();
     sb.append("{\"type\":\"FeatureCollection\",\"features\":[");
     List<HasFacilityPayload> all = facilityRepository.findAllProjectedBy();
@@ -103,8 +106,9 @@ public class FacilitiesControllerV0 {
 
   /** Get all facilities as CSV. */
   @SneakyThrows
+  @Cacheable("v0-all-facilities-csv")
   @GetMapping(value = "/facilities/all", produces = "text/csv")
-  String allCsv() {
+  public String allCsv() {
     List<List<String>> rows =
         facilityRepository.findAllProjectedBy().stream()
             .parallel()

@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities.api.v1;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAddressSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAppointmentPhoneNumberSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailContactSerializer;
@@ -23,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.apache.commons.lang3.ObjectUtils;
 
 @Data
@@ -37,7 +40,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "name",
+  "serviceInfo",
   "descriptionFacility",
   "appointmentLeadIn",
   "appointmentPhones",
@@ -48,11 +51,10 @@ import org.apache.commons.lang3.ObjectUtils;
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService implements CanBeEmpty {
-  @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
-  String serviceId;
-
-  @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
-  String name;
+  @Schema(description = "Service information block.")
+  @JsonAlias("service_info")
+  @NonNull
+  ServiceInfo serviceInfo;
 
   @Schema(hidden = true)
   boolean active;
@@ -66,6 +68,7 @@ public class DetailedService implements CanBeEmpty {
 
   @JsonIgnore
   @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
+  @JsonAlias("description_facility")
   String descriptionFacility;
 
   @Schema(
@@ -77,12 +80,14 @@ public class DetailedService implements CanBeEmpty {
               + "during this time. As the supply of vaccine increases, we'll work with our care "
               + "teams to let Veterans know their options.",
       nullable = true)
+  @JsonAlias("appointment_leadin")
   String appointmentLeadIn;
 
   @Schema(
       description = "String detailing online scheduling availability.",
       example = "True",
       nullable = true)
+  @JsonAlias("online_scheduling_available")
   String onlineSchedulingAvailable;
 
   @Schema(
@@ -97,27 +102,31 @@ public class DetailedService implements CanBeEmpty {
       description = "List of phone numbers related to scheduling appointments for this service.",
       nullable = true)
   @JsonProperty("appointmentPhones")
+  @JsonAlias("appointment_phones")
   List<AppointmentPhoneNumber> phoneNumbers;
 
   @Schema(
       description = "String detailing if referrals are required for the service.",
       example = "False",
       nullable = true)
+  @JsonAlias("referral_required")
   String referralRequired;
 
   @Schema(description = "List of service locations.", nullable = true)
+  @JsonAlias("service_locations")
   List<DetailedServiceLocation> serviceLocations;
 
   @Schema(
       description = "String detailing if walk-ins are accepted for the service.",
       example = "True",
       nullable = true)
+  @JsonAlias("walk_ins_accepted")
   String walkInsAccepted;
 
   /** Empty elements will be omitted from JSON serialization. */
   @JsonIgnore
   public boolean isEmpty() {
-    return isBlank(name())
+    return (serviceInfo() == null || serviceInfo().isEmpty())
         && isBlank(changed())
         && isBlank(descriptionFacility())
         && isBlank(appointmentLeadIn())
@@ -127,6 +136,31 @@ public class DetailedService implements CanBeEmpty {
         && isBlank(referralRequired())
         && ObjectUtils.isEmpty(serviceLocations())
         && isBlank(walkInsAccepted());
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId", "serviceType"})
+  @Schema(description = "Service information.")
+  public static final class ServiceInfo implements CanBeEmpty {
+    @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
+    @JsonAlias("{service_id, service_api_id}")
+    String serviceId;
+
+    @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
+    String name;
+
+    @Schema(description = "Service type.", example = "Health", nullable = true)
+    @JsonAlias("service_type")
+    TypeOfService serviceType;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @JsonIgnore
+    public boolean isEmpty() {
+      return isBlank(serviceId()) && isBlank(name()) && ObjectUtils.isEmpty(serviceType());
+    }
   }
 
   @Data
@@ -152,10 +186,12 @@ public class DetailedService implements CanBeEmpty {
         example = "50 Irving Street, Northwest",
         nullable = true)
     @JsonProperty("addressLine1")
+    @JsonAlias("address_line1")
     String address1;
 
     @Schema(description = "Building number.", example = "Bldg 2", nullable = true)
     @JsonProperty("addressLine2")
+    @JsonAlias("address_line2")
     String address2;
 
     @Schema(description = "State code.", example = "DC", nullable = true)
@@ -165,24 +201,29 @@ public class DetailedService implements CanBeEmpty {
         description = "Building name and/or number of service.",
         example = "Baxter Building",
         nullable = true)
+    @JsonAlias("building_name_number")
     String buildingNameNumber;
 
     @Schema(description = "Clinic name for service.", example = "Baxter Clinic", nullable = true)
+    @JsonAlias("clinic_name")
     String clinicName;
 
     @Schema(description = "Country code.", example = "US", nullable = true)
+    @JsonAlias("country_code")
     String countryCode;
 
     @Schema(description = "City name.", example = "Washington", nullable = true)
     String city;
 
     @Schema(description = "Postal (ZIP) code.", example = "20422-0001", nullable = true)
+    @JsonAlias("zip_code")
     String zipCode;
 
     @Schema(
         description = "Wing, floor, or room number of service.",
         example = "Wing East",
         nullable = true)
+    @JsonAlias("wing_floor_or_room_number")
     String wingFloorOrRoomNumber;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -251,22 +292,27 @@ public class DetailedService implements CanBeEmpty {
         description = "Additional information related to service location hours.",
         example = "Location hours times may vary depending on staff availability",
         nullable = true)
+    @JsonAlias("additional_hours_info")
     String additionalHoursInfo;
 
     @Schema(
         description = "List of email contact information regarding facility services.",
         nullable = true)
+    @JsonAlias("email_contacts")
     List<DetailedServiceEmailContact> emailContacts;
 
     @Schema(nullable = true)
     @Valid
+    @JsonAlias("facility_service_hours")
     DetailedServiceHours facilityServiceHours;
 
     @Schema(description = "List of appointment phone information.", nullable = true)
     @JsonProperty("appointmentPhones")
+    @JsonAlias("appointment_phones")
     List<AppointmentPhoneNumber> appointmentPhoneNumbers;
 
     @Schema(nullable = true)
+    @JsonAlias("service_location_address")
     DetailedServiceAddress serviceLocationAddress;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -291,9 +337,11 @@ public class DetailedService implements CanBeEmpty {
         description = "Email address for facility service contact.",
         example = "georgea@va.gov",
         nullable = true)
+    @JsonAlias("email_address")
     String emailAddress;
 
     @Schema(description = "Email address label.", example = "George Anderson", nullable = true)
+    @JsonAlias("email_label")
     String emailLabel;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -317,30 +365,37 @@ public class DetailedService implements CanBeEmpty {
       nullable = true)
   public static final class DetailedServiceHours implements CanBeEmpty {
     @Schema(description = "Service availability on Mondays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Monday")
     String monday;
 
     @Schema(description = "Service availability on Tuesdays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Tuesday")
     String tuesday;
 
     @Schema(
         description = "Service availability on Wednesdays.",
         example = "9AM-5PM",
         nullable = true)
+    @JsonAlias("Wednesday")
     String wednesday;
 
     @Schema(
         description = "Service availability on Thursdays.",
         example = "9AM-5PM",
         nullable = true)
+    @JsonAlias("Thursday")
     String thursday;
 
     @Schema(description = "Service availability on Fridays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Friday")
     String friday;
 
     @Schema(description = "Service availability on Saturdays.", example = "Closed", nullable = true)
+    @JsonAlias("Saturday")
     String saturday;
 
     @Schema(description = "Service availability on Sundays.", example = "Closed", nullable = true)
+    @JsonAlias("Sunday")
     String sunday;
 
     /** Empty elements will be omitted from JSON serialization. */

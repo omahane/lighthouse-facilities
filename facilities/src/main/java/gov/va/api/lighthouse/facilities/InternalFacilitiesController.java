@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_benefits_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_cemetery;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
@@ -86,8 +87,7 @@ public class InternalFacilitiesController {
 
   private static final Pattern ZIP_PATTERN = Pattern.compile(ZIP_REGEX);
 
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private final FacilitiesCollector collector;
 
@@ -277,6 +277,7 @@ public class InternalFacilitiesController {
     return ResponseEntity.ok().build();
   }
 
+  /** Delete facility belonging to specified id. */
   @DeleteMapping(value = "/facilities/{id}")
   ResponseEntity<String> deleteFacilityById(@PathVariable("id") String id) {
     Optional<FacilityEntity> entity = facilityEntityById(id);
@@ -419,6 +420,7 @@ public class InternalFacilitiesController {
     facilityRepository.delete(entity);
   }
 
+  /** Reload all facility information. */
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
     var response = ReloadResponse.start();

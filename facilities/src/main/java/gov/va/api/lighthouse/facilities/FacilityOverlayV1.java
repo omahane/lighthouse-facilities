@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
@@ -18,8 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Value
 @Slf4j
 public class FacilityOverlayV1 implements Function<HasFacilityPayload, Facility> {
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private static void applyCmsOverlayServices(Facility facility, Set<String> overlayServices) {
     if (overlayServices == null) {

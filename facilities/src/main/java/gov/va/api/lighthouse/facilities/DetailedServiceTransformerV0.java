@@ -1,8 +1,12 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
+import static java.util.Collections.emptyList;
+
 import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
-import java.util.ArrayList;
+import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -14,7 +18,8 @@ public class DetailedServiceTransformerV0 {
   /** Transform DatamartDetailedService to version 0 DetailedService. */
   public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
-        .name(dds.name())
+        .serviceId(dds.serviceInfo().serviceId())
+        .name(toDetailedServiceName(dds.serviceInfo().name()))
         .active(dds.active())
         .changed(dds.changed())
         .descriptionFacility(dds.descriptionFacility())
@@ -41,7 +46,7 @@ public class DetailedServiceTransformerV0 {
             ? datamartDetailedServiceEmailContacts.stream()
                 .map(DetailedServiceTransformerV0::transformDetailedServiceEmailContact)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
   }
 
   /**
@@ -56,7 +61,20 @@ public class DetailedServiceTransformerV0 {
             ? datamartDetailedServiceLocations.stream()
                 .map(DetailedServiceTransformerV0::transformDetailedServiceLocation)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
+  }
+
+  /** Transform DatamartDetailedService name to version 0 DetailedService name. */
+  public static String toDetailedServiceName(String name) {
+    return Facility.HealthService.isRecognizedCovid19ServiceName(name)
+        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
+        : Facility.HealthService.isRecognizedServiceName(name)
+            ? Facility.HealthService.fromString(name).name()
+            : Facility.BenefitsService.isRecognizedServiceName(name)
+                ? Facility.BenefitsService.fromString(name).name()
+                : Facility.OtherService.isRecognizedServiceName(name)
+                    ? Facility.OtherService.valueOf(name).name()
+                    : name;
   }
 
   /**
@@ -71,7 +89,7 @@ public class DetailedServiceTransformerV0 {
             ? datamartDetailedServicePhoneNumbers.stream()
                 .map(DetailedServiceTransformerV0::transfromDetailedServiceAppointmentPhoneNumber)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
   }
 
   /** Transform a list of DatamartDetailedService to a list of version 0 DetailedService. */
@@ -83,24 +101,26 @@ public class DetailedServiceTransformerV0 {
             ? detailedServices.stream()
                 .map(DetailedServiceTransformerV0::toDetailedService)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
   }
 
   /** Transform version 0 DetailedService to version agnostic DatamartDetailedService. */
   public static DatamartDetailedService toVersionAgnosticDetailedService(
-      @NonNull DetailedService dds) {
+      @NonNull DetailedService ds) {
     return DatamartDetailedService.builder()
-        .name(dds.name())
-        .active(dds.active())
-        .changed(dds.changed())
-        .descriptionFacility(dds.descriptionFacility())
-        .appointmentLeadIn(dds.appointmentLeadIn())
-        .onlineSchedulingAvailable(dds.onlineSchedulingAvailable())
-        .path(dds.path())
-        .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(dds.phoneNumbers()))
-        .referralRequired(dds.referralRequired())
-        .serviceLocations(toVersionAgnosticDetailedServiceLocations(dds.serviceLocations()))
-        .walkInsAccepted(dds.walkInsAccepted())
+        .serviceInfo(
+            toVersionAgnosticServiceInfo(
+                ds.serviceId(), toVersionAgnosticDetailedServiceName(ds.name())))
+        .active(ds.active())
+        .changed(ds.changed())
+        .descriptionFacility(ds.descriptionFacility())
+        .appointmentLeadIn(ds.appointmentLeadIn())
+        .onlineSchedulingAvailable(ds.onlineSchedulingAvailable())
+        .path(ds.path())
+        .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(ds.phoneNumbers()))
+        .referralRequired(ds.referralRequired())
+        .serviceLocations(toVersionAgnosticDetailedServiceLocations(ds.serviceLocations()))
+        .walkInsAccepted(ds.walkInsAccepted())
         .build();
   }
 
@@ -117,7 +137,7 @@ public class DetailedServiceTransformerV0 {
             ? detailedServiceEmailContacts.stream()
                 .map(DetailedServiceTransformerV0::transformDetailedServiceEmailContact)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
   }
 
   /**
@@ -127,14 +147,26 @@ public class DetailedServiceTransformerV0 {
   public static List<DatamartDetailedService.DetailedServiceLocation>
       toVersionAgnosticDetailedServiceLocations(
           List<DetailedService.DetailedServiceLocation> detailedServiceLocations) {
-
     return (detailedServiceLocations == null)
         ? null
         : !detailedServiceLocations.isEmpty()
             ? detailedServiceLocations.stream()
                 .map(DetailedServiceTransformerV0::transformDetailedServiceLocation)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
+  }
+
+  /** Transform version 0 DetailedService name to DatamartDetailedService name. */
+  public static String toVersionAgnosticDetailedServiceName(String name) {
+    return DatamartFacility.HealthService.isRecognizedCovid19ServiceName(name)
+        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
+        : DatamartFacility.HealthService.isRecognizedServiceName(name)
+            ? DatamartFacility.HealthService.fromString(name).name()
+            : DatamartFacility.BenefitsService.isRecognizedServiceName(name)
+                ? DatamartFacility.BenefitsService.fromString(name).name()
+                : DatamartFacility.OtherService.isRecognizedServiceName(name)
+                    ? DatamartFacility.OtherService.valueOf(name).name()
+                    : name;
   }
 
   /**
@@ -144,14 +176,13 @@ public class DetailedServiceTransformerV0 {
   public static List<DatamartDetailedService.AppointmentPhoneNumber>
       toVersionAgnosticDetailedServicePhoneNumbers(
           List<DetailedService.AppointmentPhoneNumber> detailedServicePhoneNumbers) {
-
     return (detailedServicePhoneNumbers == null)
         ? null
         : !detailedServicePhoneNumbers.isEmpty()
             ? detailedServicePhoneNumbers.stream()
                 .map(DetailedServiceTransformerV0::transfromDetailedServiceAppointmentPhoneNumber)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
   }
 
   /**
@@ -166,7 +197,26 @@ public class DetailedServiceTransformerV0 {
             ? detailedServices.stream()
                 .map(DetailedServiceTransformerV0::toVersionAgnosticDetailedService)
                 .collect(Collectors.toList())
-            : new ArrayList<>();
+            : emptyList();
+  }
+
+  /** Construct DatamartDetailedService ServiceInfo object based on serviceId and service name. */
+  public static DatamartDetailedService.ServiceInfo toVersionAgnosticServiceInfo(
+      @NonNull String serviceId, String name) {
+    return DatamartDetailedService.ServiceInfo.builder()
+        .serviceId(serviceId)
+        .name(name)
+        // Infer service type from service id
+        .serviceType(
+            Facility.HealthService.isRecognizedServiceId(serviceId)
+                ? TypeOfService.Health
+                : Facility.BenefitsService.isRecognizedServiceId(serviceId)
+                    ? TypeOfService.Benefits
+                    : Facility.OtherService.isRecognizedServiceId(serviceId)
+                        ? TypeOfService.Other
+                        // Default to Health service type
+                        : TypeOfService.Health)
+        .build();
   }
 
   /**

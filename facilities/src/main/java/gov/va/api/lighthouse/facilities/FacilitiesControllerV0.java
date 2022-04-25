@@ -38,7 +38,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
@@ -83,11 +82,10 @@ public class FacilitiesControllerV0 {
 
   /** Get all facilities. */
   @SneakyThrows
-  @Cacheable("v0-all-facilities")
   @GetMapping(
       value = "/facilities/all",
       produces = {"application/json", "application/geo+json", "application/vnd.geo+json"})
-  public String all() {
+  String all() {
     StringBuilder sb = new StringBuilder();
     sb.append("{\"type\":\"FeatureCollection\",\"features\":[");
     List<HasFacilityPayload> all = facilityRepository.findAllProjectedBy();
@@ -106,9 +104,8 @@ public class FacilitiesControllerV0 {
 
   /** Get all facilities as CSV. */
   @SneakyThrows
-  @Cacheable("v0-all-facilities-csv")
   @GetMapping(value = "/facilities/all", produces = "text/csv")
-  public String allCsv() {
+  String allCsv() {
     List<List<String>> rows =
         facilityRepository.findAllProjectedBy().stream()
             .parallel()

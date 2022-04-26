@@ -256,13 +256,13 @@ public class InternalFacilitiesController {
       if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("detailed_services")) {
         DatamartFacility df =
             DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
-        if (df.attributes().services.health() != null) {
+        if (df.attributes().services().health() != null) {
           List<DatamartFacility.HealthService> healthServicesWithoutCovid19Vaccine =
-              df.attributes().services.health().stream()
+              df.attributes().services().health().stream()
                   .filter(hs -> !hs.equals(HealthService.Covid19Vaccine))
                   .collect(Collectors.toList());
           Collections.sort(healthServicesWithoutCovid19Vaccine);
-          df.attributes().services.health(healthServicesWithoutCovid19Vaccine);
+          df.attributes().services().health(healthServicesWithoutCovid19Vaccine);
 
           if (facilityEntity.services() != null) {
             facilityEntity.services().remove("Covid19Vaccine");

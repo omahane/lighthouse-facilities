@@ -277,18 +277,20 @@ public class FacilitiesCollector {
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
-    for (DatamartFacility datamartFacility : datamartFacilities) {
-      if (facilityCovid19Services.containsKey(datamartFacility.id())) {
-        Set<HealthService> facilityHealthServices = new HashSet<>();
-        facilityHealthServices.add(facilityCovid19Services.get(datamartFacility.id()));
-        if (datamartFacility.attributes().services().health() != null) {
-          facilityHealthServices.addAll(datamartFacility.attributes().services().health());
-        }
-        List<DatamartFacility.HealthService> facilityHealthServiceList =
-            new ArrayList<>(facilityHealthServices);
-        Collections.sort(facilityHealthServiceList);
-        datamartFacility.attributes().services().health(facilityHealthServiceList);
-      }
-    }
+
+    datamartFacilities.parallelStream()
+        .filter(df -> facilityCovid19Services.containsKey(df.id()))
+        .forEach(
+            df -> {
+              Set<HealthService> facilityHealthServices = new HashSet<>();
+              facilityHealthServices.add(facilityCovid19Services.get(df.id()));
+              if (df.attributes().services().health() != null) {
+                facilityHealthServices.addAll(df.attributes().services().health());
+              }
+              List<HealthService> facilityHealthServiceList =
+                  new ArrayList<>(facilityHealthServices);
+              Collections.sort(facilityHealthServiceList);
+              df.attributes().services().health(facilityHealthServiceList);
+            });
   }
 }

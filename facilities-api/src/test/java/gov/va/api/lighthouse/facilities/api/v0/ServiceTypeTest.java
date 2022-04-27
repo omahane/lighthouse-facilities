@@ -8,6 +8,7 @@ import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.NonNull;
@@ -227,31 +228,31 @@ public class ServiceTypeTest {
   @Test
   @SneakyThrows
   void uniqueServiceIds() {
+    final ArrayList<ServiceType> allServiceTypes = new ArrayList<>();
+    allServiceTypes.addAll(List.of(BenefitsService.values()));
+    allServiceTypes.addAll(List.of(HealthService.values()));
+    allServiceTypes.addAll(List.of(OtherService.values()));
+
+    /* Confirm uniqueness of service type value across all service types. */
     Arrays.stream(BenefitsService.values())
         .parallel()
         .forEach(
             bs -> {
-              assertThat(
-                      countOfServiceTypesWithMatchingServiceId(
-                          List.of(BenefitsService.values()), bs.serviceId()))
+              assertThat(countOfServiceTypesWithMatchingServiceId(allServiceTypes, bs.serviceId()))
                   .isEqualTo(ONE);
             });
     Arrays.stream(HealthService.values())
         .parallel()
         .forEach(
             hs -> {
-              assertThat(
-                      countOfServiceTypesWithMatchingServiceId(
-                          List.of(HealthService.values()), hs.serviceId()))
+              assertThat(countOfServiceTypesWithMatchingServiceId(allServiceTypes, hs.serviceId()))
                   .isEqualTo(ONE);
             });
     Arrays.stream(OtherService.values())
         .parallel()
         .forEach(
             os -> {
-              assertThat(
-                      countOfServiceTypesWithMatchingServiceId(
-                          List.of(OtherService.values()), os.serviceId()))
+              assertThat(countOfServiceTypesWithMatchingServiceId(allServiceTypes, os.serviceId()))
                   .isEqualTo(ONE);
             });
   }

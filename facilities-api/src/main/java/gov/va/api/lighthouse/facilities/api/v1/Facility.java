@@ -750,9 +750,15 @@ public final class Facility implements CanBeEmpty {
 
     @Schema(
         description = "Phone number for given facility.",
-        example = "202-555-1212",
+        example = "512-325-1255",
         nullable = true)
     String main;
+
+    @Schema(
+        description = "Phone number for VA Health Connect.",
+        example = "312-122-4516",
+        nullable = true)
+    String healthConnect;
 
     @Schema(
         description = "Phone number for pharmacy for given facility.",
@@ -790,6 +796,7 @@ public final class Facility implements CanBeEmpty {
     public boolean isEmpty() {
       return isBlank(fax())
           && isBlank(main())
+          && isBlank(healthConnect())
           && isBlank(pharmacy())
           && isBlank(afterHours())
           && isBlank(patientAdvocate())

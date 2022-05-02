@@ -362,6 +362,7 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.Phone.builder().enrollmentCoordinator(phoneNumber).build().isEmpty())
         .isTrue();
     assertThat(Facility.Phone.builder().main(phoneNumber).build().isEmpty()).isTrue();
+    assertThat(Facility.Phone.builder().healthConnect(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().fax(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().mentalHealthClinic(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().patientAdvocate(phoneNumber).build().isEmpty()).isTrue();
@@ -372,6 +373,7 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.Phone.builder().enrollmentCoordinator(phoneNumber).build().isEmpty())
         .isFalse();
     assertThat(Facility.Phone.builder().main(phoneNumber).build().isEmpty()).isFalse();
+    assertThat(Facility.Phone.builder().healthConnect(phoneNumber).build().isEmpty()).isFalse();
     assertThat(Facility.Phone.builder().fax(phoneNumber).build().isEmpty()).isFalse();
     assertThat(Facility.Phone.builder().mentalHealthClinic(phoneNumber).build().isEmpty())
         .isFalse();

@@ -55,6 +55,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 .phone(
                     DatamartFacility.Phone.builder()
                         .main("202-555-1212")
+                        .healthConnect("202-555-1213")
                         .pharmacy("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")
@@ -355,6 +356,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 .phone(
                     Facility.Phone.builder()
                         .main("202-555-1212")
+                        .healthConnect("202-555-1213")
                         .pharmacy("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")

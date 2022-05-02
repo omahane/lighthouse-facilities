@@ -525,6 +525,9 @@ public class DatamartFacility {
 
     @JsonProperty("enrollment_coordinator")
     String enrollmentCoordinator;
+
+    @JsonProperty("health_connect")
+    String healthConnect;
   }
 
   @Data

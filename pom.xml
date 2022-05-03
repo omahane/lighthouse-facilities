@@ -8,7 +8,7 @@
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities-parent</artifactId>
-  <version>3.0.129</version>
+  <version>3.0.130-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>facilities</module>

@@ -34,4 +34,9 @@ public class CmsOverlayEntity {
   @Basic(fetch = FetchType.EAGER)
   @Column(name = "cms_services")
   private String cmsServices;
+
+  @Lob
+  @Basic(fetch = FetchType.EAGER)
+  @Column(name = "health_care_system")
+  private String healthCareSystem;
 }

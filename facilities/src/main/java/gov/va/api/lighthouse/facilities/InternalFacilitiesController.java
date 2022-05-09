@@ -217,6 +217,7 @@ public class InternalFacilitiesController {
       log.info("Deleting cms overlay for id: {}", sanitize(id));
       overlayEntity.cmsOperatingStatus(null);
       overlayEntity.cmsServices(null);
+      overlayEntity.healthCareSystem(null);
     } else if (thisNodeOnly.equalsIgnoreCase("operating_status")) {
       if (overlayEntity.cmsOperatingStatus() == null) {
         log.info("CmsOverlay {} does not have an operating_status, ignoring request", sanitize(id));
@@ -231,11 +232,20 @@ public class InternalFacilitiesController {
       }
       log.info("Deleting detailed_services node from overlay for id: {}", sanitize(id));
       overlayEntity.cmsServices(null);
+    } else if (thisNodeOnly.equalsIgnoreCase("system")) {
+      if (overlayEntity.healthCareSystem() == null) {
+        log.info("CmsOverlay {} does not have system, ignoring request", sanitize(id));
+        return ResponseEntity.accepted().build();
+      }
+      log.info("Deleting system node from overlay for id: {}", sanitize(id));
+      overlayEntity.healthCareSystem(null);
     } else {
       log.info("CmsOverlay field {} does not exist.", sanitize(thisNodeOnly));
       throw new ExceptionsUtils.NotFound(thisNodeOnly);
     }
-    if (overlayEntity.cmsOperatingStatus() == null && overlayEntity.cmsServices() == null) {
+    if (overlayEntity.cmsOperatingStatus() == null
+        && overlayEntity.cmsServices() == null
+        && overlayEntity.healthCareSystem() == null) {
       cmsOverlayRepository.delete(overlayEntity);
     } else {
       cmsOverlayRepository.save(overlayEntity);

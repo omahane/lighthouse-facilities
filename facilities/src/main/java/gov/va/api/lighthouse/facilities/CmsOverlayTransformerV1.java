@@ -13,6 +13,7 @@ public class CmsOverlayTransformerV1 {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
         .detailedServices(DetailedServiceTransformerV1.toDetailedServices(dc.detailedServices()))
+        .healthCareSystem(transformHealthCareSystem(dc.healthCareSystem()))
         .build();
   }
 
@@ -23,6 +24,39 @@ public class CmsOverlayTransformerV1 {
         .detailedServices(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 overlay.detailedServices()))
+        .healthCareSystem(transformHealthCareSystem(overlay.healthCareSystem()))
         .build();
+  }
+
+  /**
+   * Transform DatamartCmsOverlay.HealthCareSystem object to version 0 CmsOverlay.HealthCareSystem
+   * object
+   */
+  public static CmsOverlay.HealthCareSystem transformHealthCareSystem(
+      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem != null)
+        ? CmsOverlay.HealthCareSystem.builder()
+            .name(healthCareSystem.name())
+            .url(healthCareSystem.url())
+            .covidUrl(healthCareSystem.covidUrl())
+            .healthConnectPhone(healthCareSystem.healthConnectPhone())
+            .build()
+        : null;
+  }
+
+  /**
+   * Transform version 0 CmsOverlay.HealthCareSystem object to DatamartCmsOverlay.HealthCareSystem
+   * object
+   */
+  public static DatamartCmsOverlay.HealthCareSystem transformHealthCareSystem(
+      CmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem != null)
+        ? DatamartCmsOverlay.HealthCareSystem.builder()
+            .name(healthCareSystem.name())
+            .url(healthCareSystem.url())
+            .covidUrl(healthCareSystem.covidUrl())
+            .healthConnectPhone(healthCareSystem.healthConnectPhone())
+            .build()
+        : null;
   }
 }

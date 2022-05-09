@@ -9,7 +9,6 @@ import lombok.experimental.UtilityClass;
 /** Helper class for CMS overlay operating status and detailed services. */
 @UtilityClass
 public final class CmsOverlayHelper {
-
   private static final ObjectMapper DATAMART_MAPPER =
       DatamartFacilitiesJacksonConfig.createMapper();
 
@@ -19,6 +18,14 @@ public final class CmsOverlayHelper {
     return (detailedServices == null)
         ? List.of()
         : List.of(DATAMART_MAPPER.readValue(detailedServices, DatamartDetailedService[].class));
+  }
+
+  /** Obtain DatamartFacility health care system from JSON string. */
+  @SneakyThrows
+  public static DatamartCmsOverlay.HealthCareSystem getHealthCareSystem(String healthCareSystem) {
+    return (healthCareSystem == null)
+        ? null
+        : DATAMART_MAPPER.readValue(healthCareSystem, DatamartCmsOverlay.HealthCareSystem.class);
   }
 
   /** Obtain DatamartFacility operating status from JSON string. */
@@ -35,6 +42,13 @@ public final class CmsOverlayHelper {
     return (detailedServices == null || detailedServices.isEmpty())
         ? null
         : DATAMART_MAPPER.writeValueAsString(detailedServices);
+  }
+
+  /** Obtain JSON string representation of DatamartFacility health care system. */
+  @SneakyThrows
+  public static String serializeHealthCareSystem(
+      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem == null) ? null : DATAMART_MAPPER.writeValueAsString(healthCareSystem);
   }
 
   /** Obtain JSON string representation of DatamartFacility operating status. */

@@ -198,6 +198,9 @@ public class CmsOverlayControllerV0Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -219,6 +222,15 @@ public class CmsOverlayControllerV0Test {
         .hasMessage("The record identified by vha_041 could not be found");
   }
 
+  private DatamartCmsOverlay.HealthCareSystem healthCareSystem() {
+    return DatamartCmsOverlay.HealthCareSystem.builder()
+        .name("Example Health Care System Name")
+        .url("https://www.va.gov/example/locations/facility")
+        .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+        .healthConnectPhone("123-456-7890 x123")
+        .build();
+  }
+
   private DatamartCmsOverlay overlay() {
     return DatamartCmsOverlay.builder()
         .operatingStatus(
@@ -227,7 +239,35 @@ public class CmsOverlayControllerV0Test {
                 .additionalInfo("i need attention")
                 .build())
         .detailedServices(detailedServices(true))
+        .healthCareSystem(healthCareSystem())
         .build();
+  }
+
+  @Test
+  @SneakyThrows
+  void updateHealthCareSystem() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    controller().saveOverlay(pk.toIdString(), CmsOverlayTransformerV0.toCmsOverlay(overlay));
+    var response = controller().getOverlay(pk.toIdString());
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().overlay().healthCareSystem())
+        .isEqualTo(CmsOverlayTransformerV0.toCmsOverlay(overlay()).healthCareSystem());
   }
 
   @Test
@@ -288,6 +328,9 @@ public class CmsOverlayControllerV0Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     List<DatamartDetailedService> additionalServices =

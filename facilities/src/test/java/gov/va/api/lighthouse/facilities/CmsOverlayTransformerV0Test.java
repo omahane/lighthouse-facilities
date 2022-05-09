@@ -208,6 +208,13 @@ public class CmsOverlayTransformerV0Test {
                                 .build()))
                     .changed("2021-02-04T22:36:49+00:00")
                     .build()))
+        .healthCareSystem(
+            DatamartCmsOverlay.HealthCareSystem.builder()
+                .name("Example Health Care System Name")
+                .url("https://www.va.gov/example/locations/facility")
+                .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+                .healthConnectPhone("123-456-7890 x123")
+                .build())
         .build();
   }
 
@@ -392,6 +399,13 @@ public class CmsOverlayTransformerV0Test {
                                 .build()))
                     .changed("2021-02-04T22:36:49+00:00")
                     .build()))
+        .healthCareSystem(
+            CmsOverlay.HealthCareSystem.builder()
+                .name("Example Health Care System Name")
+                .url("https://www.va.gov/example/locations/facility")
+                .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+                .healthConnectPhone("123-456-7890 x123")
+                .build())
         .build();
   }
 

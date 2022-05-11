@@ -630,10 +630,43 @@ public final class Facility implements CanBeEmpty {
         nullable = true)
     String additionalInfo;
 
+    @JsonProperty(value = "supplementalStatus", required = false)
+    @Schema(description = "List of supplemental statuses for VA facility.", nullable = true)
+    List<@Valid SupplementalStatus> supplementalStatuses;
+
     /** Empty elements will be omitted from JSON serialization. */
     @JsonIgnore
     public boolean isEmpty() {
-      return ObjectUtils.isEmpty(code()) && isBlank(additionalInfo());
+      return ObjectUtils.isEmpty(code())
+          && isBlank(additionalInfo())
+          && ObjectUtils.isEmpty(supplementalStatuses());
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(description = "Supplemental status for VA facility.", nullable = true)
+  public static final class SupplementalStatus implements CanBeEmpty {
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    @Schema(description = "Unique id for supplemental status.", example = "COVID_LOW")
+    String id;
+
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    @Schema(
+        description = "Descriptive label for supplemental status.",
+        example = "COVID-19 health protection guidelines: Levels low")
+    String label;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @JsonIgnore
+    public boolean isEmpty() {
+      return isBlank(id()) && isBlank(label());
     }
   }
 

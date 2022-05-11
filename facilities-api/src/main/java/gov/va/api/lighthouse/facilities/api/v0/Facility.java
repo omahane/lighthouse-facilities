@@ -410,6 +410,31 @@ public final class Facility {
                 + " floor visitation information.",
         nullable = true)
     String additionalInfo;
+
+    @JsonProperty(value = "supplemental_status", required = false)
+    @Schema(description = "List of supplemental statuses for VA facility.", nullable = true)
+    List<@Valid SupplementalStatus> supplementalStatuses;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(description = "Supplemental status for VA facility.", nullable = true)
+  public static final class SupplementalStatus {
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    @Schema(description = "Unique id for supplemental status.", example = "COVID_LOW")
+    String id;
+
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    @Schema(
+        description = "Descriptive label for supplemental status.",
+        example = "COVID-19 health protection guidelines: Levels low")
+    String label;
   }
 
   @Data

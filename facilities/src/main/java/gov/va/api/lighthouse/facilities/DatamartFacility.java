@@ -472,6 +472,24 @@ public class DatamartFacility {
     @JsonProperty(value = "additional_info", required = false)
     @Size(max = 300)
     String additionalInfo;
+
+    @JsonProperty(value = "supplemental_status", required = false)
+    List<@Valid SupplementalStatus> supplementalStatuses;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class SupplementalStatus {
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String id;
+
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String label;
   }
 
   @Data

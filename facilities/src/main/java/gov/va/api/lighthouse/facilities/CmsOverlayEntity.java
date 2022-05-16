@@ -54,5 +54,4 @@ public class CmsOverlayEntity {
   @Basic(fetch = FetchType.EAGER)
   @Column(name = "health_care_system")
   private String healthCareSystem;
-
 }

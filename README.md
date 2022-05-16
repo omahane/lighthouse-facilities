@@ -47,7 +47,7 @@ OpenAPI documentation on the
     - Health facilities and Veteran centers from the _A06_ server, sourced from [Veteran Affairs Site Tracking (VAST)](https://reports.vssc.med.va.gov/ReportServer/Pages/ReportViewer.aspx?%2fApps%2fVAST%2fProduction%2fVAST_Snapshot_2&rs:Command=Render) (VA Network Internal).
 * `Geographer Support Services Center (GSSC) Drive Band` documents are periodically uploaded to the `facilities`
   application through management APIs.  These are updated on a monthly basis.
-* `Content Management System (CMS)` provides operating status and service details for various services offered by VA health facilities. This data is updated on-demand by CMS.
+* `Content Management System (CMS)` provides operating status, service details, and health care system information including health connect phone numbers for various services offered by VA health facilities. This data is updated on-demand by CMS.
 
 # Data Flow
 ![Data Flow](src/plantuml/data-flow.png)
@@ -58,7 +58,7 @@ OpenAPI documentation on the
   Collection is an expensive process that is performed periodically.
 * `Content Management System (CMS)` is both a consumer and a producer of information. `CMS` will periodically pull all
   facilities to automatically populate content pages in Drupal.
-  Additionally, regional administrators of CMS data may change the operating status, service details and extended service(s) at any time.
+  Additionally, regional administrators of CMS data may change the operating status, service details, health care system information including health connect phone number, and extended service(s) at any time.
   This information is provided back to the Facilities API through a specialized CMS-dedicated
   endpoint. Operating status is stored in the operational database along side facility data.
 

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -102,6 +103,24 @@ public class CmsOverlayCollectorTest {
     assertThat(cmsOverlays.get(pk.toIdString()))
         .usingRecursiveComparison()
         .isEqualTo(updatedOverlay);
+  }
+
+  @Test
+  @SneakyThrows
+  void loadOverlayDetailedServices() {
+    var id = "vha_561";
+    CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
+    when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
+    when(mockEntity.overlayServices())
+        .thenReturn(
+            Set.of(
+                "Covid19Vaccine", "ColonSurgery", "CriticalCare", "PrimaryCare", "EmergencyCare"));
+    when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
+    HashMap<String, DatamartFacility.HealthService> expectedFacilityCovid19Map = new HashMap<>();
+    expectedFacilityCovid19Map.put(id, DatamartFacility.HealthService.Covid19Vaccine);
+    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    assertThat(collector.getCovid19VaccineServices().get(id))
+        .isEqualTo(DatamartFacility.HealthService.Covid19Vaccine);
   }
 
   @Test

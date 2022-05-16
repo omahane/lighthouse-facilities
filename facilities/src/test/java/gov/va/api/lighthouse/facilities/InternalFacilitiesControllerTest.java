@@ -586,6 +586,92 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
+  void deleteFacilityOverlayWithCovid19BVaccine() {
+    DatamartFacility f =
+        _facility(
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                Facility.HealthService.MentalHealthCare, Facility.HealthService.Covid19Vaccine));
+    ResponseEntity<Void> response = null;
+    FacilityEntity fe = _facilityEntity(f, _overlay());
+    facilityRepository.save(_facilityEntity(f, _overlay()));
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "operating_status");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    RecursiveComparisonConfiguration facilityEntityCompConfig =
+        RecursiveComparisonConfiguration.builder()
+            .withIgnoredFields("version", "lastUpdated")
+            .build();
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                f,
+                DatamartCmsOverlay.builder()
+                    .detailedServices(_overlay_detailed_services())
+                    .build()));
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .detailedServices(_overlay_detailed_services())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "detailed_services");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    // Covid19Vaccine should be remove from facility health services list
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                _facility(
+                    "vha_f1",
+                    "FL",
+                    "South",
+                    1.2,
+                    3.4,
+                    List.of(Facility.HealthService.MentalHealthCare)),
+                DatamartCmsOverlay.builder().operatingStatus(_overlay_operating_status()).build()));
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .operatingStatus(_overlay_operating_status())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", null);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    // Covid19Vaccine should be remove from facility health services list
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                _facility(
+                    "vha_f1",
+                    "FL",
+                    "South",
+                    1.2,
+                    3.4,
+                    List.of(Facility.HealthService.MentalHealthCare)),
+                DatamartCmsOverlay.builder().operatingStatus(null).build()));
+    assertThat(overlayRepository.findAll()).isEmpty();
+  }
+
+  @Test
   void deleteNonExistingFacilityByIdReturnsAccepted() {
     assertThat(_controller().deleteFacilityById("vha_f1").getStatusCodeValue()).isEqualTo(202);
   }

@@ -154,17 +154,20 @@ public class DetailedService {
   })
   @Schema(description = "Service location address.", nullable = true)
   public static final class DetailedServiceAddress {
-    @Schema(example = "50 Irving Street, Northwest", nullable = true)
+    @Schema(
+        description = "Street name and number.",
+        example = "50 Irving Street, Northwest",
+        nullable = true)
     @JsonProperty("address_line1")
     @JsonAlias("addressLine1")
     String address1;
 
-    @Schema(nullable = true)
+    @Schema(description = "Building number.", example = "Bldg 2", nullable = true)
     @JsonProperty("address_line2")
     @JsonAlias("addressLine2")
     String address2;
 
-    @Schema(example = "DC", nullable = true)
+    @Schema(description = "State code.", example = "DC", nullable = true)
     String state;
 
     @Schema(
@@ -180,15 +183,15 @@ public class DetailedService {
     @JsonAlias("clinicName")
     String clinicName;
 
-    @Schema(example = "US", nullable = true)
+    @Schema(description = "Country code.", example = "US", nullable = true)
     @JsonProperty("country_code")
     @JsonAlias("countryCode")
     String countryCode;
 
-    @Schema(example = "Washington", nullable = true)
+    @Schema(description = "City name.", example = "Washington", nullable = true)
     String city;
 
-    @Schema(example = "20422-0001", nullable = true)
+    @Schema(description = "Postal (ZIP) code.", example = "20422-0001", nullable = true)
     @JsonProperty("zip_code")
     @JsonAlias("zipCode")
     String zipCode;
@@ -208,16 +211,23 @@ public class DetailedService {
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(description = "Phone number information for scheduling an appointment.", nullable = true)
   public static final class AppointmentPhoneNumber {
-    @Schema(example = "71234", nullable = true)
+    @Schema(description = "Appointment phone number extension.", example = "71234", nullable = true)
     String extension;
 
-    @Schema(example = "Main phone", nullable = true)
+    @Schema(
+        description =
+            "Appointment phone number label (e.g. 'Main phone', 'Appointment phone', etc).",
+        example = "Main phone",
+        nullable = true)
     String label;
 
-    @Schema(example = "937-268-6511", nullable = true)
+    @Schema(description = "Appointment phone number.", example = "937-268-6511", nullable = true)
     String number;
 
-    @Schema(example = "tel", nullable = true)
+    @Schema(
+        description = "Appointment contact number type (e.g. 'tel', 'fax', etc)",
+        example = "tel",
+        nullable = true)
     String type;
   }
 
@@ -242,7 +252,9 @@ public class DetailedService {
     @JsonAlias("additionalHoursInfo")
     String additionalHoursInfo;
 
-    @Schema(description = "List of email contact information.", nullable = true)
+    @Schema(
+        description = "List of email contact information regarding facility services.",
+        nullable = true)
     @JsonProperty("email_contacts")
     @JsonAlias("emailContacts")
     List<DetailedServiceEmailContact> emailContacts;
@@ -268,14 +280,17 @@ public class DetailedService {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
-  @Schema(description = "Email contact information.", nullable = true)
+  @Schema(description = "Email contact information for facility service.", nullable = true)
   public static final class DetailedServiceEmailContact {
-    @Schema(example = "georgea@va.gov", nullable = true)
+    @Schema(
+        description = "Email address for facility service contact.",
+        example = "georgea@va.gov",
+        nullable = true)
     @JsonProperty("email_address")
     @JsonAlias("emailAddress")
     String emailAddress;
 
-    @Schema(example = "George Anderson", nullable = true)
+    @Schema(description = "Email address label.", example = "George Anderson", nullable = true)
     @JsonProperty("email_label")
     @JsonAlias("emailLabel")
     String emailLabel;
@@ -293,37 +308,43 @@ public class DetailedService {
               + "Hours of operation may vary due to holidays or other events.",
       nullable = true)
   public static final class DetailedServiceHours {
-    @Schema(example = "9AM-5PM", nullable = true)
+    @Schema(description = "Service availability on Mondays.", example = "9AM-5PM", nullable = true)
     @JsonProperty("Monday")
     @JsonAlias("monday")
     String monday;
 
-    @Schema(example = "9AM-5PM", nullable = true)
+    @Schema(description = "Service availability on Tuesdays.", example = "9AM-5PM", nullable = true)
     @JsonProperty("Tuesday")
     @JsonAlias("tuesday")
     String tuesday;
 
-    @Schema(example = "9AM-5PM", nullable = true)
+    @Schema(
+        description = "Service availability on Wednesdays.",
+        example = "9AM-5PM",
+        nullable = true)
     @JsonProperty("Wednesday")
     @JsonAlias("wednesday")
     String wednesday;
 
-    @Schema(example = "9AM-5PM", nullable = true)
+    @Schema(
+        description = "Service availability on Thursdays.",
+        example = "9AM-5PM",
+        nullable = true)
     @JsonProperty("Thursday")
     @JsonAlias("thursday")
     String thursday;
 
-    @Schema(example = "9AM-5PM", nullable = true)
+    @Schema(description = "Service availability on Fridays.", example = "9AM-5PM", nullable = true)
     @JsonProperty("Friday")
     @JsonAlias("friday")
     String friday;
 
-    @Schema(example = "Closed", nullable = true)
+    @Schema(description = "Service availability on Saturdays.", example = "Closed", nullable = true)
     @JsonProperty("Saturday")
     @JsonAlias("saturday")
     String saturday;
 
-    @Schema(example = "Closed", nullable = true)
+    @Schema(description = "Service availability on Sundays.", example = "Closed", nullable = true)
     @JsonProperty("Sunday")
     @JsonAlias("sunday")
     String sunday;

@@ -321,6 +321,9 @@ public class CmsOverlayControllerV1Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -525,6 +528,33 @@ public class CmsOverlayControllerV1Test {
 
   @Test
   @SneakyThrows
+  void updateHealthCareSystem() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    controller().saveOverlay(pk.toIdString(), CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    var response = controller().getOverlay(pk.toIdString());
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().overlay().healthCareSystem())
+        .isEqualTo(CmsOverlayTransformerV1.toCmsOverlay(overlay()).healthCareSystem());
+  }
+
+  @Test
+  @SneakyThrows
   void updateIsAcceptedForKnownStation() {
     Facility f =
         Facility.builder()
@@ -592,6 +622,9 @@ public class CmsOverlayControllerV1Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     List<DatamartDetailedService> additionalServices =

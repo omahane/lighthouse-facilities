@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toDetailedServices;
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toVersionAgnosticDetailedServices;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toFacilityOperatingStatus;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus;
 
@@ -12,7 +14,8 @@ public final class CmsOverlayTransformerV0 {
   public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(DetailedServiceTransformerV0.toDetailedServices(dc.detailedServices()))
+        .detailedServices(toDetailedServices(dc.detailedServices()))
+        .healthCareSystem(transformHeatlhCareSystem(dc.healthCareSystem()))
         .build();
   }
 
@@ -20,9 +23,40 @@ public final class CmsOverlayTransformerV0 {
   public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
     return DatamartCmsOverlay.builder()
         .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
-        .detailedServices(
-            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
-                overlay.detailedServices()))
+        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
+        .healthCareSystem(transformHeatlhCareSystem(overlay.healthCareSystem()))
         .build();
+  }
+
+  /**
+   * Transform DatamartCmsOverlay.HealthCareSystem object to version 0 CmsOverlay.HealthCareSystem
+   * object
+   */
+  public static CmsOverlay.HealthCareSystem transformHeatlhCareSystem(
+      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem != null)
+        ? CmsOverlay.HealthCareSystem.builder()
+            .name(healthCareSystem.name())
+            .url(healthCareSystem.url())
+            .covidUrl(healthCareSystem.covidUrl())
+            .healthConnectPhone(healthCareSystem.healthConnectPhone())
+            .build()
+        : null;
+  }
+
+  /**
+   * Transform version 0 CmsOverlay.HealthCareSystem object to DatamartCmsOverlay.HealthCareSystem
+   * object
+   */
+  public static DatamartCmsOverlay.HealthCareSystem transformHeatlhCareSystem(
+      CmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem != null)
+        ? DatamartCmsOverlay.HealthCareSystem.builder()
+            .name(healthCareSystem.name())
+            .url(healthCareSystem.url())
+            .covidUrl(healthCareSystem.covidUrl())
+            .healthConnectPhone(healthCareSystem.healthConnectPhone())
+            .build()
+        : null;
   }
 }

@@ -98,6 +98,8 @@ public class CmsOverlayCollector {
                       // )
                       CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices())
                       : null)
+              .healthCareSystem(
+                  CmsOverlayHelper.getHealthCareSystem(cmsOverlayEntity.healthCareSystem()))
               .build();
       // Save updates made to overlay with Covid services
       final OperatingStatus operatingStatus = overlay.operatingStatus();
@@ -109,6 +111,8 @@ public class CmsOverlayCollector {
                 .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
                 .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
                 .overlayServices(cmsOverlayEntity.overlayServices())
+                .healthCareSystem(
+                    CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
                 .build());
         log.info(
             "CMS overlay updated for {} facility", sanitize(cmsOverlayEntity.id().toIdString()));

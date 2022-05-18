@@ -284,6 +284,9 @@ public class FacilitiesCollector {
             df -> {
               Set<HealthService> facilityHealthServices = new HashSet<>();
               facilityHealthServices.add(facilityCovid19Services.get(df.id()));
+              if (df.attributes().services() == null) {
+                df.attributes().services(DatamartFacility.Services.builder().build());
+              }
               if (df.attributes().services().health() != null) {
                 facilityHealthServices.addAll(df.attributes().services().health());
               }

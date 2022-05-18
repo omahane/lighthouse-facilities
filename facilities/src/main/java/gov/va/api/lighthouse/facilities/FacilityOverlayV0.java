@@ -16,6 +16,7 @@ import lombok.Value;
 @Builder
 @Value
 public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility> {
+
   private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private static OperatingStatus determineOperatingStatusFromActiveStatus(

@@ -17,6 +17,10 @@ import lombok.Value;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
 @JsonPropertyOrder({"data", "meta"})
+@Schema(
+    description =
+        "Response which contains minimum and maximum time it takes " + "to reach facility.",
+    nullable = true)
 public final class NearbyResponse {
   List<@Valid @NotNull Nearby> data;
 
@@ -35,12 +39,12 @@ public final class NearbyResponse {
   @Schema(nullable = true)
   public static final class NearbyAttributes {
     @NotNull
-    @Schema(example = "10")
+    @Schema(description = "Minimum time to reach facility.", example = "10")
     @JsonProperty("min_time")
     Integer minTime;
 
     @NotNull
-    @Schema(example = "20")
+    @Schema(description = "Maximum time to reach facility.", example = "20")
     @JsonProperty("max_time")
     Integer maxTime;
   }
@@ -50,10 +54,14 @@ public final class NearbyResponse {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(
-      description = "JSON API-compliant object containing metadata about this response",
+      description = "JSON API-compliant object containing metadata about this response.",
       nullable = true)
   public static final class Meta {
-    @Schema(example = "APR2021", nullable = true)
+    @Schema(
+        description =
+            "Version of the drive time band " + "data set used to generate this response.",
+        example = "APR2021",
+        nullable = true)
     @JsonProperty("band_version")
     String bandVersion;
   }
@@ -63,14 +71,14 @@ public final class NearbyResponse {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(
-      description = "JSON API-compliant object describing a nearby VA facility",
+      description = "JSON API-compliant object describing a nearby VA facility.",
       nullable = true)
   public static final class Nearby {
-    @Schema(example = "vha_688")
+    @Schema(description = "Identifier for facility.", example = "vha_688")
     @NotNull
     String id;
 
-    @Schema(example = "va_health_facility")
+    @Schema(description = "Type of facility.", example = "va_health_facility")
     @NotNull
     Type type;
 

@@ -346,6 +346,13 @@ public class CmsOverlayIT {
             .code(OperatingStatusCode.NOTICE)
             .additionalInfo("Update1")
             .build();
+    CmsOverlay.HealthCareSystem sysInfo =
+        CmsOverlay.HealthCareSystem.builder()
+            .name("Example Health Care System Name")
+            .url("https://www.va.gov/example/locations/facility")
+            .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+            .healthConnectPhone("123-456-7890 x123")
+            .build();
     var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
@@ -428,6 +435,28 @@ public class CmsOverlayIT {
             .facility();
     assertThat(facility.attributes().operatingStatus()).isEqualTo(ops);
     assertThat(facility.attributes().detailedServices())
+        .usingRecursiveComparison()
+        .ignoringFields("serviceId")
+        .isEqualTo(detailedServices());
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .body(
+                    MAPPER.writeValueAsString(
+                        CmsOverlay.builder().healthCareSystem(sysInfo).build()))
+                .request(
+                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+        .expect(200);
+    cmsOverlay =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(
+                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+            .expect(200)
+            .expectValid(CmsOverlayResponse.class);
+    assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
+    assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(sysInfo);
+    assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
         .isEqualTo(detailedServices());

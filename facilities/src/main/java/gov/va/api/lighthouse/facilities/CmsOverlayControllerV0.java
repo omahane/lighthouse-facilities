@@ -77,6 +77,9 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                                 .parallelStream()
                                 .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
                                 .collect(Collectors.toList()))
+                        .healthCareSystem(
+                            CmsOverlayHelper.getHealthCareSystem(
+                                cmsOverlayEntity.healthCareSystem()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);
@@ -150,6 +153,8 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               .cmsOperatingStatus(
                   CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
               .cmsServices(CmsOverlayHelper.serializeDetailedServices(activeServices))
+              .healthCareSystem(
+                  CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
               .build();
     } else {
       cmsOverlayEntity = existingCmsOverlayEntity.get();
@@ -163,6 +168,10 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
             findServicesToSave(cmsOverlayEntity, id, overlay.detailedServices(), DATAMART_MAPPER);
         cmsOverlayEntity.cmsServices(
             CmsOverlayHelper.serializeDetailedServices(toSaveDetailedServices));
+      }
+      if (overlay.healthCareSystem != null) {
+        cmsOverlayEntity.healthCareSystem(
+            CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()));
       }
     }
     cmsOverlayRepository.save(cmsOverlayEntity);
@@ -238,8 +247,8 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .collect(Collectors.toList()));
       }
 
-      if (facility.attributes().services.health() != null) {
-        facilityHealthServices.addAll(facility.attributes().services.health());
+      if (facility.attributes().services().health() != null) {
+        facilityHealthServices.addAll(facility.attributes().services().health());
       }
 
       List<DatamartFacility.HealthService> facilityHealthServiceList =

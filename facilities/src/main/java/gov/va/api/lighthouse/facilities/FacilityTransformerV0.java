@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
@@ -54,8 +55,34 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
                         datamartFacilityOperatingStatus.code().name())
                     : null)
             .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toFacilitySupplementalStatuses(
+                    datamartFacilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
+  }
+
+  /** Transform DatamartFacility supplemental status to version 0 facility supplemental status. */
+  public static Facility.SupplementalStatus toFacilitySupplementalStatus(
+      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+    return Facility.SupplementalStatus.builder()
+        .id(datamartFacilitySupplementalStatus.id())
+        .label(datamartFacilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of DatamartFacility supplemental statuses to version 0 facility supplemental
+   * statuses.
+   */
+  public static List<Facility.SupplementalStatus> toFacilitySupplementalStatuses(
+      List<DatamartFacility.SupplementalStatus> datamartFacilitySupplementalStatuses) {
+    if (datamartFacilitySupplementalStatuses != null) {
+      return datamartFacilitySupplementalStatuses.parallelStream()
+          .map(fss -> toFacilitySupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform version 0 facility to DatamartFacility for persistence. */
@@ -105,8 +132,34 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
                         facilityOperatingStatus.code().name())
                     : null)
             .additionalInfo(facilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toVersionAgnosticSupplementalStatuses(
+                    facilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
+  }
+
+  /** Transform version 0 facility supplemental status to DatamartFacility supplemental status. */
+  public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
+      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+    return DatamartFacility.SupplementalStatus.builder()
+        .id(facilitySupplementalStatus.id())
+        .label(facilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of version 0 facility supplemental statuses to DatamartFacility supplemental
+   * statuses.
+   */
+  public static List<DatamartFacility.SupplementalStatus> toVersionAgnosticSupplementalStatuses(
+      List<Facility.SupplementalStatus> facilitySupplementalStatuses) {
+    if (facilitySupplementalStatuses != null) {
+      return facilitySupplementalStatuses.parallelStream()
+          .map(fss -> toVersionAgnosticSupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform DatamartFacility active status to version 0 facility active status. */
@@ -277,6 +330,7 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
         ? Facility.Phone.builder()
             .fax(datamartFacilityPhone.fax())
             .main(datamartFacilityPhone.main())
+            .healthConnect(datamartFacilityPhone.healthConnect())
             .afterHours(datamartFacilityPhone.afterHours())
             .enrollmentCoordinator(datamartFacilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(datamartFacilityPhone.mentalHealthClinic())
@@ -292,6 +346,7 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
         ? DatamartFacility.Phone.builder()
             .fax(facilityPhone.fax())
             .main(facilityPhone.main())
+            .healthConnect(facilityPhone.healthConnect())
             .afterHours(facilityPhone.afterHours())
             .enrollmentCoordinator(facilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(facilityPhone.mentalHealthClinic())

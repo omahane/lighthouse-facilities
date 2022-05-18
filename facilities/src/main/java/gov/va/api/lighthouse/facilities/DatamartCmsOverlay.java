@@ -18,4 +18,22 @@ public class DatamartCmsOverlay {
 
   @JsonProperty("detailed_services")
   List<@Valid DatamartDetailedService> detailedServices;
+
+  @JsonProperty("system")
+  HealthCareSystem healthCareSystem;
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static class HealthCareSystem {
+    String name;
+
+    String url;
+
+    @JsonProperty("covid_url")
+    String covidUrl;
+
+    @JsonProperty("va_health_connect_phone")
+    String healthConnectPhone;
+  }
 }

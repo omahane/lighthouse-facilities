@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartCmsOverlay.HealthCareSystem;
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,14 @@ public final class CmsOverlayHelper {
             .collect(Collectors.toList());
   }
 
+  /** Obtain DatamartFacility health care system from JSON string. */
+  @SneakyThrows
+  public static HealthCareSystem getHealthCareSystem(String healthCareSystem) {
+    return (healthCareSystem == null)
+        ? null
+        : DATAMART_MAPPER.readValue(healthCareSystem, HealthCareSystem.class);
+  }
+
   /** Obtain DatamartFacility operating status from JSON string. */
   @SneakyThrows
   public static OperatingStatus getOperatingStatus(String operatingStatus) {
@@ -40,6 +49,12 @@ public final class CmsOverlayHelper {
     return (detailedServices == null || detailedServices.isEmpty())
         ? null
         : DATAMART_MAPPER.writeValueAsString(detailedServices);
+  }
+
+  /** Obtain JSON string representation of DatamartFacility health care system. */
+  @SneakyThrows
+  public static String serializeHealthCareSystem(HealthCareSystem healthCareSystem) {
+    return (healthCareSystem == null) ? null : DATAMART_MAPPER.writeValueAsString(healthCareSystem);
   }
 
   /** Obtain JSON string representation of DatamartFacility operating status. */

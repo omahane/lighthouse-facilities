@@ -62,6 +62,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     DatamartFacility.Phone.builder()
                         .main("202-555-1212")
                         .pharmacy("202-555-1213")
+                        .healthConnect("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")
                         .afterHours("202-555-1216")
@@ -115,6 +116,16 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     DatamartFacility.OperatingStatus.builder()
                         .code(DatamartFacility.OperatingStatusCode.NORMAL)
                         .additionalInfo("additional operating status info")
+                        .supplementalStatuses(
+                            List.of(
+                                DatamartFacility.SupplementalStatus.builder()
+                                    .id("COVID_HIGH")
+                                    .label("This is a high Covid level")
+                                    .build(),
+                                DatamartFacility.SupplementalStatus.builder()
+                                    .id("EBOLA_LOW")
+                                    .label("This is a low Ebola level")
+                                    .build()))
                         .build())
                 .detailedServices(
                     healthForDetailedServices != null
@@ -185,6 +196,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 .phone(
                     Facility.Phone.builder()
                         .main("202-555-1212")
+                        .healthConnect("202-555-1213")
                         .pharmacy("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")
@@ -239,6 +251,16 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     Facility.OperatingStatus.builder()
                         .code(Facility.OperatingStatusCode.NORMAL)
                         .additionalInfo("additional operating status info")
+                        .supplementalStatuses(
+                            List.of(
+                                Facility.SupplementalStatus.builder()
+                                    .id("COVID_HIGH")
+                                    .label("This is a high Covid level")
+                                    .build(),
+                                Facility.SupplementalStatus.builder()
+                                    .id("EBOLA_LOW")
+                                    .label("This is a low Ebola level")
+                                    .build()))
                         .build())
                 .detailedServices(
                     healthForDetailedServices != null

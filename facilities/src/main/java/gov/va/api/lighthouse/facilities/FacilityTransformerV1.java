@@ -80,8 +80,34 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                         datamartFacilityOperatingStatus.code().name())
                     : null)
             .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toFacilitySupplementalStatuses(
+                    datamartFacilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
+  }
+
+  /** Transform DatamartFacility supplemental status to version 1 facility supplemental status. */
+  public static Facility.SupplementalStatus toFacilitySupplementalStatus(
+      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+    return Facility.SupplementalStatus.builder()
+        .id(datamartFacilitySupplementalStatus.id())
+        .label(datamartFacilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of DatamartFacility supplemental statuses to version 1 facility supplemental
+   * statuses.
+   */
+  public static List<Facility.SupplementalStatus> toFacilitySupplementalStatuses(
+      List<DatamartFacility.SupplementalStatus> datamartFacilitySupplementalStatuses) {
+    if (datamartFacilitySupplementalStatuses != null) {
+      return datamartFacilitySupplementalStatuses.parallelStream()
+          .map(fss -> toFacilitySupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform version 1 facility to DatamartFacility for persistence. */
@@ -129,6 +155,9 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                         facilityOperatingStatus.code().name())
                     : null)
             .additionalInfo(facilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toVersionAgnosticSupplementalStatuses(
+                    facilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
   }
@@ -144,6 +173,29 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
     } else {
       return null;
     }
+  }
+
+  /** Transform version 1 facility supplemental status to DatamartFacility supplemental status. */
+  public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
+      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+    return DatamartFacility.SupplementalStatus.builder()
+        .id(facilitySupplementalStatus.id())
+        .label(facilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of version 1 facility supplemental statuses to DatamartFacility supplemental
+   * statuses.
+   */
+  public static List<DatamartFacility.SupplementalStatus> toVersionAgnosticSupplementalStatuses(
+      List<Facility.SupplementalStatus> facilitySupplementalStatuses) {
+    if (facilitySupplementalStatuses != null) {
+      return facilitySupplementalStatuses.parallelStream()
+          .map(fss -> toVersionAgnosticSupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform DatamartFacility active status to version 1 facility active status. */
@@ -314,6 +366,7 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         ? Facility.Phone.builder()
             .fax(datamartFacilityPhone.fax())
             .main(datamartFacilityPhone.main())
+            .healthConnect(datamartFacilityPhone.healthConnect())
             .afterHours(datamartFacilityPhone.afterHours())
             .enrollmentCoordinator(datamartFacilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(datamartFacilityPhone.mentalHealthClinic())
@@ -329,6 +382,7 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         ? DatamartFacility.Phone.builder()
             .fax(facilityPhone.fax())
             .main(facilityPhone.main())
+            .healthConnect(facilityPhone.healthConnect())
             .afterHours(facilityPhone.afterHours())
             .enrollmentCoordinator(facilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(facilityPhone.mentalHealthClinic())

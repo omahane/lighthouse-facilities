@@ -510,3 +510,16 @@ databaseChangeLog:
         - dropTable:
             tableName: cms_graveyard_overlay_detailed_services
             schemaName: app
+  - changeSet:
+      id: 19
+      author: axolotl
+      changes:
+        addColumn:
+          tableName: cms_overlay
+          schemaName: app
+          columns:
+            - column:
+                name: health_care_system
+                type: clob
+                constraints:
+                  nullable: true

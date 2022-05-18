@@ -49,4 +49,9 @@ public class CmsOverlayEntity {
       joinColumns = {@JoinColumn(name = "station_number"), @JoinColumn(name = "type")})
   @Column(length = 48, name = "overlay_detailed_services")
   private Set<String> overlayServices = new HashSet<>();
+
+  @Lob
+  @Basic(fetch = FetchType.EAGER)
+  @Column(name = "health_care_system")
+  private String healthCareSystem;
 }

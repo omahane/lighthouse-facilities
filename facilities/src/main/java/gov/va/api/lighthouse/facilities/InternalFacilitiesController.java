@@ -126,7 +126,7 @@ public class InternalFacilitiesController {
 
   /** Populate the given record with facility data _EXCEPT_ of the PK. */
   @SneakyThrows
-  static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
+  public static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
     checkArgument(record.id() != null);
     record.latitude(datamartFacility.attributes().latitude().doubleValue());
     record.longitude(datamartFacility.attributes().longitude().doubleValue());

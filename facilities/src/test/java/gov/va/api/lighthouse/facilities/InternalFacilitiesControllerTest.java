@@ -30,15 +30,14 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
+import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
+import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import lombok.SneakyThrows;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
@@ -47,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -449,6 +449,28 @@ public class InternalFacilitiesControllerTest {
     assertThat(responseVetCenter.facilitiesCreated()).isEqualTo(List.of("vc_f1"));
     assertThat(responseVetCenter.problems())
         .contains(ReloadResponse.Problem.of("vc_f1", "Missing VISN"));
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_setHealthConnectPhoneNumber() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
   }
 
   @Test

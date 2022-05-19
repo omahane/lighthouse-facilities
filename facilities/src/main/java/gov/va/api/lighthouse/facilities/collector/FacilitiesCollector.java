@@ -251,8 +251,9 @@ public class FacilitiesCollector {
     return entities;
   }
 
+  /** Updates facility based on CMS Overlay data. * */
   @SneakyThrows
-  void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+  public void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
     HashMap<String, DatamartCmsOverlay> cmsOverlays;
     try {
       cmsOverlays = cmsOverlayCollector.loadAndUpdateCmsOverlays();
@@ -264,6 +265,13 @@ public class FacilitiesCollector {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
+        datamartFacility
+            .attributes()
+            .phone()
+            .healthConnect(
+                cmsOverlay.healthCareSystem() == null
+                    ? null
+                    : cmsOverlay.healthCareSystem().healthConnectPhone());
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
       }

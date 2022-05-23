@@ -9,8 +9,7 @@ import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPEC
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_2;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_3;
 import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
@@ -291,6 +290,79 @@ public class InternalFacilitiesControllerTest {
     assertThat(facilityRepository.findAll())
         .usingRecursiveFieldByFieldElementComparator(comparisonConfig)
         .containsExactlyInAnyOrder(_facilityEntity(f1), _facilityEntity(f2));
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullHealthCareSystem() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullHealthCareSystemAndPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    facility.attributes().phone(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    facility.attributes().phone(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
   }
 
   @Test

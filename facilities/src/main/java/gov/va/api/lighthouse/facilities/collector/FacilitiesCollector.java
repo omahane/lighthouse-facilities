@@ -265,13 +265,24 @@ public class FacilitiesCollector {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
-        datamartFacility
-            .attributes()
-            .phone()
-            .healthConnect(
-                cmsOverlay.healthCareSystem() == null
-                    ? null
-                    : cmsOverlay.healthCareSystem().healthConnectPhone());
+
+        if (cmsOverlay.healthCareSystem() != null) {
+          if (cmsOverlay.healthCareSystem().healthConnectPhone() != null) {
+            if (datamartFacility.attributes().phone() != null) {
+              datamartFacility
+                  .attributes()
+                  .phone()
+                  .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone());
+            } else {
+              datamartFacility
+                  .attributes()
+                  .phone(
+                      DatamartFacility.Phone.builder()
+                          .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone())
+                          .build());
+            }
+          }
+        }
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
       }

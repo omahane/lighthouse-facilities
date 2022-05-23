@@ -261,6 +261,7 @@ vc_0129V,https://www.va.gov/lewiston-vet-center/
 vc_0130V,https://www.va.gov/sanford-vet-center/
 vc_0131V,https://www.va.gov/syracuse-vet-center/
 vc_0132V,https://www.va.gov/staten-island-vet-center/
+vc_0133V,https://www.va.gov/harlem-vet-center/
 vc_0134V,https://www.va.gov/berlin-vet-center/
 vc_0135V,https://www.va.gov/watertown-vet-center/
 vc_0136V,https://www.va.gov/cape-cod-vet-center/
@@ -315,6 +316,7 @@ vc_0503V,https://www.va.gov/boise-vet-center/
 vc_0505V,https://www.va.gov/las-vegas-vet-center/
 vc_0506V,https://www.va.gov/reno-vet-center/
 vc_0508V,https://www.va.gov/tacoma-vet-center/
+vc_0509V,https://www.va.gov/billings-vet-center/
 vc_0510V,https://www.va.gov/spokane-vet-center/
 vc_0511V,https://www.va.gov/fairbanks-vet-center
 vc_0512V,https://www.va.gov/wasilla-vet-center/
@@ -396,10 +398,12 @@ vc_0704V,https://www.va.gov/shreveport-vet-center/
 vc_0705V,https://www.va.gov/corpus-christi-vet-center/
 vc_0706V,https://www.va.gov/dallas-vet-center/
 vc_0707V,https://www.va.gov/el-paso-vet-center/
+vc_0708V,https://www.va.gov/fort-worth-vet-center/
 vc_0709V,https://www.va.gov/jackson-vet-center/
 vc_0710V,https://www.va.gov/houston-southwest-vet-center/
 vc_0712V,https://www.va.gov/laredo-vet-center/
 vc_0714V,https://www.va.gov/lubbock-vet-center/
+vc_0715V,https://www.va.gov/mcallen-vet-center/
 vc_0716V,https://www.va.gov/midland-vet-center/
 vc_0718V,https://www.va.gov/oklahoma-city-vet-center/
 vc_0721V,https://www.va.gov/san-antonio-northeast-vet-center/
@@ -410,6 +414,7 @@ vc_0726V,https://www.va.gov/killeen-heights-vet-center/
 vc_0728V,https://www.va.gov/lawton-vet-center/
 vc_0729V,https://www.va.gov/san-antonio-northwest-vet-center/
 vc_0730V,https://www.va.gov/mesquite-vet-center/
+vc_0731V,https://www.va.gov/spring-vet-center/
 vc_0732V,https://www.va.gov/arlington-vet-center/
 vc_0734V,https://www.va.gov/alexandria-la-vet-center/
 vc_0735V,https://www.va.gov/beaumont-vet-center/
@@ -424,6 +429,7 @@ vc_0814MVC,https://www.va.gov/greenville-nc-vet-center/
 vc_0826MVC,https://www.va.gov/escanaba-vet-center/
 vc_0827MVC,https://www.va.gov/boise-vet-center/
 vc_0828MVC,https://www.va.gov/tacoma-vet-center/
+vc_0829MVC,https://www.va.gov/billings-vet-center/
 vc_0830MVC,https://www.va.gov/spokane-vet-center/
 vc_0831MVC,https://www.va.gov/salt-lake-city-vet-center/
 vc_0832MVC,https://www.va.gov/farmington-vet-center/
@@ -451,6 +457,7 @@ vc_0871MVC,https://www.va.gov/grants-pass-vet-center/
 vc_0873MVC,https://www.va.gov/rochester-vet-center/
 vc_0874MVC,https://www.va.gov/sussex-county-vet-center/
 vc_0876MVC,https://www.va.gov/dubois-vet-center/
+vc_0879MVC,https://www.va.gov/mcallen-vet-center/
 vc_0881MVC,https://www.va.gov/fort-collins-vet-center/
 vc_0882MVC,https://www.va.gov/farmington-vet-center/
 vc_0883MVC,https://www.va.gov/san-marcos-vet-center/

@@ -9,7 +9,7 @@
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities-api</artifactId>
-  <version>3.0.136</version>
+  <version>3.0.137-SNAPSHOT</version>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>

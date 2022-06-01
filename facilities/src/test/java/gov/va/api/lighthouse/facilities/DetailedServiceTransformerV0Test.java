@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,13 @@ public class DetailedServiceTransformerV0Test {
   }
 
   @Test
+  void toDetailedServiceEmailContacts() {
+    assertThat(DetailedServiceTransformerV0.toDetailedServiceEmailContacts(null)).isNull();
+    assertThat(DetailedServiceTransformerV0.toDetailedServiceEmailContacts(new ArrayList<>()))
+        .isEmpty();
+  }
+
+  @Test
   void toDetailedServiceNullArgs() {
     assertThrows(
         NullPointerException.class, () -> DetailedServiceTransformerV0.toDetailedService(null));
@@ -54,6 +62,16 @@ public class DetailedServiceTransformerV0Test {
   @Test
   void toDetailedServicesNullArgs() {
     assertThat(DetailedServiceTransformerV0.toDetailedServices(null)).isEqualTo(null);
+  }
+
+  @Test
+  void toVersionAgnosticDetailedServiceEmailContacts() {
+    assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceEmailContacts(null))
+        .isNull();
+    assertThat(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceEmailContacts(
+                new ArrayList<>()))
+        .isEmpty();
   }
 
   @Test
@@ -73,5 +91,69 @@ public class DetailedServiceTransformerV0Test {
   void toVersionAgnosticDetailedServicesNullArgs() {
     assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(null))
         .isEqualTo(null);
+  }
+
+  @Test
+  void transformDatamartDetailedServiceLocation() {
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceLocation(
+                (DatamartDetailedService.DetailedServiceLocation) null))
+        .isNull();
+  }
+
+  @Test
+  void transformDetailedServiceAddress() {
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceAddress(
+                (DatamartDetailedService.DetailedServiceAddress) null))
+        .isNull();
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceAddress(
+                (DetailedService.DetailedServiceAddress) null))
+        .isNull();
+  }
+
+  @Test
+  void transformDetailedServiceEmailContact() {
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceEmailContact(
+                (DatamartDetailedService.DetailedServiceEmailContact) null))
+        .isNull();
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceEmailContact(
+                (DetailedService.DetailedServiceEmailContact) null))
+        .isNull();
+  }
+
+  @Test
+  void transformDetailedServiceHours() {
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceHours(
+                (DatamartDetailedService.DetailedServiceHours) null))
+        .isNull();
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceHours(
+                (DetailedService.DetailedServiceHours) null))
+        .isNull();
+  }
+
+  @Test
+  void transformDetailedServiceLocation() {
+    assertThat(
+            DetailedServiceTransformerV0.transformDetailedServiceLocation(
+                (DetailedService.DetailedServiceLocation) null))
+        .isNull();
+  }
+
+  @Test
+  void transfromDetailedServiceAppointmentPhoneNumber() {
+    assertThat(
+            DetailedServiceTransformerV0.transfromDetailedServiceAppointmentPhoneNumber(
+                (DatamartDetailedService.AppointmentPhoneNumber) null))
+        .isNull();
+    assertThat(
+            DetailedServiceTransformerV0.transfromDetailedServiceAppointmentPhoneNumber(
+                (DetailedService.AppointmentPhoneNumber) null))
+        .isNull();
   }
 }

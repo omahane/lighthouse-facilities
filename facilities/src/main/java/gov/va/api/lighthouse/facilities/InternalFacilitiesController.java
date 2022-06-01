@@ -281,7 +281,6 @@ public class InternalFacilitiesController {
           facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(df));
         }
       }
-
       facilityRepository.save(facilityEntity);
     }
     return ResponseEntity.ok().build();

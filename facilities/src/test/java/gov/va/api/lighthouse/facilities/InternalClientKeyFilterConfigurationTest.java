@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -11,8 +12,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 class InternalClientKeyFilterConfigurationTest {
+  @Test
+  @SneakyThrows
+  void filterRegistration() {
+    InternalClientKeyFilterConfiguration internalClientKeyFilterConfiguration =
+        new InternalClientKeyFilterConfiguration();
+    FilterRegistrationBean<InternalClientKeyFilterConfiguration.ClientKeyFilter> frb =
+        internalClientKeyFilterConfiguration.filterRegistration("axolotl");
+    assertThat(frb.getFilter())
+        .isInstanceOf(InternalClientKeyFilterConfiguration.ClientKeyFilter.class);
+  }
+
   @Test
   @SneakyThrows
   void match() {
@@ -20,12 +33,10 @@ class InternalClientKeyFilterConfigurationTest {
     when(request.getHeader("client-key")).thenReturn("topsecret");
     HttpServletResponse response = mock(HttpServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
-
     InternalClientKeyFilterConfiguration.ClientKeyFilter.builder()
         .clientKey("topsecret")
         .build()
         .doFilterInternal(request, response, chain);
-
     verify(chain, times(1)).doFilter(request, response);
   }
 
@@ -37,12 +48,10 @@ class InternalClientKeyFilterConfigurationTest {
     HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
     FilterChain chain = mock(FilterChain.class);
-
     InternalClientKeyFilterConfiguration.ClientKeyFilter.builder()
         .clientKey("topsecret")
         .build()
         .doFilterInternal(request, response, chain);
-
     verify(response, times(1)).setStatus(401);
     verify(response, times(1)).setHeader("Content-Type", "application/json");
   }
@@ -54,12 +63,10 @@ class InternalClientKeyFilterConfigurationTest {
     HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
     FilterChain chain = mock(FilterChain.class);
-
     InternalClientKeyFilterConfiguration.ClientKeyFilter.builder()
         .clientKey("topsecret")
         .build()
         .doFilterInternal(request, response, chain);
-
     verify(response, times(1)).setStatus(401);
     verify(response, times(1)).setHeader("Content-Type", "application/json");
   }

@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
@@ -67,6 +68,8 @@ public class FacilitiesControllerV1Test {
                                 .build())
                         .build())
                 .build());
+    // Test empty list if from index is larger than size of data.
+    assertThat(controller().all(3, 3).data()).isEmpty();
   }
 
   @Test
@@ -139,6 +142,23 @@ public class FacilitiesControllerV1Test {
                     controller(), new ArrayList<BigDecimal>(), null, null, null))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new ExceptionsUtils.InvalidParameter("bbox", "[]"));
+
+    List<BigDecimal> bbox = new ArrayList<>();
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+
+    assertThatThrownBy(
+            () ->
+                entitiesByBoundingBoxMethod.invoke(
+                    controller(),
+                    bbox,
+                    null,
+                    new ArrayList<>(Collections.singleton("InvalidService")),
+                    null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new ExceptionsUtils.InvalidParameter("services", "InvalidService"));
     // Nested exception ExceptionsUtils.InvalidParameter
     Method entitiesByLatLongMethod =
         FacilitiesControllerV1.class.getDeclaredMethod(
@@ -197,7 +217,10 @@ public class FacilitiesControllerV1Test {
                             Facility.HealthService.Urology)))
                 .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
+        .thenReturn(
+            List.of(
+                FacilitySamples.defaultSamples().facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples().facilityEntity("vha_691GB")));
     assertThat(
             controller()
                 .jsonFacilitiesByBoundingBox(
@@ -221,9 +244,10 @@ public class FacilitiesControllerV1Test {
                         .first(
                             "http://foo/bp/v1/facilities?bbox%5B%5D=-97.65&bbox%5B%5D=26.16&bbox%5B%5D=-97.67&bbox%5B%5D=26.18&mobile=false&services%5B%5D=cardiology&services%5B%5D=audiology&services%5B%5D=urology&type=health&page=1&per_page=1")
                         .prev(null)
-                        .next(null)
+                        .next(
+                            "http://foo/bp/v1/facilities?bbox%5B%5D=-97.65&bbox%5B%5D=26.16&bbox%5B%5D=-97.67&bbox%5B%5D=26.18&mobile=false&services%5B%5D=cardiology&services%5B%5D=audiology&services%5B%5D=urology&type=health&page=2&per_page=1")
                         .last(
-                            "http://foo/bp/v1/facilities?bbox%5B%5D=-97.65&bbox%5B%5D=26.16&bbox%5B%5D=-97.67&bbox%5B%5D=26.18&mobile=false&services%5B%5D=cardiology&services%5B%5D=audiology&services%5B%5D=urology&type=health&page=1&per_page=1")
+                            "http://foo/bp/v1/facilities?bbox%5B%5D=-97.65&bbox%5B%5D=26.16&bbox%5B%5D=-97.67&bbox%5B%5D=26.18&mobile=false&services%5B%5D=cardiology&services%5B%5D=audiology&services%5B%5D=urology&type=health&page=2&per_page=1")
                         .build())
                 .meta(
                     FacilitiesResponse.FacilitiesMetadata.builder()
@@ -231,8 +255,8 @@ public class FacilitiesControllerV1Test {
                             Pagination.builder()
                                 .currentPage(1)
                                 .entriesPerPage(1)
-                                .totalPages(1)
-                                .totalEntries(1)
+                                .totalPages(2)
+                                .totalEntries(2)
                                 .build())
                         .build())
                 .build());

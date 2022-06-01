@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
@@ -123,6 +124,33 @@ public class FacilitiesControllerV0Test {
                     controller(), new ArrayList<BigDecimal>(), null, null, null))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new ExceptionsUtils.InvalidParameter("bbox", "[]"));
+
+    List<BigDecimal> bbox = new ArrayList<>();
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    assertThatThrownBy(
+            () ->
+                entitiesByBoundingBoxMethod.invoke(
+                    controller(),
+                    bbox,
+                    null,
+                    new ArrayList<>(Collections.singleton("InvalidService")),
+                    null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new ExceptionsUtils.InvalidParameter("services", "InvalidService"));
+
+    assertThatThrownBy(
+            () ->
+                entitiesByBoundingBoxMethod.invoke(
+                    controller(),
+                    bbox,
+                    null,
+                    new ArrayList<>(Collections.singleton("InvalidService")),
+                    null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new ExceptionsUtils.InvalidParameter("services", "InvalidService"));
     // Nested exception ExceptionsUtils.InvalidParameter
     Method entitiesByLatLongMethod =
         FacilitiesControllerV0.class.getDeclaredMethod(
@@ -427,6 +455,40 @@ public class FacilitiesControllerV0Test {
                                 .build())
                         .build())
                 .build());
+
+    // Test empty list if from index is larger than size of data.
+    assertThat(
+            controller()
+                .jsonFacilitiesByBoundingBox(
+                    List.of(
+                        BigDecimal.valueOf(-97.65),
+                        BigDecimal.valueOf(26.16),
+                        BigDecimal.valueOf(-97.67),
+                        BigDecimal.valueOf(26.18)),
+                    "health",
+                    List.of("Cardiology", "Audiology", "Urology"),
+                    Boolean.FALSE,
+                    3,
+                    1)
+                .data())
+        .isEmpty();
+
+    // Test with empty service list
+    assertThat(
+            controller()
+                .jsonFacilitiesByBoundingBox(
+                    List.of(
+                        BigDecimal.valueOf(-97.65),
+                        BigDecimal.valueOf(26.16),
+                        BigDecimal.valueOf(-97.67),
+                        BigDecimal.valueOf(26.18)),
+                    "health",
+                    List.of(),
+                    Boolean.FALSE,
+                    1,
+                    1)
+                .data())
+        .isEmpty();
   }
 
   @Test

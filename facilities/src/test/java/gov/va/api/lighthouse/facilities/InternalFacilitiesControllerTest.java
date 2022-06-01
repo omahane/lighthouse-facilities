@@ -638,6 +638,13 @@ public class InternalFacilitiesControllerTest {
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
+    // Test deleting system node when system node does not exist
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    datamartCmsOverlay.healthCareSystem(null);
+    overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "system");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    overlayRepository.deleteAll();
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", null);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -1017,6 +1024,19 @@ public class InternalFacilitiesControllerTest {
                     .mobile(true)
                     .build()))
         .isEqualTo(Boolean.TRUE);
+  }
+
+  @Test
+  void populateCmsOverlayTable() {
+    DatamartFacility datamartFacility =
+        _facility(
+            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    FacilityEntity facilityEntity = _facilityEntity(datamartFacility, datamartCmsOverlay);
+    facilityRepository.save(facilityEntity);
+    _controller().populateCmsOverlayTable();
+    assertThat(overlayRepository.findAll())
+        .containsOnly(_overlayEntity(datamartCmsOverlay, "vha_f1"));
   }
 
   @Test

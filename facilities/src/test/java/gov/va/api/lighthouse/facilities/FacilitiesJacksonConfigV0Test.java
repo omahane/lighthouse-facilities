@@ -55,7 +55,7 @@ public class FacilitiesJacksonConfigV0Test {
             MAPPER, geoFacilitiesResponse, GeoFacilitiesResponse.class);
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     String os =
-        "{\"code\";\"CLOSED\",\"additional_info\":\"Your VA health care team will contact you if you’re eligible to get a vaccine during this time. As the supply of vaccine increases\"}";
+        "{\"code\";\"CLOSED\",\"additional_info\":\"Your VA health care team will contact you if you???re eligible to get a vaccine during this time. As the supply of vaccine increases\"}";
     assertThatThrownBy(
             () -> FacilitiesJacksonConfigV0.quietlyMap(MAPPER, os, Facility.OperatingStatus.class))
         .isInstanceOf(JsonParseException.class);

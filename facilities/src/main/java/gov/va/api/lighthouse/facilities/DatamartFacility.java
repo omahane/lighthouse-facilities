@@ -526,6 +526,13 @@ public class DatamartFacility {
     List<@Valid DatamartDetailedService> detailedServices;
 
     String visn;
+
+    public static final class FacilityAttributesBuilder {
+      @JsonProperty("operationalHoursSpecialInstructions")
+      public FacilityAttributes.FacilityAttributesBuilder instructions(String val) {
+        return operationalHoursSpecialInstructions(val);
+      }
+    }
   }
 
   @Data
@@ -545,6 +552,43 @@ public class DatamartFacility {
     String friday;
 
     String saturday;
+
+    public static final class HoursBuilder {
+      @JsonProperty("Friday")
+      public Hours.HoursBuilder fri(String val) {
+        return friday(val);
+      }
+
+      @JsonProperty("Monday")
+      public Hours.HoursBuilder mon(String val) {
+        return monday(val);
+      }
+
+      @JsonProperty("Saturday")
+      public Hours.HoursBuilder sat(String val) {
+        return saturday(val);
+      }
+
+      @JsonProperty("Sunday")
+      public Hours.HoursBuilder sun(String val) {
+        return sunday(val);
+      }
+
+      @JsonProperty("Thursday")
+      public Hours.HoursBuilder thurs(String val) {
+        return thursday(val);
+      }
+
+      @JsonProperty("Tuesday")
+      public Hours.HoursBuilder tues(String val) {
+        return tuesday(val);
+      }
+
+      @JsonProperty("Wednesday")
+      public Hours.HoursBuilder wed(String val) {
+        return wednesday(val);
+      }
+    }
   }
 
   @Data

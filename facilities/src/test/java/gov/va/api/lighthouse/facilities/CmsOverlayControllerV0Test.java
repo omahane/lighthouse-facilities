@@ -360,6 +360,77 @@ public class CmsOverlayControllerV0Test {
 
   @Test
   @SneakyThrows
+  void updateOverlayWithDisabledService() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    Facility f =
+        Facility.builder()
+            .id("vha_402")
+            .attributes(Facility.FacilityAttributes.builder().website("va.gov").build())
+            .build();
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(pk)
+            .services(new HashSet<>())
+            .facility(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
+            .build();
+    when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(facilityEntity));
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    // Update overlay with disabled service
+    overlay.detailedServices(
+        List.of(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                        .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                        .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                        .build())
+                .active(false)
+                .build()));
+    controller().saveOverlay("vha_402", CmsOverlayTransformerV0.toCmsOverlay(overlay));
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
+    List<DatamartDetailedService> datamartDetailedServices =
+        updatedCovidPathOverlay.detailedServices();
+    updateServiceUrlPaths("vha_402", datamartDetailedServices);
+    updatedCovidPathOverlay.detailedServices(datamartDetailedServices);
+    for (DatamartDetailedService d : updatedCovidPathOverlay.detailedServices()) {
+      d.active(false);
+    }
+    ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    // Verify that COVID-19 vaccines was removed because its active flag is false
+    assertThat(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
+                response.getBody().overlay().detailedServices()))
+        .containsAll(
+            updatedCovidPathOverlay.detailedServices().stream()
+                .filter(
+                    ds ->
+                        ds.serviceInfo()
+                            .serviceId()
+                            .equals(DatamartFacility.HealthService.Cardiology.serviceId()))
+                .toList());
+  }
+
+  @Test
+  @SneakyThrows
   void updateOverlaysWithNoExistingServices() {
     DatamartCmsOverlay overlay = overlay();
     var pk = FacilityEntity.Pk.fromIdString("vha_402");

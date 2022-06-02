@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -123,6 +124,10 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               .cmsOperatingStatus(
                   CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
               .cmsServices(CmsOverlayHelper.serializeDetailedServices(activeServices))
+              .overlayServices(
+                  activeServices.parallelStream()
+                      .map(DatamartDetailedService::name)
+                      .collect(Collectors.toSet()))
               .healthCareSystem(
                   CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
               .build();
@@ -138,6 +143,10 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
             findServicesToSave(cmsOverlayEntity, id, overlay.detailedServices(), DATAMART_MAPPER);
         cmsOverlayEntity.cmsServices(
             CmsOverlayHelper.serializeDetailedServices(toSaveDetailedServices));
+        cmsOverlayEntity.overlayServices(
+            toSaveDetailedServices.parallelStream()
+                .map(DatamartDetailedService::name)
+                .collect(Collectors.toSet()));
       }
       if (overlay.healthCareSystem != null) {
         cmsOverlayEntity.healthCareSystem(
@@ -153,8 +162,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
       Optional<CmsOverlayEntity> existingCmsOverlayEntity,
       String id,
       DatamartCmsOverlay overlay) {
-    DatamartFacility facility =
-        DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
     // Only save active services from the overlay if they exist
     List<DatamartDetailedService> toSaveDetailedServices;
     if (existingCmsOverlayEntity.isEmpty()) {
@@ -164,26 +171,27 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
           findServicesToSave(
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
-
     Set<DatamartFacility.HealthService> facilityHealthServices = new HashSet<>();
-    if (!toSaveDetailedServices.isEmpty()) {
-      Set<String> detailedServices = new HashSet<>();
-      for (DatamartDetailedService service : toSaveDetailedServices) {
-        if (service.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
-          detailedServices.add("Covid19Vaccine");
-          if (facilityEntity.services() != null) {
-            facilityEntity.services().add("Covid19Vaccine");
-          } else {
-            facilityEntity.services(Set.of("Covid19Vaccine"));
-          }
+    Set<String> detailedServiceNames = new HashSet<>();
+    toSaveDetailedServices.stream()
+        .forEach(
+            service -> {
+              if (service.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
+                detailedServiceNames.add("Covid19Vaccine");
+                if (facilityEntity.services() != null) {
+                  facilityEntity.services().add("Covid19Vaccine");
+                } else {
+                  facilityEntity.services(Set.of("Covid19Vaccine"));
+                }
+                facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
+              } else {
+                detailedServiceNames.add(service.name());
+              }
+            });
+    facilityEntity.overlayServices(detailedServiceNames);
 
-          facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
-        } else {
-          detailedServices.add(service.name());
-        }
-      }
-      facilityEntity.overlayServices(detailedServices);
-    }
+    DatamartFacility facility =
+        DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
 
     if (facility != null) {
       DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
@@ -203,6 +211,23 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
 
       if (facility.attributes().services.health() != null) {
         facilityHealthServices.addAll(facility.attributes().services.health());
+      }
+
+      if (overlay.detailedServices != null) {
+        List<String> disabledCmsServiceNames =
+            overlay.detailedServices.parallelStream()
+                .filter(ds -> !ds.active())
+                .map(DatamartDetailedService::name)
+                .collect(Collectors.toList());
+
+        disabledCmsServiceNames.stream()
+            .forEach(
+                disableServiceName -> {
+                  if (disableServiceName.equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
+                    facilityHealthServices.remove(DatamartFacility.HealthService.Covid19Vaccine);
+                    facilityEntity.services().remove("Covid19Vaccine");
+                  }
+                });
       }
 
       List<DatamartFacility.HealthService> facilityHealthServiceList =

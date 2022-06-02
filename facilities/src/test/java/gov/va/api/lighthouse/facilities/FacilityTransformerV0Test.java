@@ -820,6 +820,26 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
   }
 
   @Test
+  void toFacilityOperatingStatus() {
+    DatamartFacility.OperatingStatus os =
+        DatamartFacility.OperatingStatus.builder().code(null).build();
+    Facility.OperatingStatus actual = FacilityTransformerV0.toFacilityOperatingStatus(os);
+    assertThat(actual.code()).isNull();
+    actual = FacilityTransformerV0.toFacilityOperatingStatus(null);
+    assertThat(actual).isNull();
+  }
+
+  @Test
+  void toVersionAgnosticFacilityOperatingStatus() {
+    Facility.OperatingStatus os = Facility.OperatingStatus.builder().code(null).build();
+    DatamartFacility.OperatingStatus actual =
+        FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus(os);
+    assertThat(actual.code()).isNull();
+    actual = FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus(null);
+    assertThat(actual).isNull();
+  }
+
+  @Test
   public void transformDatamartFacility() {
     Facility expected =
         facility(
@@ -840,6 +860,26 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV0.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformDatamartFacilityPatientWaitTime() {
+    final Method transformFacilityPatientWaitTimeMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityPatientWaitTime", DatamartFacility.PatientWaitTime.class);
+    transformFacilityPatientWaitTimeMethod.setAccessible(true);
+    assertThat(
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null,
+                DatamartFacility.PatientWaitTime.builder()
+                    .service(DatamartFacility.HealthService.Cardiology)
+                    .build()))
+        .isNotNull();
+    assertThat(
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null, DatamartFacility.PatientWaitTime.builder().service(null).build()))
+        .isNotNull();
   }
 
   @Test
@@ -875,6 +915,85 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV0.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilityPatientWaitTime() {
+    final Method transformFacilityPatientWaitTimeMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityPatientWaitTime", Facility.PatientWaitTime.class);
+    transformFacilityPatientWaitTimeMethod.setAccessible(true);
+    DatamartFacility.PatientWaitTime actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null,
+                Facility.PatientWaitTime.builder()
+                    .service(Facility.HealthService.Cardiology)
+                    .build());
+    DatamartFacility.PatientWaitTime expected =
+        DatamartFacility.PatientWaitTime.builder()
+            .service(DatamartFacility.HealthService.Cardiology)
+            .build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null, Facility.PatientWaitTime.builder().service(null).build());
+    expected = DatamartFacility.PatientWaitTime.builder().service(null).build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilitySatisfaction() {
+    final Method transformFacilitySatisfactionMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilitySatisfaction", Facility.Satisfaction.class);
+    transformFacilitySatisfactionMethod.setAccessible(true);
+    DatamartFacility.Satisfaction actual =
+        (DatamartFacility.Satisfaction)
+            transformFacilitySatisfactionMethod.invoke(
+                null,
+                Facility.Satisfaction.builder()
+                    .health(
+                        Facility.PatientSatisfaction.builder()
+                            .primaryCareUrgent(BigDecimal.valueOf(1.5))
+                            .primaryCareUrgent(BigDecimal.valueOf(1.6))
+                            .specialtyCareUrgent(BigDecimal.valueOf(2.3))
+                            .specialtyCareRoutine(BigDecimal.valueOf(3.6))
+                            .build())
+                    .build());
+    DatamartFacility.Satisfaction expected =
+        DatamartFacility.Satisfaction.builder()
+            .health(
+                DatamartFacility.PatientSatisfaction.builder()
+                    .primaryCareUrgent(BigDecimal.valueOf(1.5))
+                    .primaryCareUrgent(BigDecimal.valueOf(1.6))
+                    .specialtyCareUrgent(BigDecimal.valueOf(2.3))
+                    .specialtyCareRoutine(BigDecimal.valueOf(3.6))
+                    .build())
+            .build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    actual =
+        (DatamartFacility.Satisfaction)
+            transformFacilitySatisfactionMethod.invoke(
+                null, Facility.Satisfaction.builder().health(null).build());
+    expected = DatamartFacility.Satisfaction.builder().health(null).build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilityWaitTimes() {
+    final Method transformFacilityWaitTimesMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityWaitTimes", Facility.WaitTimes.class);
+    transformFacilityWaitTimesMethod.setAccessible(true);
+    Facility.WaitTimes dw = Facility.WaitTimes.builder().health(null).build();
+    DatamartFacility.WaitTimes actual =
+        (DatamartFacility.WaitTimes) transformFacilityWaitTimesMethod.invoke(null, dw);
+    assertThat(actual.health()).isNull();
   }
 
   @Test

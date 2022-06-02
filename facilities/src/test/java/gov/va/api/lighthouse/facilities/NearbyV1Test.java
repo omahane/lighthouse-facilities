@@ -6,6 +6,7 @@ import static gov.va.api.lighthouse.facilities.api.v1.NearbyResponse.Type.Nearby
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,9 +16,12 @@ import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
+import java.awt.geom.Point2D;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import java.util.zip.DataFormatException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,6 +80,11 @@ public class NearbyV1Test {
             PssgDriveTimeBand.Geometry.builder()
                 .rings(
                     List.of(
+                        List.of(
+                            PssgDriveTimeBand.coord(offset, offset + 2),
+                            PssgDriveTimeBand.coord(offset + 1, offset),
+                            PssgDriveTimeBand.coord(offset, offset - 2),
+                            PssgDriveTimeBand.coord(offset - 1, offset)),
                         List.of(
                             PssgDriveTimeBand.coord(offset, offset + 2),
                             PssgDriveTimeBand.coord(offset + 1, offset),
@@ -196,6 +205,30 @@ public class NearbyV1Test {
   }
 
   @Test
+  void firstIntersection() {
+    Point2D point = new Point2D.Double(0, 0);
+    assertThat(NearbyUtils.firstIntersection(point, List.of())).isEmpty();
+    assertThatThrownBy(
+            () ->
+                NearbyUtils.firstIntersection(
+                    point,
+                    List.of(
+                        DriveTimeBandEntity.builder()
+                            .band("NOV2021")
+                            .monthYear("NOV2021")
+                            .build())))
+        .isInstanceOf(DataFormatException.class);
+    DriveTimeBandEntity driveTimeBandEntity =
+        _deprecatedPssgDriveTimeBandEntity(_diamondBand("666", 0, 10, 0));
+    Optional<DriveTimeBandEntity> opt =
+        NearbyUtils.firstIntersection(point, List.of(driveTimeBandEntity));
+    assertThat(opt.get()).usingRecursiveComparison().isEqualTo(driveTimeBandEntity);
+    assertThat(
+            NearbyUtils.firstIntersection(new Point2D.Double(5, 5), List.of(driveTimeBandEntity)))
+        .isEmpty();
+  }
+
+  @Test
   void hit() {
     facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
     facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
@@ -230,5 +263,12 @@ public class NearbyV1Test {
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response).isEqualTo(hitVha666());
+  }
+
+  @Test
+  void validateDriveTime() {
+    assertThatThrownBy(() -> NearbyUtils.validateDriveTime(100))
+        .isInstanceOf(ExceptionsUtils.InvalidParameter.class)
+        .hasMessage("'100' is not a valid value for 'drive_time'");
   }
 }

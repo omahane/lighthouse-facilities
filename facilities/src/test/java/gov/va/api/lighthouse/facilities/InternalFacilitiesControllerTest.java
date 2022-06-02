@@ -32,11 +32,14 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
+import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
+import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -310,6 +314,79 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
+  void collect_healthConnectNullHealthCareSystem() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullHealthCareSystemAndPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    facility.attributes().phone(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    facility.attributes().phone(null);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
+  @SneakyThrows
   void collect_invalidLatLong() {
     DatamartFacility f1 =
         _facility(
@@ -467,6 +544,28 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
+  @SneakyThrows
+  void collect_setHealthConnectPhoneNumber() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
   void deleteFacilityByIdWithOverlay() {
     DatamartFacility f =
         _facility(
@@ -558,6 +657,13 @@ public class InternalFacilitiesControllerTest {
                         .detailedServices(_overlay_detailed_services())
                         .build(),
                     "vha_f1")));
+    overlayRepository.deleteAll();
+    // Test deleting system node when system node does not exist
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    datamartCmsOverlay.healthCareSystem(null);
+    overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "system");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     overlayRepository.deleteAll();
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", null);
@@ -938,6 +1044,19 @@ public class InternalFacilitiesControllerTest {
                     .mobile(true)
                     .build()))
         .isEqualTo(Boolean.TRUE);
+  }
+
+  @Test
+  void populateCmsOverlayTable() {
+    DatamartFacility datamartFacility =
+        _facility(
+            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    FacilityEntity facilityEntity = _facilityEntity(datamartFacility, datamartCmsOverlay);
+    facilityRepository.save(facilityEntity);
+    _controller().populateCmsOverlayTable();
+    assertThat(overlayRepository.findAll())
+        .containsOnly(_overlayEntity(datamartCmsOverlay, "vha_f1"));
   }
 
   @Test

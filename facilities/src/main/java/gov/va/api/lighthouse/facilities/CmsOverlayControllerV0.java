@@ -216,6 +216,10 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
           facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
         } else {
           detailedServices.add(service.serviceInfo().serviceId());
+          // TODO: Update facility services:
+          //   If service info is of service type health, update facility health services
+          //   If service info is of service type benefits, update facility benefits services
+          //   If service info is of service type other, update facility other services
         }
       }
       facilityEntity.overlayServices(detailedServices);
@@ -239,7 +243,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
             .detailedServices(
                 toSaveDetailedServices.isEmpty()
                     ? null
-                    : toSaveDetailedServices.stream()
+                    : toSaveDetailedServices.parallelStream()
                         .filter(
                             ds ->
                                 DatamartFacility.HealthService.Covid19Vaccine.serviceId()

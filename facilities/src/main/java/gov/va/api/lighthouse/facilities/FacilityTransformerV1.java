@@ -442,6 +442,11 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
             .health(
                 (datamartFacilityServices.health() != null)
                     ? datamartFacilityServices.health().parallelStream()
+                        .filter(
+                            e ->
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        Facility.HealthService.values(), e.name()))
                         .map(e -> transformFacilityHealthService(e))
                         .collect(Collectors.toList())
                     : null)
@@ -470,6 +475,11 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
             .health(
                 (facilityServices.health() != null)
                     ? facilityServices.health().parallelStream()
+                        .filter(
+                            e ->
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        DatamartFacility.HealthService.values(), e.name()))
                         .map(e -> transformFacilityHealthService(e))
                         .collect(Collectors.toList())
                     : null)

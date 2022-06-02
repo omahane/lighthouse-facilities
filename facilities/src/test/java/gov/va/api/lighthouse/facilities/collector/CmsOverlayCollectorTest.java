@@ -135,6 +135,21 @@ public class CmsOverlayCollectorTest {
 
   @Test
   @SneakyThrows
+  void loadOverlayDetailedServicesWithNoCovid19Vaccine() {
+    var id = "vha_561";
+    CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
+    when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
+    when(mockEntity.overlayServices())
+        .thenReturn(Set.of("ColonSurgery", "CriticalCare", "PrimaryCare", "EmergencyCare"));
+    when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
+    HashMap<String, DatamartFacility.HealthService> expectedFacilityCovid19Map = new HashMap<>();
+    expectedFacilityCovid19Map.put(id, DatamartFacility.HealthService.Covid19Vaccine);
+    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    assertThat(collector.getCovid19VaccineServices().get(id)).isNull();
+  }
+
+  @Test
+  @SneakyThrows
   public void overlayWithNoDetailedServices() {
     var id = "vha_123GA";
     CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);

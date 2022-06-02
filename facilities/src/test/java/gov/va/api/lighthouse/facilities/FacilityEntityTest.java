@@ -9,6 +9,21 @@ import org.junit.jupiter.api.Test;
 
 public class FacilityEntityTest {
   @Test
+  void overlayServicesFromServiceTypes() {
+    FacilityEntity e = FacilityEntity.builder().build();
+    e.overlayServicesFromServiceTypes(
+        Set.of(
+            Facility.HealthService.SpecialtyCare,
+            Facility.BenefitsService.ApplyingForBenefits,
+            Facility.OtherService.OnlineScheduling));
+    assertThat(e.overlayServices())
+        .containsExactlyInAnyOrder(
+            Facility.HealthService.SpecialtyCare.toString(),
+            Facility.BenefitsService.ApplyingForBenefits.toString(),
+            Facility.OtherService.OnlineScheduling.toString());
+  }
+
+  @Test
   void pkFromIdStringParsesId() {
     assertThat(FacilityEntity.Pk.fromIdString("vba_A1B2C3"))
         .isEqualTo(FacilityEntity.Pk.of(FacilityEntity.Type.vba, "A1B2C3"));
@@ -18,11 +33,9 @@ public class FacilityEntityTest {
         .isEqualTo(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "A1B2C3"));
     assertThat(FacilityEntity.Pk.fromIdString("nca_A1B2C3"))
         .isEqualTo(FacilityEntity.Pk.of(FacilityEntity.Type.nca, "A1B2C3"));
-
     assertThat(FacilityEntity.Pk.fromIdString("nca_A1_B2_C3"))
         .describedAs("station number with underscores")
         .isEqualTo(FacilityEntity.Pk.of(FacilityEntity.Type.nca, "A1_B2_C3"));
-
     assertThatIllegalArgumentException()
         .describedAs("ID with unknown type")
         .isThrownBy(() -> FacilityEntity.Pk.fromIdString("nope_A1B2C3"));

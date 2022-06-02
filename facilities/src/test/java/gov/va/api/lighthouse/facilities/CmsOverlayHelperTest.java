@@ -23,7 +23,7 @@ public class CmsOverlayHelperTest {
   @Test
   void getOperatingStatus() {
     String os =
-        "{\"code\";\"CLOSED\",\"additional_info\":\"Your VA health care team will contact you if you’re eligible to get a vaccine during this time. As the supply of vaccine increases\"}";
+        "{\"code\";\"CLOSED\",\"additional_info\":\"Your VA health care team will contact you if you???re eligible to get a vaccine during this time. As the supply of vaccine increases\"}";
     assertThatThrownBy(() -> CmsOverlayHelper.getOperatingStatus(os))
         .isInstanceOf(JsonParseException.class);
   }

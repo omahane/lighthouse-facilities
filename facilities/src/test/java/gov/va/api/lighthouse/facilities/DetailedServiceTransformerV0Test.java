@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
@@ -11,6 +12,13 @@ import org.junit.jupiter.api.Test;
 public class DetailedServiceTransformerV0Test {
   @Test
   void datamartDetailedServiceWithEmptyAttributesRoundTrip() {
+    assertThatThrownBy(
+            () ->
+                DatamartDetailedServicesTestUtils
+                    .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
+        .isInstanceOf(Exception.class)
+        .hasMessage("Unrecognized service id: emptyService");
+
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
@@ -22,6 +30,13 @@ public class DetailedServiceTransformerV0Test {
 
   @Test
   void datamartDetailedServiceWithNullAttributesRoundTrip() {
+    assertThatThrownBy(
+            () ->
+                DatamartDetailedServicesTestUtils
+                    .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
+        .isInstanceOf(Exception.class)
+        .hasMessage("Unrecognized service id: emptyService");
+
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(

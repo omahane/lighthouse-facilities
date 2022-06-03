@@ -15,6 +15,20 @@ public class DatamartDetailedServicesTestUtils {
     return DatamartDetailedService.builder()
         .serviceInfo(
             DatamartDetailedService.ServiceInfo.builder()
+                .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                .serviceType(TypeOfService.Health)
+                .build())
+        .phoneNumbers(emptyList())
+        .serviceLocations(emptyList())
+        .build();
+  }
+
+  public static DatamartDetailedService
+      datamartDetailedServiceWithInvalidServiceIdEmptyAttributes() {
+    return DatamartDetailedService.builder()
+        .serviceInfo(
+            DatamartDetailedService.ServiceInfo.builder()
                 .serviceId("emptyService")
                 .serviceType(TypeOfService.Health)
                 .build())
@@ -23,11 +37,25 @@ public class DatamartDetailedServicesTestUtils {
         .build();
   }
 
-  public static DatamartDetailedService datamartDetailedServiceWithNullAttributes() {
+  public static DatamartDetailedService
+      datamartDetailedServiceWithInvalidServiceIdNullAttributes() {
     return DatamartDetailedService.builder()
         .serviceInfo(
             DatamartDetailedService.ServiceInfo.builder()
                 .serviceId("emptyService")
+                .serviceType(TypeOfService.Health)
+                .build())
+        .phoneNumbers(null)
+        .serviceLocations(null)
+        .build();
+  }
+
+  public static DatamartDetailedService datamartDetailedServiceWithNullAttributes() {
+    return DatamartDetailedService.builder()
+        .serviceInfo(
+            DatamartDetailedService.ServiceInfo.builder()
+                .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
                 .serviceType(TypeOfService.Health)
                 .build())
         .phoneNumbers(null)

@@ -65,7 +65,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         : Facility.BenefitsService.isRecognizedServiceName(serviceName)
             ? Facility.BenefitsService.fromString(serviceName).serviceId()
             : Facility.OtherService.isRecognizedServiceName(serviceName)
-                ? Facility.OtherService.valueOf(serviceName).serviceId()
+                ? Facility.OtherService.fromString(serviceName).serviceId()
                 : TypedService.INVALID_SVC_ID;
   }
 

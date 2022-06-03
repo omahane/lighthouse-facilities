@@ -15,12 +15,15 @@ import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -93,7 +96,7 @@ public class DatamartDetailedService {
                           : BenefitsService.isRecognizedServiceName(serviceName)
                               ? BenefitsService.fromString(serviceName).serviceId()
                               : OtherService.isRecognizedServiceName(serviceName)
-                                  ? OtherService.valueOf(serviceName).serviceId()
+                                  ? OtherService.fromString(serviceName).serviceId()
                                   : TypedService.INVALID_SVC_ID)
                   .name(serviceName)
                   .serviceType(
@@ -127,6 +130,68 @@ public class DatamartDetailedService {
     @Schema(description = "Service type.", example = "Health")
     @NonNull
     TypeOfService serviceType;
+
+    public static class ServiceInfoBuilder {
+      private String serviceId;
+
+      private String name;
+
+      private TypeOfService serviceType;
+
+      /**
+       * Method used to set service info name and attempt to infer service id based on provided
+       * service name.
+       */
+      public ServiceInfoBuilder name(String name) {
+        this.name = name;
+        if (StringUtils.isEmpty(serviceId)) {
+          if (HealthService.isRecognizedServiceName(name)) {
+            this.serviceId = HealthService.fromString(name).serviceId();
+          } else if (BenefitsService.isRecognizedServiceName(name)) {
+            this.serviceId = BenefitsService.fromString(name).serviceId();
+          } else if (OtherService.isRecognizedServiceName(name)) {
+            this.serviceId = OtherService.fromString(name).serviceId();
+          }
+        }
+        return this;
+      }
+
+      /**
+       * Method used to set service id and infer service name based on provided service id given it
+       * is recognized as valid.
+       */
+      @SneakyThrows
+      public ServiceInfoBuilder serviceId(String serviceId) {
+        if (HealthService.isRecognizedServiceId(serviceId)) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
+            if (healthService.isPresent()) {
+              this.name = healthService.get().name();
+            }
+          }
+        } else if (BenefitsService.isRecognizedServiceId(serviceId)) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            Optional<BenefitsService> benefitsService = BenefitsService.fromServiceId(serviceId);
+            if (benefitsService.isPresent()) {
+              this.name = benefitsService.get().name();
+            }
+          }
+        } else if (OtherService.isRecognizedServiceId(serviceId)) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
+            if (otherService.isPresent()) {
+              this.name = otherService.get().name();
+            }
+          }
+        } else {
+          throw new Exception(String.format("Unrecognized service id: %s", serviceId));
+        }
+        return this;
+      }
+    }
   }
 
   @Data

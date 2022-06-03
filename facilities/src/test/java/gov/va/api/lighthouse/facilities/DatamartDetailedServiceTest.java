@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
@@ -97,11 +98,25 @@ public class DatamartDetailedServiceTest {
     Method isRecognizedServiceNameMethod =
         DatamartDetailedService.class.getDeclaredMethod("isRecognizedServiceName", String.class);
     isRecognizedServiceNameMethod.setAccessible(true);
-    DatamartDetailedService emptyDetailedService =
+
+    assertThatThrownBy(
+            () ->
+                DatamartDetailedService.builder()
+                    .serviceInfo(
+                        DatamartDetailedService.ServiceInfo.builder()
+                            .serviceId("empty")
+                            .name("empty")
+                            .serviceType(TypeOfService.Health)
+                            .build())
+                    .build())
+        .isInstanceOf(Exception.class)
+        .hasMessage("Unrecognized service id: empty");
+
+    DatamartDetailedService emptyNameDetailedService =
         DatamartDetailedService.builder()
             .serviceInfo(
                 DatamartDetailedService.ServiceInfo.builder()
-                    .serviceId("empty")
+                    .serviceId(HealthService.Covid19Vaccine.serviceId())
                     .name("empty")
                     .serviceType(TypeOfService.Health)
                     .build())
@@ -112,7 +127,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             bs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, bs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -123,7 +139,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             bs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, bs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -134,7 +151,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             bs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, bs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -146,7 +164,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             hs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, hs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -157,7 +176,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             hs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, hs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -168,7 +188,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             hs -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, hs.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -182,7 +203,7 @@ public class DatamartDetailedServiceTest {
               try {
                 assertThat(
                         isRecognizedServiceNameMethod.invoke(
-                            emptyDetailedService, uncapitalize(hs.name())))
+                            emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -195,7 +216,7 @@ public class DatamartDetailedServiceTest {
               try {
                 assertThat(
                         isRecognizedServiceNameMethod.invoke(
-                            emptyDetailedService, uncapitalize(hs.name())))
+                            emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -208,7 +229,7 @@ public class DatamartDetailedServiceTest {
               try {
                 assertThat(
                         isRecognizedServiceNameMethod.invoke(
-                            emptyDetailedService, uncapitalize(hs.name())))
+                            emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -220,7 +241,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             os -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, os.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -231,7 +253,8 @@ public class DatamartDetailedServiceTest {
         .forEach(
             os -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, os.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -242,25 +265,26 @@ public class DatamartDetailedServiceTest {
         .forEach(
             os -> {
               try {
-                assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, os.name()))
+                assertThat(
+                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
     // Covid-19 specific
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, "COVID-19 vaccines"))
+    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "COVID-19 vaccines"))
         .isEqualTo(Boolean.TRUE);
     assertThat(
             isRecognizedServiceNameMethod.invoke(
-                emptyDetailedService,
+                emptyNameDetailedService,
                 uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name())))
         .isEqualTo(Boolean.TRUE);
     // Invalid service name
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, "No Such Name"))
+    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "No Such Name"))
         .isEqualTo(Boolean.FALSE);
     // Blank service name
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyDetailedService, "   "))
+    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "   "))
         .isEqualTo(Boolean.FALSE);
   }
 

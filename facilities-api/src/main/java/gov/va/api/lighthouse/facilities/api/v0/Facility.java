@@ -177,6 +177,12 @@ public final class Facility {
       this.serviceId = serviceId;
     }
 
+    /** Ensure that Jackson can create OtherService enum regardless of capitalization. */
+    @JsonCreator
+    public static OtherService fromString(String name) {
+      return valueOf(capitalize(name));
+    }
+
     /** Determine whether specified service id represents other service. */
     public static boolean isRecognizedServiceId(String serviceId) {
       return Arrays.stream(values()).parallel().anyMatch(os -> os.serviceId().equals(serviceId));

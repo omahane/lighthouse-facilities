@@ -288,13 +288,13 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
   /** Transform DatamartFacility other service to version 0 facility other service. */
   private static Facility.OtherService transformFacilityOtherService(
       @NonNull DatamartFacility.OtherService datamartFacilityOtherService) {
-    return Facility.OtherService.valueOf(datamartFacilityOtherService.name());
+    return Facility.OtherService.fromString(datamartFacilityOtherService.name());
   }
 
   /** Transform version 0 facility other service to DatamartFacility other service. */
   private static DatamartFacility.OtherService transformFacilityOtherService(
       @NonNull Facility.OtherService facilityOtherService) {
-    return DatamartFacility.OtherService.valueOf(facilityOtherService.name());
+    return DatamartFacility.OtherService.fromString(facilityOtherService.name());
   }
 
   /** Transform DatamartFacility patient wait times to version 0 facility patient wait times. */

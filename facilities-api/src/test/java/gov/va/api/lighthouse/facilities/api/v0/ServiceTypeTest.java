@@ -211,7 +211,12 @@ public class ServiceTypeTest {
         List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.OtherService.OnlineScheduling);
     List<OtherService> otherV0 = List.of(OtherService.OnlineScheduling);
     otherV1.parallelStream()
-        .forEach(os -> assertThat(otherV0.contains(OtherService.valueOf(os.name()))).isTrue());
+        .forEach(os -> assertThat(otherV0.contains(OtherService.fromString(os.name()))).isTrue());
+    otherV1.parallelStream()
+        .forEach(
+            os ->
+                assertThat(otherV0.contains(OtherService.fromString(uncapitalize(os.name()))))
+                    .isTrue());
     otherV1.parallelStream()
         .forEach(
             os ->
@@ -220,6 +225,10 @@ public class ServiceTypeTest {
                     .hasMessage(
                         "No enum constant gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService.onlineScheduling"));
     assertThatThrownBy(() -> OtherService.valueOf("NoSuchName"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(
+            "No enum constant gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService.NoSuchName");
+    assertThatThrownBy(() -> OtherService.fromString("NoSuchName"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage(
             "No enum constant gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService.NoSuchName");

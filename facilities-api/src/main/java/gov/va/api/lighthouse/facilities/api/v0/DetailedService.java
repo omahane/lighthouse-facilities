@@ -133,7 +133,7 @@ public class DetailedService {
         : BenefitsService.isRecognizedServiceName(serviceName)
             ? BenefitsService.fromString(serviceName).serviceId()
             : OtherService.isRecognizedServiceName(serviceName)
-                ? OtherService.valueOf(serviceName).serviceId()
+                ? OtherService.fromString(serviceName).serviceId()
                 : INVALID_SVC_ID;
   }
 

@@ -160,7 +160,7 @@ public class DetailedServiceTransformerV0 {
             : Facility.BenefitsService.isRecognizedServiceName(name)
                 ? Facility.BenefitsService.fromString(name).name()
                 : Facility.OtherService.isRecognizedServiceName(name)
-                    ? Facility.OtherService.valueOf(name).name()
+                    ? Facility.OtherService.fromString(name).name()
                     : name;
   }
 
@@ -342,7 +342,7 @@ public class DetailedServiceTransformerV0 {
             : DatamartFacility.BenefitsService.isRecognizedServiceName(name)
                 ? DatamartFacility.BenefitsService.fromString(name).name()
                 : DatamartFacility.OtherService.isRecognizedServiceName(name)
-                    ? DatamartFacility.OtherService.valueOf(name).name()
+                    ? DatamartFacility.OtherService.fromString(name).name()
                     : name;
   }
 

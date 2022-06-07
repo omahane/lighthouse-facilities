@@ -105,7 +105,6 @@ public class CmsOverlayTransformerV0Test {
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .descriptionFacility("facility description")
         .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(
@@ -205,7 +204,6 @@ public class CmsOverlayTransformerV0Test {
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .descriptionFacility("facility description")
         .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(

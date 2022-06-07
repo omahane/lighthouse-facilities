@@ -41,7 +41,6 @@ import org.apache.commons.lang3.ObjectUtils;
 @NoArgsConstructor
 @JsonPropertyOrder({
   "serviceInfo",
-  "descriptionFacility",
   "appointmentLeadIn",
   "appointmentPhones",
   "onlineSchedulingAvailable",
@@ -65,11 +64,6 @@ public class DetailedService implements CanBeEmpty {
       example = "2021-02-04T22:36:49+00:00",
       nullable = true)
   String changed;
-
-  @JsonIgnore
-  @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
-  @JsonAlias("description_facility")
-  String descriptionFacility;
 
   @Schema(
       description =
@@ -128,7 +122,6 @@ public class DetailedService implements CanBeEmpty {
   public boolean isEmpty() {
     return (serviceInfo() == null || serviceInfo().isEmpty())
         && isBlank(changed())
-        && isBlank(descriptionFacility())
         && isBlank(appointmentLeadIn())
         && isBlank(onlineSchedulingAvailable())
         && isBlank(path())

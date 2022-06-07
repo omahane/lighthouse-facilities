@@ -206,7 +206,6 @@ public class CmsOverlayIT {
         DetailedService.builder()
             .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
             .name("COVID-19 vaccines")
-            .descriptionFacility("I'm a facility service!")
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
             .phoneNumbers(

@@ -15,7 +15,6 @@ public class DetailedServiceUtils {
                 .build())
         .active(true)
         .changed(null)
-        .descriptionFacility("Most advanced healthcare facility nationally.")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .path("replaceable path here")

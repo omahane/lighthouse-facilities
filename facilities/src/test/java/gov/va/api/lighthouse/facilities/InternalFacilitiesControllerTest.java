@@ -150,7 +150,6 @@ public class InternalFacilitiesControllerTest {
                         : healthService.name())
                 .serviceType(healthService.serviceType())
                 .build())
-        .descriptionFacility(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .phoneNumbers(

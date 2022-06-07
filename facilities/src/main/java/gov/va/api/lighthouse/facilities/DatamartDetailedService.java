@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @JsonPropertyOrder({
   "serviceInfo",
-  "description_facility",
   "appointment_leadin",
   "appointment_phones",
   "online_scheduling_available",
@@ -51,9 +50,6 @@ public class DatamartDetailedService {
   boolean active;
 
   @JsonIgnore String changed;
-
-  @JsonProperty("description_facility")
-  String descriptionFacility;
 
   @JsonProperty("appointment_leadin")
   String appointmentLeadIn;

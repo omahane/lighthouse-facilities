@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
@@ -200,16 +201,20 @@ public abstract class BaseCmsOverlayController {
                     .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
                   // Covid-19 Health facility service
                   detailedServiceIds.add(DatamartFacility.HealthService.Covid19Vaccine.serviceId());
-                  if (facilityEntity.services() != null) {
-                    facilityEntity
-                        .services()
-                        .add(DatamartFacility.HealthService.Covid19Vaccine.serviceId());
-                  } else {
-                    facilityEntity.services(
-                        Set.of(DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
-                  }
-
                   if (service.active()) {
+                    if (facilityEntity.services() != null) {
+                      facilityEntity
+                          .services()
+                          .add(
+                              capitalize(
+                                  DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
+                    } else {
+                      facilityEntity.services(
+                          Set.of(
+                              capitalize(
+                                  DatamartFacility.HealthService.Covid19Vaccine.serviceId())));
+                    }
+
                     facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
                   }
                 } else {

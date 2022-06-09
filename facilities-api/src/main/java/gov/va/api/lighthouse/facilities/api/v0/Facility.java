@@ -82,14 +82,14 @@ public final class Facility {
           : valueOf(capitalize(name));
     }
 
+    /** Determine whether specified service name represents benefits service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+    }
+
     /** Determine whether specified service id represents benefits service. */
     public static boolean isRecognizedServiceId(String serviceId) {
       return Arrays.stream(values()).parallel().anyMatch(bs -> bs.serviceId().equals(serviceId));
-    }
-
-    /** Determine whether specified service name represents benefits service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
     }
 
     public String serviceId() {
@@ -148,19 +148,18 @@ public final class Facility {
           || Covid19Vaccine.name().equalsIgnoreCase(serviceName);
     }
 
-    /** Determine whether specified service id represents health service. */
-    public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
-    }
-
     /** Determine whether specified service name represents health service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return isRecognizedCovid19ServiceName(serviceName)
-          || "dental".equalsIgnoreCase(serviceName)
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return "dental".equalsIgnoreCase(serviceName)
           || "mentalHealth".equalsIgnoreCase(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
+    }
+
+    /** Determine whether specified service id represents health service. */
+    public static boolean isRecognizedServiceId(String serviceId) {
+      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
     }
 
     public String serviceId() {
@@ -183,14 +182,14 @@ public final class Facility {
       return valueOf(capitalize(name));
     }
 
+    /** Determine whether specified service name represents other service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+    }
+
     /** Determine whether specified service id represents other service. */
     public static boolean isRecognizedServiceId(String serviceId) {
       return Arrays.stream(values()).parallel().anyMatch(os -> os.serviceId().equals(serviceId));
-    }
-
-    /** Determine whether specified service name represents other service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
     }
 
     public String serviceId() {

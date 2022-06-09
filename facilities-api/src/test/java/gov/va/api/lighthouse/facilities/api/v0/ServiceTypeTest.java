@@ -157,6 +157,35 @@ public class ServiceTypeTest {
 
   @Test
   @SneakyThrows
+  void isRecognizedServiceEnum() {
+    Arrays.stream(BenefitsService.values())
+        .parallel()
+        .forEach(bs -> assertThat(BenefitsService.isRecognizedServiceEnum(bs.name())).isTrue());
+    Arrays.stream(HealthService.values())
+        .parallel()
+        .forEach(hs -> assertThat(HealthService.isRecognizedServiceEnum(hs.name())).isTrue());
+    Arrays.stream(HealthService.values())
+        .parallel()
+        .forEach(
+            hs ->
+                assertThat(HealthService.isRecognizedServiceEnum(uncapitalize(hs.name())))
+                    .isTrue());
+    Arrays.stream(OtherService.values())
+        .parallel()
+        .forEach(os -> assertThat(OtherService.isRecognizedServiceEnum(os.name())).isTrue());
+    assertThat(HealthService.isRecognizedCovid19ServiceName("COVID-19 vaccines")).isTrue();
+    assertThat(
+            HealthService.isRecognizedCovid19ServiceName(
+                uncapitalize(HealthService.Covid19Vaccine.name())))
+        .isTrue();
+    assertThat(BenefitsService.isRecognizedServiceEnum("No Such Name")).isFalse();
+    assertThat(HealthService.isRecognizedServiceEnum("No Such Name")).isFalse();
+    assertThat(OtherService.isRecognizedServiceEnum("No Such Name")).isFalse();
+    assertThat(HealthService.isRecognizedCovid19ServiceName("No Such Name")).isFalse();
+  }
+
+  @Test
+  @SneakyThrows
   void isRecognizedServiceId() {
     Arrays.stream(BenefitsService.values())
         .parallel()
@@ -173,35 +202,6 @@ public class ServiceTypeTest {
     assertThat(BenefitsService.isRecognizedServiceId("INVALID_ID")).isFalse();
     assertThat(HealthService.isRecognizedServiceId("INVALID_ID")).isFalse();
     assertThat(OtherService.isRecognizedServiceId("INVALID_ID")).isFalse();
-  }
-
-  @Test
-  @SneakyThrows
-  void isRecognizedServiceName() {
-    Arrays.stream(BenefitsService.values())
-        .parallel()
-        .forEach(bs -> assertThat(BenefitsService.isRecognizedServiceName(bs.name())).isTrue());
-    Arrays.stream(HealthService.values())
-        .parallel()
-        .forEach(hs -> assertThat(HealthService.isRecognizedServiceName(hs.name())).isTrue());
-    Arrays.stream(HealthService.values())
-        .parallel()
-        .forEach(
-            hs ->
-                assertThat(HealthService.isRecognizedServiceName(uncapitalize(hs.name())))
-                    .isTrue());
-    Arrays.stream(OtherService.values())
-        .parallel()
-        .forEach(os -> assertThat(OtherService.isRecognizedServiceName(os.name())).isTrue());
-    assertThat(HealthService.isRecognizedCovid19ServiceName("COVID-19 vaccines")).isTrue();
-    assertThat(
-            HealthService.isRecognizedCovid19ServiceName(
-                uncapitalize(HealthService.Covid19Vaccine.name())))
-        .isTrue();
-    assertThat(BenefitsService.isRecognizedServiceName("No Such Name")).isFalse();
-    assertThat(HealthService.isRecognizedServiceName("No Such Name")).isFalse();
-    assertThat(OtherService.isRecognizedServiceName("No Such Name")).isFalse();
-    assertThat(HealthService.isRecognizedCovid19ServiceName("No Such Name")).isFalse();
   }
 
   @Test
@@ -241,7 +241,6 @@ public class ServiceTypeTest {
     allServiceTypes.addAll(List.of(BenefitsService.values()));
     allServiceTypes.addAll(List.of(HealthService.values()));
     allServiceTypes.addAll(List.of(OtherService.values()));
-
     /* Confirm uniqueness of service type value across all service types. */
     Arrays.stream(BenefitsService.values())
         .parallel()

@@ -8,9 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.Valid;
@@ -43,7 +40,6 @@ import lombok.NonNull;
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService {
-  @JsonIgnore public static final String INVALID_SVC_ID = "INVALID_ID";
 
   @Schema(description = "Service id.", example = "covid19Vaccine")
   @JsonProperty("service_id")
@@ -125,17 +121,6 @@ public class DetailedService {
   @JsonProperty("walk_ins_accepted")
   @JsonAlias("walkInsAccepted")
   String walkInsAccepted;
-
-  /** Obtain service id for specified service name. */
-  public static String getServiceIdFromServiceName(@NonNull String serviceName) {
-    return HealthService.isRecognizedServiceName(serviceName)
-        ? HealthService.fromString(serviceName).serviceId()
-        : BenefitsService.isRecognizedServiceName(serviceName)
-            ? BenefitsService.fromString(serviceName).serviceId()
-            : OtherService.isRecognizedServiceName(serviceName)
-                ? OtherService.fromString(serviceName).serviceId()
-                : INVALID_SVC_ID;
-  }
 
   @Data
   @Builder

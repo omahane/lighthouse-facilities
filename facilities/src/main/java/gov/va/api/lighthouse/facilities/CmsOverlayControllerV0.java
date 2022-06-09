@@ -1,8 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
-import static gov.va.api.lighthouse.facilities.api.v0.DetailedService.getServiceIdFromServiceName;
-import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
+import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
@@ -14,6 +13,8 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.DataBinder;
@@ -32,12 +33,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
-
   @Builder
   CmsOverlayControllerV0(
       @Autowired FacilityRepository facilityRepository,
       @Autowired CmsOverlayRepository cmsOverlayRepository) {
     super(facilityRepository, cmsOverlayRepository);
+  }
+
+  /** Obtain service id for specified service name. */
+  private static String getServiceIdFromServiceName(@NonNull String serviceName) {
+    return Facility.HealthService.isRecognizedCovid19ServiceName(serviceName)
+            || Facility.HealthService.isRecognizedServiceEnum(serviceName)
+        ? Facility.HealthService.fromString(serviceName).serviceId()
+        : Facility.BenefitsService.isRecognizedServiceEnum(serviceName)
+            ? Facility.BenefitsService.fromString(serviceName).serviceId()
+            : Facility.OtherService.isRecognizedServiceEnum(serviceName)
+                ? Facility.OtherService.fromString(serviceName).serviceId()
+                : INVALID_SVC_ID;
   }
 
   @GetMapping(
@@ -84,13 +96,17 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
         || Facility.OtherService.isRecognizedServiceId(serviceId);
   }
 
+  /**
+   * Populate service id based on service name and filter out services with unrecognized service
+   * ids.
+   */
   private void populateServiceIdAndFilterOutInvalid(@NonNull CmsOverlay overlay) {
-    if (isNotEmpty(overlay.detailedServices())) {
+    if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
               .map(
                   ds ->
-                      isNotEmpty(ds.serviceId())
+                      StringUtils.isNotEmpty(ds.serviceId())
                           ? ds
                           : ds.serviceId(getServiceIdFromServiceName(ds.name())))
               .filter(ds -> isRecognizedServiceId(ds.serviceId()))

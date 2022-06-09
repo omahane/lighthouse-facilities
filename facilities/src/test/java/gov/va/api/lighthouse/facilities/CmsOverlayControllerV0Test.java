@@ -333,9 +333,9 @@ public class CmsOverlayControllerV0Test {
             detailedServices.parallelStream()
                 .filter(
                     ds ->
-                        DatamartFacility.HealthService.isRecognizedServiceName(ds)
-                            || DatamartFacility.BenefitsService.isRecognizedServiceName(ds)
-                            || DatamartFacility.OtherService.isRecognizedServiceName(ds))
+                        DatamartFacility.HealthService.isRecognizedServiceEnum(ds)
+                            || DatamartFacility.BenefitsService.isRecognizedServiceEnum(ds)
+                            || DatamartFacility.OtherService.isRecognizedServiceEnum(ds))
                 .collect(Collectors.toList()))
         .usingRecursiveComparison()
         .isEqualTo(detailedServices);

@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
@@ -51,8 +52,8 @@ public class CmsOverlayCollector {
       CmsOverlayEntity cmsOverlayEntity) {
     Optional<HealthService> opt =
         cmsOverlayEntity.overlayServices().stream()
-            .filter(s -> EnumUtils.isValidEnum(HealthService.class, s))
-            .map(s -> HealthService.valueOf(s))
+            .filter(s -> EnumUtils.isValidEnum(HealthService.class, capitalize(s)))
+            .map(s -> HealthService.fromString(s))
             .filter(s -> s.equals(HealthService.Covid19Vaccine))
             .findFirst();
     if (opt.isPresent()) {

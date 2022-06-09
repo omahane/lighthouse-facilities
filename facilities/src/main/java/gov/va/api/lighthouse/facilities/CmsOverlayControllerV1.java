@@ -2,10 +2,9 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.ControllersV1.page;
+import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 
-import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -22,6 +21,7 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,13 +60,14 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
 
   /** Obtain service id for specified service name. */
   private static String getServiceIdFromServiceName(@NonNull String serviceName) {
-    return Facility.HealthService.isRecognizedServiceName(serviceName)
+    return Facility.HealthService.isRecognizedCovid19ServiceName(serviceName)
+            || Facility.HealthService.isRecognizedServiceEnum(serviceName)
         ? Facility.HealthService.fromString(serviceName).serviceId()
-        : Facility.BenefitsService.isRecognizedServiceName(serviceName)
+        : Facility.BenefitsService.isRecognizedServiceEnum(serviceName)
             ? Facility.BenefitsService.fromString(serviceName).serviceId()
-            : Facility.OtherService.isRecognizedServiceName(serviceName)
+            : Facility.OtherService.isRecognizedServiceEnum(serviceName)
                 ? Facility.OtherService.fromString(serviceName).serviceId()
-                : TypedService.INVALID_SVC_ID;
+                : INVALID_SVC_ID;
   }
 
   /** Obtain typed service for specified service id. */
@@ -169,10 +170,15 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         || Facility.OtherService.isRecognizedServiceId(serviceId);
   }
 
+  /**
+   * Populate service id based on service name and filter out services with unrecognized service
+   * ids.
+   */
   private void populateServiceInfoAndFilterOutInvalid(@NonNull CmsOverlay overlay) {
-    if (isNotEmpty(overlay.detailedServices())) {
+    if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
+              // Filter out services with invalid service info blocks
               .filter(ds -> ds.serviceInfo() != null)
               .map(
                   ds -> {
@@ -185,13 +191,14 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                           getTypedServiceForServiceId(ds.serviceInfo().serviceId());
                       ds.serviceInfo()
                           .serviceType(
-                              typedService.isPresent()
-                                  ? typedService.get().serviceType()
-                                  : TypeOfService.Health);
+                              typedService.isPresent() ? typedService.get().serviceType() : null);
                     }
                     return ds;
                   })
+              // Filter out services with invalid service ids
               .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              // Filter out services with invalid service types
+              .filter(ds -> ds.serviceInfo().serviceType() != null)
               .collect(Collectors.toList()));
     }
   }

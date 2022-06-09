@@ -117,14 +117,14 @@ public final class Facility implements CanBeEmpty {
           : valueOf(capitalize(name));
     }
 
+    /** Determine whether specified service name represents benefits service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+    }
+
     /** Determine whether specified service id represents benefits service. */
     public static boolean isRecognizedServiceId(String serviceId) {
       return Arrays.stream(values()).parallel().anyMatch(bs -> bs.serviceId().equals(serviceId));
-    }
-
-    /** Determine whether specified service name represents benefits service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
     }
 
     @Override
@@ -379,19 +379,18 @@ public final class Facility implements CanBeEmpty {
           || Covid19Vaccine.name().equalsIgnoreCase(serviceName);
     }
 
-    /** Determine whether specified service id represents health service. */
-    public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
-    }
-
     /** Determine whether specified service name represents health service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return isRecognizedCovid19ServiceName(serviceName)
-          || "DentalServices".equalsIgnoreCase(serviceName)
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return "DentalServices".equalsIgnoreCase(serviceName)
           || "MentalHealthCare".equalsIgnoreCase(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
+    }
+
+    /** Determine whether specified service id represents health service. */
+    public static boolean isRecognizedServiceId(String serviceId) {
+      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
     }
 
     @Override
@@ -428,14 +427,14 @@ public final class Facility implements CanBeEmpty {
       return valueOf(capitalize(name));
     }
 
+    /** Determine whether specified service name represents other service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+    }
+
     /** Determine whether specified service id represents other service. */
     public static boolean isRecognizedServiceId(String serviceId) {
       return Arrays.stream(values()).parallel().anyMatch(os -> os.serviceId().equals(serviceId));
-    }
-
-    /** Determine whether specified service name represents other service. */
-    public static boolean isRecognizedServiceName(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
     }
 
     @Override
@@ -1007,7 +1006,6 @@ public final class Facility implements CanBeEmpty {
       description = "All services offered by a facility grouped by service type.",
       nullable = true)
   public static final class Services implements CanBeEmpty {
-
     @ArraySchema(
         arraySchema =
             @Schema(

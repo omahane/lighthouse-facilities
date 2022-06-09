@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
@@ -150,17 +149,18 @@ public class DetailedServiceTransformerV0 {
             : emptyList();
   }
 
-  /** Transform DatamartDetailedService name to version 0 DetailedService name. */
+  /**
+   * If DatamartDetailedService name is recognized as enum name, transform to version 0
+   * DetailedService enum value name. Otherwise, do not alter name.
+   */
   public static String toDetailedServiceName(String name) {
-    return Facility.HealthService.isRecognizedCovid19ServiceName(name)
-        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
-        : Facility.HealthService.isRecognizedServiceName(name)
-            ? Facility.HealthService.fromString(name).name()
-            : Facility.BenefitsService.isRecognizedServiceName(name)
-                ? Facility.BenefitsService.fromString(name).name()
-                : Facility.OtherService.isRecognizedServiceName(name)
-                    ? Facility.OtherService.fromString(name).name()
-                    : name;
+    return Facility.HealthService.isRecognizedServiceEnum(name)
+        ? Facility.HealthService.fromString(name).name()
+        : Facility.BenefitsService.isRecognizedServiceEnum(name)
+            ? Facility.BenefitsService.fromString(name).name()
+            : Facility.OtherService.isRecognizedServiceEnum(name)
+                ? Facility.OtherService.fromString(name).name()
+                : name;
   }
 
   /**
@@ -331,17 +331,18 @@ public class DetailedServiceTransformerV0 {
             : emptyList();
   }
 
-  /** Transform version 0 DetailedService name to DatamartDetailedService name. */
+  /**
+   * If version 0 DetailedService name is recognized as enum name, transform to
+   * DatamartDetailedService enum value name. Otherwise, do not alter name.
+   */
   public static String toVersionAgnosticDetailedServiceName(String name) {
-    return DatamartFacility.HealthService.isRecognizedCovid19ServiceName(name)
-        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
-        : DatamartFacility.HealthService.isRecognizedServiceName(name)
-            ? DatamartFacility.HealthService.fromString(name).name()
-            : DatamartFacility.BenefitsService.isRecognizedServiceName(name)
-                ? DatamartFacility.BenefitsService.fromString(name).name()
-                : DatamartFacility.OtherService.isRecognizedServiceName(name)
-                    ? DatamartFacility.OtherService.fromString(name).name()
-                    : name;
+    return DatamartFacility.HealthService.isRecognizedServiceEnum(name)
+        ? DatamartFacility.HealthService.fromString(name).name()
+        : DatamartFacility.BenefitsService.isRecognizedServiceEnum(name)
+            ? DatamartFacility.BenefitsService.fromString(name).name()
+            : DatamartFacility.OtherService.isRecognizedServiceEnum(name)
+                ? DatamartFacility.OtherService.fromString(name).name()
+                : name;
   }
 
   /**

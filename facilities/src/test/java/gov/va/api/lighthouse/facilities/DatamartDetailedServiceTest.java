@@ -94,10 +94,10 @@ public class DatamartDetailedServiceTest {
 
   @Test
   @SneakyThrows
-  void isRecognizedServiceName() {
-    Method isRecognizedServiceNameMethod =
-        DatamartDetailedService.class.getDeclaredMethod("isRecognizedServiceName", String.class);
-    isRecognizedServiceNameMethod.setAccessible(true);
+  void isRecognizedServiceEnum() {
+    Method isRecognizedServiceEnumMethod =
+        DatamartDetailedService.class.getDeclaredMethod("isRecognizedServiceEnum", String.class);
+    isRecognizedServiceEnumMethod.setAccessible(true);
 
     assertThatThrownBy(
             () ->
@@ -128,7 +128,7 @@ public class DatamartDetailedServiceTest {
             bs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -140,7 +140,7 @@ public class DatamartDetailedServiceTest {
             bs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -152,7 +152,7 @@ public class DatamartDetailedServiceTest {
             bs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, bs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, bs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -165,7 +165,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -177,7 +177,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -189,7 +189,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, hs.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, hs.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -202,7 +202,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(
+                        isRecognizedServiceEnumMethod.invoke(
                             emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
@@ -215,7 +215,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(
+                        isRecognizedServiceEnumMethod.invoke(
                             emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
@@ -228,7 +228,7 @@ public class DatamartDetailedServiceTest {
             hs -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(
+                        isRecognizedServiceEnumMethod.invoke(
                             emptyNameDetailedService, uncapitalize(hs.name())))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
@@ -242,7 +242,7 @@ public class DatamartDetailedServiceTest {
             os -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -254,7 +254,7 @@ public class DatamartDetailedServiceTest {
             os -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
@@ -266,25 +266,25 @@ public class DatamartDetailedServiceTest {
             os -> {
               try {
                 assertThat(
-                        isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, os.name()))
+                        isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, os.name()))
                     .isEqualTo(Boolean.TRUE);
               } catch (Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
     // Covid-19 specific
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "COVID-19 vaccines"))
-        .isEqualTo(Boolean.TRUE);
+    assertThat(isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, "COVID-19 vaccines"))
+        .isEqualTo(Boolean.FALSE);
     assertThat(
-            isRecognizedServiceNameMethod.invoke(
+            isRecognizedServiceEnumMethod.invoke(
                 emptyNameDetailedService,
                 uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name())))
         .isEqualTo(Boolean.TRUE);
     // Invalid service name
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "No Such Name"))
+    assertThat(isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, "No Such Name"))
         .isEqualTo(Boolean.FALSE);
     // Blank service name
-    assertThat(isRecognizedServiceNameMethod.invoke(emptyNameDetailedService, "   "))
+    assertThat(isRecognizedServiceEnumMethod.invoke(emptyNameDetailedService, "   "))
         .isEqualTo(Boolean.FALSE);
   }
 

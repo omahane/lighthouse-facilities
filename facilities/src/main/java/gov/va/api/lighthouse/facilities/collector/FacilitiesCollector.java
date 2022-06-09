@@ -297,7 +297,7 @@ public class FacilitiesCollector {
       throw new CollectorExceptions.CollectorException(e);
     }
 
-    datamartFacilities.parallelStream()
+    datamartFacilities.stream()
         .filter(df -> facilityCovid19Services.containsKey(df.id()))
         .forEach(
             df -> {

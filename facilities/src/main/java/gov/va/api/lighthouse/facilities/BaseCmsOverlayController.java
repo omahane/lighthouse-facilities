@@ -52,7 +52,9 @@ public abstract class BaseCmsOverlayController {
       List<DatamartDetailedService> detailedServices,
       ObjectMapper mapper) {
     final List<DatamartDetailedService> ds =
-        (detailedServices == null) ? Collections.emptyList() : detailedServices;
+        (detailedServices == null)
+            ? Collections.emptyList()
+            : Collections.synchronizedList(detailedServices);
     final List<String> overlayServiceIds =
         ds.parallelStream().map(dds -> dds.serviceInfo().serviceId()).collect(Collectors.toList());
     // Detailed services represented in pre-serviceInfo block format that have unrecognized service
@@ -66,7 +68,8 @@ public abstract class BaseCmsOverlayController {
                 .parallelStream()
                 .filter(dds -> dds.serviceInfo() != null)
                 .collect(Collectors.toList());
-    final List<DatamartDetailedService> finalDetailedServices = new ArrayList<>();
+    final List<DatamartDetailedService> finalDetailedServices =
+        Collections.synchronizedList(new ArrayList<>());
     finalDetailedServices.addAll(
         currentDetailedServices.parallelStream()
             .filter(
@@ -82,7 +85,8 @@ public abstract class BaseCmsOverlayController {
 
   protected List<DatamartDetailedService> getActiveServicesFromOverlay(
       String id, List<DatamartDetailedService> detailedServices) {
-    final List<DatamartDetailedService> activeServices = new ArrayList<>();
+    final List<DatamartDetailedService> activeServices =
+        Collections.synchronizedList(new ArrayList<>());
     if (detailedServices != null) {
       activeServices.addAll(
           detailedServices.parallelStream().filter(d -> d.active()).collect(Collectors.toList()));
@@ -283,9 +287,21 @@ public abstract class BaseCmsOverlayController {
                         .collect(Collectors.toList()));
       }
 
+      // Determine which overlay services are inactive
+      final List<String> disabledCmsServiceIds =
+          (overlay.detailedServices() != null)
+              ? overlay.detailedServices().parallelStream()
+                  .filter(dds -> !dds.active())
+                  .map(dds -> dds.serviceInfo().serviceId())
+                  .collect(Collectors.toList())
+              : Collections.emptyList();
+
       // Update facility benefits services
       if (facility.attributes().services().benefits() != null) {
-        facilityBenefitsServices.addAll(facility.attributes().services().benefits());
+        facilityBenefitsServices.addAll(
+            facility.attributes().services().benefits().stream()
+                .filter(bs -> !disabledCmsServiceIds.contains(bs.serviceId()))
+                .collect(Collectors.toList()));
       }
       List<DatamartFacility.BenefitsService> facilityBenefitsServiceList =
           new ArrayList<>(facilityBenefitsServices);
@@ -294,7 +310,10 @@ public abstract class BaseCmsOverlayController {
 
       // Update facility health services
       if (facility.attributes().services().health() != null) {
-        facilityHealthServices.addAll(facility.attributes().services().health());
+        facilityHealthServices.addAll(
+            facility.attributes().services().health().stream()
+                .filter(hs -> !disabledCmsServiceIds.contains(hs.serviceId()))
+                .collect(Collectors.toList()));
       }
       List<DatamartFacility.HealthService> facilityHealthServiceList =
           new ArrayList<>(facilityHealthServices);
@@ -303,7 +322,10 @@ public abstract class BaseCmsOverlayController {
 
       // Update facility other services
       if (facility.attributes().services().other() != null) {
-        facilityOtherServices.addAll(facility.attributes().services().other());
+        facilityOtherServices.addAll(
+            facility.attributes().services().other().stream()
+                .filter(os -> !disabledCmsServiceIds.contains(os.serviceId()))
+                .collect(Collectors.toList()));
       }
       List<DatamartFacility.OtherService> facilityOtherServiceList =
           new ArrayList<>(facilityOtherServices);

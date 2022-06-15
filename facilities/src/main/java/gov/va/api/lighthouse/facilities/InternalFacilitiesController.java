@@ -42,6 +42,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -433,7 +434,26 @@ public class InternalFacilitiesController {
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
     var response = ReloadResponse.start();
-    var collectedFacilities = collector.collectFacilities();
+    var collectedFacilities =
+        collector.collectFacilities().stream()
+            .map(
+                df -> {
+                  if (ObjectUtils.isNotEmpty(df.attributes().detailedServices())) {
+                    // Filter out non-Covid services
+                    df.attributes()
+                        .detailedServices(
+                            df.attributes().detailedServices().parallelStream()
+                                .filter(
+                                    dds ->
+                                        dds.serviceInfo() != null
+                                            && dds.serviceInfo()
+                                                .serviceId()
+                                                .equals(HealthService.Covid19Vaccine.serviceId()))
+                                .collect(Collectors.toList()));
+                  }
+                  return df;
+                })
+            .collect(Collectors.toList());
     response.totalFacilities(collectedFacilities.size());
     return process(response, collectedFacilities);
   }

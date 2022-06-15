@@ -71,9 +71,9 @@ public class DatamartDetailedService {
   @JsonProperty("walk_ins_accepted")
   String walkInsAccepted;
 
-  private static boolean isRecognizedServiceEnum(String serviceName) {
+  private static boolean isRecognizedEnumOrCovidService(String serviceName) {
     return isNotEmpty(serviceName)
-        && (HealthService.isRecognizedServiceEnum(serviceName)
+        && (HealthService.isRecognizedEnumOrCovidService(serviceName)
             || BenefitsService.isRecognizedServiceEnum(serviceName)
             || OtherService.isRecognizedServiceEnum(serviceName));
   }
@@ -81,13 +81,13 @@ public class DatamartDetailedService {
   /** Provide backwards compatability with version 0 detailed services. */
   @JsonProperty("name")
   public DatamartDetailedService serviceName(String serviceName) {
-    if (isRecognizedServiceEnum(serviceName)) {
+    if (isRecognizedEnumOrCovidService(serviceName)) {
       // Update service info based on recognized service name
       serviceInfo(
           serviceInfo() == null
               ? ServiceInfo.builder()
                   .serviceId(
-                      HealthService.isRecognizedServiceEnum(serviceName)
+                      HealthService.isRecognizedEnumOrCovidService(serviceName)
                           ? HealthService.fromString(serviceName).serviceId()
                           : BenefitsService.isRecognizedServiceEnum(serviceName)
                               ? BenefitsService.fromString(serviceName).serviceId()
@@ -96,7 +96,7 @@ public class DatamartDetailedService {
                                   : TypedService.INVALID_SVC_ID)
                   .name(serviceName)
                   .serviceType(
-                      HealthService.isRecognizedServiceEnum(serviceName)
+                      HealthService.isRecognizedEnumOrCovidService(serviceName)
                           ? TypeOfService.Health
                           : BenefitsService.isRecognizedServiceEnum(serviceName)
                               ? TypeOfService.Benefits
@@ -141,7 +141,7 @@ public class DatamartDetailedService {
       public ServiceInfoBuilder name(String name) {
         this.name = name;
         if (StringUtils.isEmpty(serviceId)) {
-          if (HealthService.isRecognizedServiceEnum(name)) {
+          if (HealthService.isRecognizedEnumOrCovidService(name)) {
             this.serviceId = HealthService.fromString(name).serviceId();
           } else if (BenefitsService.isRecognizedServiceEnum(name)) {
             this.serviceId = BenefitsService.fromString(name).serviceId();

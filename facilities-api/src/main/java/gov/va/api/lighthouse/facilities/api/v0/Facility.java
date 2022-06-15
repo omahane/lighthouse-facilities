@@ -148,6 +148,14 @@ public final class Facility {
           || Covid19Vaccine.name().equalsIgnoreCase(serviceName);
     }
 
+    /**
+     * Determine whether specified service name represents health service based on enum name or
+     * alternate Covid-19 service name.
+     */
+    public static boolean isRecognizedEnumOrCovidService(String serviceName) {
+      return isRecognizedCovid19ServiceName(serviceName) || isRecognizedServiceEnum(serviceName);
+    }
+
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
       return "dental".equalsIgnoreCase(serviceName)

@@ -60,8 +60,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
 
   /** Obtain service id for specified service name. */
   private static String getServiceIdFromServiceName(@NonNull String serviceName) {
-    return Facility.HealthService.isRecognizedCovid19ServiceName(serviceName)
-            || Facility.HealthService.isRecognizedServiceEnum(serviceName)
+    return Facility.HealthService.isRecognizedEnumOrCovidService(serviceName)
         ? Facility.HealthService.fromString(serviceName).serviceId()
         : Facility.BenefitsService.isRecognizedServiceEnum(serviceName)
             ? Facility.BenefitsService.fromString(serviceName).serviceId()

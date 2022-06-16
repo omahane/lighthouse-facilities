@@ -4,12 +4,18 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>api-starter</artifactId>
-    <version>8.0.28</version>
+    <version>9.0.8</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities-api</artifactId>
-  <version>3.0.70-SNAPSHOT</version>
+  <version>3.0.142-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <dependencies/>
+  <dependencies>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>service-auto-config</artifactId>
+      <version>9.0.6</version>
+    </dependency>
+  </dependencies>
 </project>

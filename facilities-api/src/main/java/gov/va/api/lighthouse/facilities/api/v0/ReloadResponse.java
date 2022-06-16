@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -12,6 +14,7 @@ import lombok.Value;
 /** This is the response returned by the internal management API when reloading facilities data. */
 @Builder
 @Data
+@JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
 public class ReloadResponse {
   public List<String> facilitiesUpdated;
 
@@ -48,6 +51,7 @@ public class ReloadResponse {
   @Builder
   @Value
   @AllArgsConstructor(staticName = "of")
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   public static final class Problem {
     String facilityId;
 
@@ -62,6 +66,7 @@ public class ReloadResponse {
 
   @Builder
   @Data
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   public static final class Timing {
     /** The time we started the reload process. */
     public Instant start;

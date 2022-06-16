@@ -1,11 +1,10 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,6 @@ public class SearchByZipJsonTest {
                 .build())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder()
-                .distances(new ArrayList<>())
                 .pagination(
                     Pagination.builder()
                         .currentPage(1)
@@ -70,7 +68,6 @@ public class SearchByZipJsonTest {
                             .timeZone("America/New_York")
                             .address(
                                 Facility.Addresses.builder()
-                                    .mailing(Facility.Address.builder().build())
                                     .physical(
                                         Facility.Address.builder()
                                             .zip("32940-8007")
@@ -83,6 +80,7 @@ public class SearchByZipJsonTest {
                                 Facility.Phone.builder()
                                     .fax("321-637-3515")
                                     .main("321-637-3788")
+                                    .healthConnect("312-122-4516")
                                     .pharmacy("877-646-4550")
                                     .afterHours("877-741-3400")
                                     .patientAdvocate("407-631-1187")
@@ -101,11 +99,10 @@ public class SearchByZipJsonTest {
                                     .build())
                             .services(
                                 Facility.Services.builder()
-                                    .other(new ArrayList<>())
                                     .health(
                                         List.of(
                                             Facility.HealthService.PrimaryCare,
-                                            Facility.HealthService.MentalHealthCare,
+                                            Facility.HealthService.MentalHealth,
                                             Facility.HealthService.Audiology,
                                             Facility.HealthService.Cardiology,
                                             Facility.HealthService.Dermatology,
@@ -114,8 +111,7 @@ public class SearchByZipJsonTest {
                                             Facility.HealthService.Optometry,
                                             Facility.HealthService.Orthopedics,
                                             Facility.HealthService.Urology,
-                                            Facility.HealthService.SpecialtyCare,
-                                            Facility.HealthService.DentalServices))
+                                            Facility.HealthService.Dental))
                                     .lastUpdated(LocalDate.parse("2020-03-02"))
                                     .build())
                             .satisfaction(
@@ -162,15 +158,11 @@ public class SearchByZipJsonTest {
                                                 47.571428,
                                                 3.258992),
                                             patientWaitTime(
-                                                Facility.HealthService.SpecialtyCare,
-                                                20.963572,
-                                                5.775406),
-                                            patientWaitTime(
                                                 Facility.HealthService.Gastroenterology,
                                                 22.151515,
                                                 4.943661),
                                             patientWaitTime(
-                                                Facility.HealthService.MentalHealthCare,
+                                                Facility.HealthService.MentalHealth,
                                                 7.592814,
                                                 3.97159)))
                                     .effectiveDate(LocalDate.parse("2020-03-02"))
@@ -185,6 +177,6 @@ public class SearchByZipJsonTest {
 
   @Test
   void unmarshallSample() {
-    assertReadable("/search-zip.json");
+    assertReadable("/v1/search-zip.json");
   }
 }

@@ -18,8 +18,8 @@ public interface FacilitiesReadApi {
   @Operation(
       summary = "Retrieve a specific facility by ID",
       operationId = "getFacilityById",
-      tags = {"facilities"},
-      security = @SecurityRequirement(name = "apikey"))
+      security = @SecurityRequirement(name = "apikey"),
+      tags = {"facilities"})
   @GET
   @Path("/facilities/{id}")
   @ApiResponse(

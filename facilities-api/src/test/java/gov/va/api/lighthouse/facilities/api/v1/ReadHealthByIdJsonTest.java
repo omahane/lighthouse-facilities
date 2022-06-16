@@ -1,11 +1,10 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,6 @@ public class ReadHealthByIdJsonTest {
                         .timeZone("America/New_York")
                         .address(
                             Facility.Addresses.builder()
-                                .mailing(Facility.Address.builder().build())
                                 .physical(
                                     Facility.Address.builder()
                                         .zip("04736-3567")
@@ -65,6 +63,7 @@ public class ReadHealthByIdJsonTest {
                             Facility.Phone.builder()
                                 .fax("207-493-3877")
                                 .main("207-493-3800")
+                                .healthConnect("312-122-4516")
                                 .pharmacy("207-623-8411 x5770")
                                 .afterHours("844-750-8426")
                                 .patientAdvocate("207-623-5760")
@@ -83,14 +82,12 @@ public class ReadHealthByIdJsonTest {
                                 .build())
                         .services(
                             Facility.Services.builder()
-                                .other(new ArrayList<>())
                                 .health(
                                     List.of(
                                         Facility.HealthService.EmergencyCare,
                                         Facility.HealthService.PrimaryCare,
-                                        Facility.HealthService.MentalHealthCare,
-                                        Facility.HealthService.Dermatology,
-                                        Facility.HealthService.SpecialtyCare))
+                                        Facility.HealthService.MentalHealth,
+                                        Facility.HealthService.Dermatology))
                                 .lastUpdated(LocalDate.parse("2020-02-24"))
                                 .build())
                         .satisfaction(
@@ -113,11 +110,7 @@ public class ReadHealthByIdJsonTest {
                                             13.727272,
                                             10.392441),
                                         patientWaitTime(
-                                            Facility.HealthService.SpecialtyCare, 5.222222, 0.0),
-                                        patientWaitTime(
-                                            Facility.HealthService.MentalHealthCare,
-                                            5.75,
-                                            2.634703)))
+                                            Facility.HealthService.MentalHealth, 5.75, 2.634703)))
                                 .effectiveDate(LocalDate.parse("2020-02-24"))
                                 .build())
                         .mobile(false)
@@ -130,6 +123,6 @@ public class ReadHealthByIdJsonTest {
 
   @Test
   void unmarshallSample() {
-    assertReadable("/read-health.json");
+    assertReadable("/v1/read-health.json");
   }
 }

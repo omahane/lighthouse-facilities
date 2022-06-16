@@ -21,7 +21,7 @@ public class ValidationV0Test {
 
   @Test
   void all() {
-    String path = "/all.json";
+    String path = "/v0/all.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 
@@ -41,7 +41,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readBenefits() {
-    String path = "/read-benefits.json";
+    String path = "/v0/read-benefits.json";
     assertValid(path, FacilityReadResponse.class);
   }
 
@@ -55,7 +55,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readCemetery() {
-    String path = "/read-cemetery.json";
+    String path = "/v0/read-cemetery.json";
     assertValid(path, FacilityReadResponse.class);
   }
 
@@ -68,7 +68,7 @@ public class ValidationV0Test {
 
   @Test
   void readHealth() {
-    String path = "/read-health.json";
+    String path = "/v0/read-health.json";
     assertValid(path, FacilityReadResponse.class);
   }
 
@@ -81,7 +81,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readStateCemetery() {
-    String path = "/read-state-cemetery.json";
+    String path = "/v0/read-state-cemetery.json";
     assertValid(path, FacilityReadResponse.class);
   }
 
@@ -94,67 +94,67 @@ public class ValidationV0Test {
 
   @Test
   void readVetCenter() {
-    String path = "/read-vet-center.json";
+    String path = "/v0/read-vet-center.json";
     assertValid(path, FacilityReadResponse.class);
   }
 
   @Test
   void readVetCenterGeoJson() {
-    String path = "/read-vet-center-geojson.json";
+    String path = "/v0/read-vet-center-geojson.json";
     assertValid(path, GeoFacilityReadResponse.class);
   }
 
   @Test
   void searchByBbox() {
-    String path = "/search-bbox.json";
+    String path = "/v0/search-bbox.json";
     assertValid(path, FacilitiesResponse.class);
   }
 
   @Test
   void searchByBboxGeoJson() {
-    String path = "/search-bbox-geojson.json";
+    String path = "/v0/search-bbox-geojson.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   void searchByIds() {
-    String path = "/search-ids.json";
+    String path = "/v0/search-ids.json";
     assertValid(path, FacilitiesResponse.class);
   }
 
   @Test
   void searchByIdsGeoJson() {
-    String path = "/search-ids-geojson.json";
+    String path = "/v0/search-ids-geojson.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   void searchByLatLong() {
-    String path = "/search-lat-long.json";
+    String path = "/v0/search-lat-long.json";
     assertValid(path, FacilitiesResponse.class);
   }
 
   @Test
   void searchByLatLongGeoJson() {
-    String path = "/search-lat-long-geojson.json";
+    String path = "/v0/search-lat-long-geojson.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   void searchByState() {
-    String path = "/search-state.json";
+    String path = "/v0/search-state.json";
     assertValid(path, FacilitiesResponse.class);
   }
 
   @Test
   void searchByStateGeoJson() {
-    String path = "/search-state-geojson.json";
+    String path = "/v0/search-state-geojson.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   void searchByZip() {
-    String path = "/search-zip.json";
+    String path = "/v0/search-zip.json";
     assertValid(path, FacilitiesResponse.class);
   }
 

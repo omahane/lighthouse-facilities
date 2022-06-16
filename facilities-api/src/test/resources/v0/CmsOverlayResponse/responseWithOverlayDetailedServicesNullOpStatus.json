@@ -1,0 +1,174 @@
+{
+  "overlay" : {
+    "detailed_services" : [
+      {
+        "name" : "Cardiology",
+        "description_facility" : "Most advanced healthcare facility nationally.",
+        "appointment_leadin" : "Your VA health care team will contact you if you...more text",
+        "appointment_phones" : [
+          {
+            "extension" : "123",
+            "label" : "Main phone",
+            "number" : "555-555-1212",
+            "type" : "tel"
+          }
+        ],
+        "online_scheduling_available" : "True",
+        "referral_required" : "True",
+        "walk_ins_accepted" : "False",
+        "service_locations" : [
+          {
+            "service_location_address" : {
+              "building_name_number" : "Baxter Building",
+              "clinic_name" : "Baxter Clinic",
+              "wing_floor_or_room_number" : "Wing East",
+              "address_line1" : "122 Main St.",
+              "address_line2" : "West Side Apt# 227",
+              "city" : "Rochester",
+              "state" : "NY",
+              "zip_code" : "14623-1345",
+              "country_code" : "US"
+            },
+            "appointment_phones" : [
+              {
+                "extension" : "567",
+                "label" : "Alt phone",
+                "number" : "556-565-1119",
+                "type" : "tel"
+              }
+            ],
+            "email_contacts" : [
+              {
+                "email_address" : "georgea@va.gov",
+                "email_label" : "George Anderson"
+              }
+            ],
+            "facility_service_hours" : {
+              "Monday" : "8:30AM-7:00PM",
+              "Tuesday" : "8:30AM-7:00PM",
+              "Wednesday" : "8:30AM-7:00PM",
+              "Thursday" : "8:30AM-7:00PM",
+              "Friday" : "8:30AM-7:00PM",
+              "Saturday" : "8:30AM-7:00PM",
+              "Sunday" : "CLOSED"
+            },
+            "additional_hours_info" : null
+          }
+        ],
+        "path" : "replaceable path here"
+      },
+      {
+        "name" : "CaregiverSupport",
+        "description_facility" : "Most advanced healthcare facility nationally.",
+        "appointment_leadin" : "Your VA health care team will contact you if you...more text",
+        "appointment_phones" : [
+          {
+            "extension" : "123",
+            "label" : "Main phone",
+            "number" : "555-555-1212",
+            "type" : "tel"
+          }
+        ],
+        "online_scheduling_available" : "True",
+        "referral_required" : "True",
+        "walk_ins_accepted" : "False",
+        "service_locations" : [
+          {
+            "service_location_address" : {
+              "building_name_number" : "Baxter Building",
+              "clinic_name" : "Baxter Clinic",
+              "wing_floor_or_room_number" : "Wing East",
+              "address_line1" : "122 Main St.",
+              "address_line2" : "West Side Apt# 227",
+              "city" : "Rochester",
+              "state" : "NY",
+              "zip_code" : "14623-1345",
+              "country_code" : "US"
+            },
+            "appointment_phones" : [
+              {
+                "extension" : "567",
+                "label" : "Alt phone",
+                "number" : "556-565-1119",
+                "type" : "tel"
+              }
+            ],
+            "email_contacts" : [
+              {
+                "email_address" : "georgea@va.gov",
+                "email_label" : "George Anderson"
+              }
+            ],
+            "facility_service_hours" : {
+              "Monday" : "8:30AM-7:00PM",
+              "Tuesday" : "8:30AM-7:00PM",
+              "Wednesday" : "8:30AM-7:00PM",
+              "Thursday" : "8:30AM-7:00PM",
+              "Friday" : "8:30AM-7:00PM",
+              "Saturday" : "8:30AM-7:00PM",
+              "Sunday" : "CLOSED"
+            },
+            "additional_hours_info" : null
+          }
+        ],
+        "path" : "replaceable path here"
+      },
+      {
+        "name" : "EmergencyCare",
+        "description_facility" : "Most advanced healthcare facility nationally.",
+        "appointment_leadin" : "Your VA health care team will contact you if you...more text",
+        "appointment_phones" : [
+          {
+            "extension" : "123",
+            "label" : "Main phone",
+            "number" : "555-555-1212",
+            "type" : "tel"
+          }
+        ],
+        "online_scheduling_available" : "True",
+        "referral_required" : "True",
+        "walk_ins_accepted" : "False",
+        "service_locations" : [
+          {
+            "service_location_address" : {
+              "building_name_number" : "Baxter Building",
+              "clinic_name" : "Baxter Clinic",
+              "wing_floor_or_room_number" : "Wing East",
+              "address_line1" : "122 Main St.",
+              "address_line2" : "West Side Apt# 227",
+              "city" : "Rochester",
+              "state" : "NY",
+              "zip_code" : "14623-1345",
+              "country_code" : "US"
+            },
+            "appointment_phones" : [
+              {
+                "extension" : "567",
+                "label" : "Alt phone",
+                "number" : "556-565-1119",
+                "type" : "tel"
+              }
+            ],
+            "email_contacts" : [
+              {
+                "email_address" : "georgea@va.gov",
+                "email_label" : "George Anderson"
+              }
+            ],
+            "facility_service_hours" : {
+              "Monday" : "8:30AM-7:00PM",
+              "Tuesday" : "8:30AM-7:00PM",
+              "Wednesday" : "8:30AM-7:00PM",
+              "Thursday" : "8:30AM-7:00PM",
+              "Friday" : "8:30AM-7:00PM",
+              "Saturday" : "8:30AM-7:00PM",
+              "Sunday" : "CLOSED"
+            },
+            "additional_hours_info" : null
+          }
+        ],
+        "path" : "replaceable path here"
+      }
+    ]
+  }
+}

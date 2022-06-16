@@ -15,11 +15,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Loggable
-@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 public interface DriveTimeBandRepository
     extends CrudRepository<DriveTimeBandEntity, DriveTimeBandEntity.Pk>,
         JpaSpecificationExecutor<DriveTimeBandEntity> {

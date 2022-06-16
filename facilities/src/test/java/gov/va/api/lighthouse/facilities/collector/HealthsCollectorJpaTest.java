@@ -2,7 +2,7 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Audiology;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.DentalServices;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Dental;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.EmergencyCare;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Nutrition;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Podiatry;
@@ -236,7 +236,7 @@ class HealthsCollectorJpaTest {
                                     .health(
                                         List.of(
                                             Audiology,
-                                            DentalServices,
+                                            Dental,
                                             EmergencyCare,
                                             Nutrition,
                                             Podiatry,

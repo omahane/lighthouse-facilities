@@ -1,0 +1,7 @@
+{
+  "self" : "http://foo.bar/self",
+  "first" : "http://foo.bar/first",
+  "prev" : "http://foo.bar/prev",
+  "next" : "http://foo.bar/next",
+  "last" : "http://foo.bar/last"
+}

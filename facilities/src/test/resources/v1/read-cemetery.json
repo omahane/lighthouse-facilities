@@ -1,0 +1,51 @@
+{
+  "data" : {
+    "id" : "nca_055",
+    "type" : "va_facilities",
+    "attributes" : {
+      "name" : "Evergreen",
+      "facilityType" : "va_cemetery",
+      "classification" : "Soldiers Lot",
+      "website" : "https://www.cem.va.gov/cems/lots/evergreen.asp",
+      "lat" : 39.0696513,
+      "long" : -84.4688541,
+      "timeZone" : "America/New_York",
+      "address" : {
+        "mailing" : {
+          "zip" : "40356",
+          "city" : "Nicholasville",
+          "state" : "KY",
+          "address1" : "6980 Danville Rd",
+          "address2" : "<Null>"
+        },
+        "physical" : {
+          "zip" : "41071",
+          "city" : "Southgate",
+          "state" : "KY",
+          "address1" : "25 South Alexandria Pike"
+        }
+      },
+      "phone" : {
+        "fax" : "859-887-4860"
+      },
+      "hours" : {
+        "monday" : "Sunrise - Sundown",
+        "tuesday" : "Sunrise - Sundown",
+        "wednesday" : "Sunrise - Sundown",
+        "thursday" : "Sunrise - Sundown",
+        "friday" : "Sunrise - Sundown",
+        "saturday" : "Sunrise - Sundown",
+        "sunday" : "Sunrise - Sundown"
+      },
+      "operationalHoursSpecialInstructions" : [
+        "Vet center 1 is available.",
+        "Vet center 2 is available.",
+        "Vet center 3 is available."
+      ],
+      "activeStatus" : "A",
+      "operatingStatus" : {
+        "code" : "NORMAL"
+      }
+    }
+  }
+}

@@ -1,0 +1,281 @@
+{
+  "data" : [
+    {
+      "id" : "nca_055",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Evergreen",
+        "facilityType" : "va_cemetery",
+        "classification" : "Soldiers Lot",
+        "website" : "https://www.cem.va.gov/cems/lots/evergreen.asp",
+        "lat" : 39.0696513,
+        "long" : -84.4688541,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "mailing" : {
+            "zip" : "40356",
+            "city" : "Nicholasville",
+            "state" : "KY",
+            "address1" : "6980 Danville Rd",
+            "address2" : "<Null>"
+          },
+          "physical" : {
+            "zip" : "41071",
+            "city" : "Southgate",
+            "state" : "KY",
+            "address1" : "25 South Alexandria Pike"
+          }
+        },
+        "phone" : {
+          "fax" : "859-887-4860"
+        },
+        "hours" : {
+          "monday" : "Sunrise - Sundown",
+          "tuesday" : "Sunrise - Sundown",
+          "wednesday" : "Sunrise - Sundown",
+          "thursday" : "Sunrise - Sundown",
+          "friday" : "Sunrise - Sundown",
+          "saturday" : "Sunrise - Sundown",
+          "sunday" : "Sunrise - Sundown"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "nca_s1001",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Alabama State Veterans Memorial Cemetery At Spanish Fort",
+        "facilityType" : "va_cemetery",
+        "classification" : "State Cemetery",
+        "website" : "http://www.va.state.al.us/spanishfort.aspx",
+        "lat" : 30.7346233,
+        "long" : -87.8985442,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "36577",
+            "city" : "Spanish Fort",
+            "state" : "AL",
+            "address1" : "34904 State Highway 225"
+          }
+        },
+        "phone" : {
+          "fax" : "251-626-9204",
+          "main" : "251-625-1338"
+        },
+        "hours" : {
+          "monday" : "Sunrise - Sunset",
+          "tuesday" : "Sunrise - Sunset",
+          "wednesday" : "Sunrise - Sunset",
+          "thursday" : "Sunrise - Sunset",
+          "friday" : "Sunrise - Sunset",
+          "saturday" : "Sunrise - Sunset",
+          "sunday" : "Sunrise - Sunset"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vba_322b",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Montgomery Vocational Rehabilitation and Employment Office",
+        "facilityType" : "va_benefits_facility",
+        "classification" : "Voc Rehab And Employment",
+        "website" : "NULL",
+        "lat" : 32.3615470600001,
+        "long" : -86.24177373,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "36109",
+            "city" : "Montgomery",
+            "state" : "AL",
+            "address1" : "345 Perry Hill Rd"
+          }
+        },
+        "phone" : {
+          "fax" : "334-396-9091",
+          "main" : "334-213-3333"
+        },
+        "hours" : {
+          "monday" : "8:00AM-4:00PM",
+          "tuesday" : "8:00AM-4:00PM",
+          "wednesday" : "8:00AM-4:00PM",
+          "thursday" : "8:00AM-4:00PM",
+          "friday" : "8:00AM-4:00PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "benefits" : [
+            "EducationAndCareerCounseling",
+            "VocationalRehabilitationAndEmploymentAssistance"
+          ]
+        },
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vc_0101V",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Boston Vet Center",
+        "facilityType" : "vet_center",
+        "lat" : 42.3445959000001,
+        "long" : -71.0361051099999,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "02210",
+            "city" : "Boston",
+            "state" : "MA",
+            "address1" : "7 Drydock Avenue",
+            "address2" : "Suite 2070"
+          }
+        },
+        "phone" : {
+          "main" : "857-203-6461"
+        },
+        "hours" : {
+          "monday" : "830AM-700PM",
+          "tuesday" : "830AM-700PM",
+          "wednesday" : "830AM-600PM",
+          "thursday" : "830AM-600PM",
+          "friday" : "830AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vha_402GA",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Caribou VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.maine.va.gov/locations/caribou.asp",
+        "lat" : 46.8780264900001,
+        "long" : -68.00939541,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "04736-3567",
+            "city" : "Caribou",
+            "state" : "ME",
+            "address1" : "163 Van Buren Road",
+            "address3" : "Suite 6"
+          }
+        },
+        "phone" : {
+          "fax" : "207-493-3877",
+          "main" : "207-493-3800",
+          "pharmacy" : "207-623-8411 x5770",
+          "afterHours" : "844-750-8426",
+          "patientAdvocate" : "207-623-5760",
+          "mentalHealthClinic" : "207-623-8411 x 7490",
+          "enrollmentCoordinator" : "207-623-8411 x5688"
+        },
+        "hours" : {
+          "monday" : "700AM-430PM",
+          "tuesday" : "700AM-430PM",
+          "wednesday" : "700AM-430PM",
+          "thursday" : "700AM-430PM",
+          "friday" : "700AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "emergencyCare",
+            "primaryCare",
+            "mentalHealth",
+            "dermatology"
+          ],
+          "lastUpdated" : "2020-02-24"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.89,
+            "primaryCareRoutine" : 0.91
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "dermatology",
+              "new" : 3.714285
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 13.727272,
+              "established" : 10.392441
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 5.75,
+              "established" : 2.634703
+            }
+          ],
+          "effectiveDate" : "2020-02-24"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "1"
+      }
+    }
+  ],
+  "links" : {
+    "self" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?ids=nca_055%2Cnca_s1001%2Cvba_322b%2Cvc_0101V%2Cvha_402GA",
+    "first" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?ids=nca_055%2Cnca_s1001%2Cvba_322b%2Cvc_0101V%2Cvha_402GA&page=1&per_page=10",
+    "last" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?ids=nca_055%2Cnca_s1001%2Cvba_322b%2Cvc_0101V%2Cvha_402GA&page=1&per_page=10"
+  },
+  "meta" : {
+    "pagination" : {
+      "currentPage" : 1,
+      "perPage" : 10,
+      "totalPages" : 1,
+      "totalEntries" : 5
+    }
+  }
+}

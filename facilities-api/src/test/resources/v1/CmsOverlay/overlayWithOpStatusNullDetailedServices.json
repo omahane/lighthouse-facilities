@@ -1,0 +1,6 @@
+{
+  "operatingStatus" : {
+    "code" : "NORMAL",
+    "additionalInfo" : "test additional info"
+  }
+}

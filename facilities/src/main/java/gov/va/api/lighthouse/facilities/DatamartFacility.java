@@ -1,10 +1,12 @@
 package gov.va.api.lighthouse.facilities;
 
+import static org.apache.commons.lang3.StringUtils.capitalize;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -61,26 +63,216 @@ public class DatamartFacility {
   }
 
   public enum HealthService implements ServiceType {
+    @JsonProperty("adaptiveSports")
+    AdaptiveSports,
+    @JsonProperty("addiction")
+    Addiction,
+    @JsonProperty("adviceNurse")
+    AdviceNurse,
+    @JsonProperty("allergy")
+    Allergy,
+    @JsonProperty("amputation")
+    Amputation,
+    @JsonProperty("anesthesia")
+    Anesthesia,
+    @JsonProperty("audiology")
     Audiology,
+    @JsonProperty("bariatricSurgery")
+    BariatricSurgery,
+    @JsonProperty("billing")
+    Billing,
+    @JsonProperty("vision")
+    Vision,
+    @JsonProperty("cancer")
+    Cancer,
+    @JsonProperty("cardiology")
     Cardiology,
+    @JsonProperty("cardiovascularSurgery")
+    CardiovascularSurgery,
+    @JsonProperty("caregiverSupport")
     CaregiverSupport,
+    @JsonProperty("cashier")
+    Cashier,
+    @JsonProperty("chiropractic")
+    Chiropractic,
+    @JsonProperty("colonSurgery")
+    ColonSurgery,
+    @JsonProperty("communityEngagement")
+    CommunityEngagement,
+    @JsonProperty("complementaryHealth")
+    ComplementaryHealth,
+    @JsonProperty("familyCounseling")
+    FamilyCounseling,
+    @JsonProperty("covid19Vaccine")
     Covid19Vaccine,
-    DentalServices,
+    @JsonProperty("criticalCare")
+    CriticalCare,
+    @JsonProperty("dental")
+    Dental,
+    @JsonProperty("dermatology")
     Dermatology,
+    @JsonProperty("diabetic")
+    Diabetic,
+    @JsonProperty("emergencyCare")
     EmergencyCare,
+    @JsonProperty("endocrinology")
+    Endocrinology,
+    @JsonProperty("gastroenterology")
     Gastroenterology,
+    @JsonProperty("genomicMedicine")
+    GenomicMedicine,
+    @JsonProperty("geriatrics")
+    Geriatrics,
+    @JsonProperty("griefCounseling")
+    GriefCounseling,
+    @JsonProperty("gynecology")
     Gynecology,
-    MentalHealthCare,
-    Ophthalmology,
-    Optometry,
-    Orthopedics,
+    @JsonProperty("hematology")
+    Hematology,
+    @JsonProperty("hiv")
+    Hiv,
+    @JsonProperty("homeless")
+    Homeless,
+    @JsonProperty("hospitalMedicine")
+    HospitalMedicine,
+    @JsonProperty("infectiousDisease")
+    InfectiousDisease,
+    @JsonProperty("internalMedicine")
+    InternalMedicine,
+    @JsonProperty("domesticAbuseSupport")
+    DomesticAbuseSupport,
+    @JsonProperty("laboratory")
+    Laboratory,
+    @JsonProperty("lgbtq")
+    Lgbtq,
+    @JsonProperty("medicalRecords")
+    MedicalRecords,
+    @JsonProperty("mentalHealth")
+    MentalHealth,
+    @JsonProperty("militarySexualTrauma")
+    MilitarySexualTrauma,
+    @JsonProperty("minorityCare")
+    MinorityCare,
+    @JsonProperty("weightManagement")
+    WeightManagement,
+    @JsonProperty("myHealtheVetCoordinator")
+    MyHealtheVetCoordinator,
+    @JsonProperty("nephrology")
+    Nephrology,
+    @JsonProperty("neurology")
+    Neurology,
+    @JsonProperty("neurosurgery")
+    Neurosurgery,
+    @JsonProperty("nutrition")
     Nutrition,
+    @JsonProperty("ophthalmology")
+    Ophthalmology,
+    @JsonProperty("optometry")
+    Optometry,
+    @JsonProperty("orthopedics")
+    Orthopedics,
+    @JsonProperty("otolaryngology")
+    Otolaryngology,
+    @JsonProperty("outpatientSurgery")
+    OutpatientSurgery,
+    @JsonProperty("painManagement")
+    PainManagement,
+    @JsonProperty("hospice")
+    Hospice,
+    @JsonProperty("patientAdvocates")
+    PatientAdvocates,
+    @JsonProperty("pharmacy")
+    Pharmacy,
+    @JsonProperty("physicalMedicine")
+    PhysicalMedicine,
+    @JsonProperty("physicalTherapy")
+    PhysicalTherapy,
+    @JsonProperty("plasticSurgery")
+    PlasticSurgery,
+    @JsonProperty("podiatry")
     Podiatry,
+    @JsonProperty("polytrauma")
+    Polytrauma,
+    @JsonProperty("primaryCare")
     PrimaryCare,
+    @JsonProperty("psychiatry")
+    Psychiatry,
+    @JsonProperty("psychology")
+    Psychology,
+    @JsonProperty("ptsd")
+    Ptsd,
+    @JsonProperty("pulmonaryMedicine")
+    PulmonaryMedicine,
+    @JsonProperty("radiationOncology")
+    RadiationOncology,
+    @JsonProperty("radiology")
+    Radiology,
+    @JsonProperty("recreationTherapy")
+    RecreationTherapy,
+    @JsonProperty("registerForCare")
+    RegisterForCare,
+    @JsonProperty("registryExams")
+    RegistryExams,
+    @JsonProperty("rehabilitation")
+    Rehabilitation,
+    @JsonProperty("prosthetics")
+    Prosthetics,
+    @JsonProperty("transitionCounseling")
+    TransitionCounseling,
+    @JsonProperty("rheumatology")
+    Rheumatology,
+    @JsonProperty("sleepMedicine")
+    SleepMedicine,
+    @JsonProperty("smoking")
+    Smoking,
+    @JsonProperty("socialWork")
+    SocialWork,
+    @JsonProperty("specialtyCare")
     SpecialtyCare,
+    @JsonProperty("spinalInjury")
+    SpinalInjury,
+    @JsonProperty("suicidePrevention")
+    SuicidePrevention,
+    @JsonProperty("surgery")
+    Surgery,
+    @JsonProperty("surgicalOncology")
+    SurgicalOncology,
+    @JsonProperty("telehealth")
+    Telehealth,
+    @JsonProperty("thoracicSurgery")
+    ThoracicSurgery,
+    @JsonProperty("transplantSurgery")
+    TransplantSurgery,
+    @JsonProperty("travelReimbursement")
+    TravelReimbursement,
+    @JsonProperty("urgentCare")
     UrgentCare,
+    @JsonProperty("urology")
     Urology,
-    WomensHealth
+    @JsonProperty("vascularSurgery")
+    VascularSurgery,
+    @JsonProperty("veteranConnections")
+    VeteranConnections,
+    @JsonProperty("employmentPrograms")
+    EmploymentPrograms,
+    @JsonProperty("mobility")
+    Mobility,
+    @JsonProperty("wholeHealth")
+    WholeHealth,
+    @JsonProperty("womensHealth")
+    WomensHealth,
+    @JsonProperty("workshops")
+    Workshops,
+    @JsonProperty("wound")
+    Wound;
+
+    /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
+    @JsonCreator
+    public static HealthService fromString(String name) {
+      return "MentalHealthCare".equalsIgnoreCase(name)
+          ? valueOf("MentalHealth")
+          : "DentalServices".equalsIgnoreCase(name) ? valueOf("Dental") : valueOf(capitalize(name));
+    }
   }
 
   public enum OtherService implements ServiceType {
@@ -201,7 +393,7 @@ public class DatamartFacility {
     OperatingStatus operatingStatus;
 
     @JsonProperty(value = "detailed_services")
-    List<@Valid DetailedService> detailedServices;
+    List<@Valid DatamartDetailedService> detailedServices;
 
     String visn;
 
@@ -280,6 +472,24 @@ public class DatamartFacility {
     @JsonProperty(value = "additional_info", required = false)
     @Size(max = 300)
     String additionalInfo;
+
+    @JsonProperty(value = "supplemental_status", required = false)
+    List<@Valid SupplementalStatus> supplementalStatuses;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class SupplementalStatus {
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String id;
+
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String label;
   }
 
   @Data
@@ -333,6 +543,9 @@ public class DatamartFacility {
 
     @JsonProperty("enrollment_coordinator")
     String enrollmentCoordinator;
+
+    @JsonProperty("health_connect")
+    String healthConnect;
   }
 
   @Data

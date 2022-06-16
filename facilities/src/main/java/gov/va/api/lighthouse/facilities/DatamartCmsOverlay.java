@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.Builder;
@@ -18,5 +17,23 @@ public class DatamartCmsOverlay {
   OperatingStatus operatingStatus;
 
   @JsonProperty("detailed_services")
-  List<@Valid DetailedService> detailedServices;
+  List<@Valid DatamartDetailedService> detailedServices;
+
+  @JsonProperty("system")
+  HealthCareSystem healthCareSystem;
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static class HealthCareSystem {
+    String name;
+
+    String url;
+
+    @JsonProperty("covid_url")
+    String covidUrl;
+
+    @JsonProperty("va_health_connect_phone")
+    String healthConnectPhone;
+  }
 }

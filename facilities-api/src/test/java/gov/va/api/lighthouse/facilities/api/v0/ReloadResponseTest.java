@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
+import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
@@ -35,6 +38,40 @@ public class ReloadResponseTest {
     response.timing.markCompleteCollection();
     finish = Instant.now();
     assertThat(response.timing.completeCollection).isBetween(start.plusMillis(MILLIS), finish);
+  }
+
+  @Test
+  @SneakyThrows
+  void responseWithEmptyFields() {
+    // Null out fields for reload response
+    String jsonEmptyReloadResponse =
+        getExpectedJson("v0/ReloadResponse/responseWithNullFields.json");
+    ReloadResponse emptyPageLinks =
+        ReloadResponse.builder()
+            .problems(null)
+            .facilitiesCreated(null)
+            .facilitiesMissing(null)
+            .facilitiesRemoved(null)
+            .facilitiesRevived(null)
+            .facilitiesUpdated(null)
+            .timing(null)
+            .build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyPageLinks))
+        .isEqualTo(jsonEmptyReloadResponse);
+    // Reload response with empty fields
+    jsonEmptyReloadResponse = getExpectedJson("v0/ReloadResponse/responseWithEmptyFields.json");
+    emptyPageLinks =
+        ReloadResponse.builder()
+            .problems(emptyList())
+            .facilitiesCreated(emptyList())
+            .facilitiesMissing(emptyList())
+            .facilitiesRemoved(emptyList())
+            .facilitiesRevived(emptyList())
+            .facilitiesUpdated(emptyList())
+            .timing(null)
+            .build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyPageLinks))
+        .isEqualTo(jsonEmptyReloadResponse);
   }
 
   @Test

@@ -1,0 +1,135 @@
+{
+  "data" : [
+    {
+      "id" : "vha_548GC",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 70,
+        "maxTime" : 80
+      }
+    },
+    {
+      "id" : "vha_548GF",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 80,
+        "maxTime" : 90
+      }
+    },
+    {
+      "id" : "vha_548QA",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 60,
+        "maxTime" : 70
+      }
+    },
+    {
+      "id" : "vha_548GA",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 50,
+        "maxTime" : 60
+      }
+    },
+    {
+      "id" : "vha_548GE",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 50,
+        "maxTime" : 60
+      }
+    },
+    {
+      "id" : "vha_675",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 50,
+        "maxTime" : 60
+      }
+    },
+    {
+      "id" : "vha_675GA",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 10,
+        "maxTime" : 20
+      }
+    },
+    {
+      "id" : "vha_675GB",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 70,
+        "maxTime" : 80
+      }
+    },
+    {
+      "id" : "vha_675GD",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 80,
+        "maxTime" : 90
+      }
+    },
+    {
+      "id" : "vha_675GF",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 80,
+        "maxTime" : 90
+      }
+    },
+    {
+      "id" : "vha_675GG",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 60,
+        "maxTime" : 70
+      }
+    },
+    {
+      "id" : "vha_675QB",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 70,
+        "maxTime" : 80
+      }
+    },
+    {
+      "id" : "vha_675QC",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 70,
+        "maxTime" : 80
+      }
+    },
+    {
+      "id" : "vha_675QD",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 60,
+        "maxTime" : 70
+      }
+    },
+    {
+      "id" : "vha_675QE",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 60,
+        "maxTime" : 70
+      }
+    },
+    {
+      "id" : "vha_675GC",
+      "type" : "nearby_facility",
+      "attributes" : {
+        "minTime" : 60,
+        "maxTime" : 70
+      }
+    }
+  ],
+  "meta" : {
+    "bandVersion" : "APR2021"
+  }
+}

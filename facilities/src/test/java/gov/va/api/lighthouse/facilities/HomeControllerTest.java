@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -47,6 +46,6 @@ public class HomeControllerTest {
                 .basePath("")
                 .build()
                 .openapiJson())
-        .isEqualTo(emptyMap());
+        .isEqualTo("{}");
   }
 }

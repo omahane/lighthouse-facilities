@@ -164,6 +164,7 @@ public class FacilitiesControllerV0 {
   private List<DistanceEntity> entitiesByLatLong(
       BigDecimal longitude,
       BigDecimal latitude,
+      Optional<BigDecimal> radius,
       String ids,
       String rawType,
       List<String> rawServices,
@@ -187,6 +188,10 @@ public class FacilitiesControllerV0 {
                     .entity(e)
                     .distance(BigDecimal.valueOf(haversine(e, lng, lat)))
                     .build())
+        .filter(
+            radius.isPresent()
+                ? de -> radius.get().compareTo(de.distance().abs()) >= 0
+                : de -> true)
         .sorted((left, right) -> left.distance().compareTo(right.distance()))
         .collect(toList());
   }
@@ -269,7 +274,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/geo+json", "application/vnd.geo+json"},
-      params = {"bbox[]", "!lat", "!long", "!state", "!visn", "!zip"})
+      params = {"bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
   GeoFacilitiesResponse geoFacilitiesByBoundingBox(
       @RequestParam(value = "bbox[]") List<BigDecimal> bbox,
       @RequestParam(value = "type", required = false) String type,
@@ -290,7 +295,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/geo+json", "application/vnd.geo+json"},
-      params = {"!bbox[]", "ids", "!lat", "!long", "!state", "!visn", "!zip"})
+      params = {"!bbox[]", "ids", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
   GeoFacilitiesResponse geoFacilitiesByIds(
       @RequestParam(value = "ids") String ids,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
@@ -312,16 +317,30 @@ public class FacilitiesControllerV0 {
   GeoFacilitiesResponse geoFacilitiesByLatLong(
       @RequestParam(value = "lat") BigDecimal latitude,
       @RequestParam(value = "long") BigDecimal longitude,
+      @RequestParam(value = "radius", required = false) BigDecimal radius,
       @RequestParam(value = "ids", required = false) String ids,
       @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "services[]", required = false) List<String> services,
       @RequestParam(value = "mobile", required = false) Boolean mobile,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
+    if (radius != null && radius.compareTo(BigDecimal.ZERO) < 0) {
+      throw new ExceptionsUtils.InvalidParameter("radius", radius);
+    }
     return GeoFacilitiesResponse.builder()
         .type(GeoFacilitiesResponse.Type.FeatureCollection)
         .features(
-            page(entitiesByLatLong(longitude, latitude, ids, type, services, mobile), page, perPage)
+            page(
+                    entitiesByLatLong(
+                        longitude,
+                        latitude,
+                        Optional.ofNullable(radius),
+                        ids,
+                        type,
+                        services,
+                        mobile),
+                    page,
+                    perPage)
                 .stream()
                 .map(e -> geoFacility(e.facility()))
                 .collect(toList()))
@@ -332,7 +351,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/geo+json", "application/vnd.geo+json"},
-      params = {"!bbox[]", "!lat", "!long", "state", "!visn", "!zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "state", "!visn", "!zip"})
   GeoFacilitiesResponse geoFacilitiesByState(
       @RequestParam(value = "state") String state,
       @RequestParam(value = "type", required = false) String type,
@@ -355,7 +374,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/geo+json", "application/vnd.geo+json"},
-      params = {"!bbox[]", "!lat", "!long", "!state", "!type", "visn", "!zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!type", "visn", "!zip"})
   GeoFacilitiesResponse geoFacilitiesByVisn(
       @RequestParam(value = "visn") String visn,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
@@ -373,7 +392,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/geo+json", "application/vnd.geo+json"},
-      params = {"!bbox[]", "!lat", "!long", "!state", "!visn", "zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "zip"})
   GeoFacilitiesResponse geoFacilitiesByZip(
       @RequestParam(value = "zip") String zip,
       @RequestParam(value = "type", required = false) String type,
@@ -396,7 +415,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = "application/json",
-      params = {"bbox[]", "!lat", "!long", "!state", "!visn", "!zip"})
+      params = {"bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
   FacilitiesResponse jsonFacilitiesByBoundingBox(
       @RequestParam(value = "bbox[]") List<BigDecimal> bbox,
       @RequestParam(value = "type", required = false) String type,
@@ -431,7 +450,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = "application/json",
-      params = {"!bbox[]", "ids", "!lat", "!long", "!state", "!visn", "!zip"})
+      params = {"!bbox[]", "ids", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
   FacilitiesResponse jsonFacilitiesByIds(
       @RequestParam(value = "ids") String ids,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
@@ -464,14 +483,19 @@ public class FacilitiesControllerV0 {
   FacilitiesResponse jsonFacilitiesByLatLong(
       @RequestParam(value = "lat") BigDecimal latitude,
       @RequestParam(value = "long") BigDecimal longitude,
+      @RequestParam(value = "radius", required = false) BigDecimal radius,
       @RequestParam(value = "ids", required = false) String ids,
       @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "services[]", required = false) List<String> services,
       @RequestParam(value = "mobile", required = false) Boolean mobile,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
+    if (radius != null && radius.compareTo(BigDecimal.ZERO) < 0) {
+      throw new ExceptionsUtils.InvalidParameter("radius", radius);
+    }
     List<DistanceEntity> entities =
-        entitiesByLatLong(longitude, latitude, ids, type, services, mobile);
+        entitiesByLatLong(
+            longitude, latitude, Optional.ofNullable(radius), ids, type, services, mobile);
     PageLinkerV0 linker =
         PageLinkerV0.builder()
             .url(linkerUrl + "facilities")
@@ -479,6 +503,7 @@ public class FacilitiesControllerV0 {
                 Parameters.builder()
                     .add("lat", latitude)
                     .add("long", longitude)
+                    .addIgnoreNull("radius", radius)
                     .addIgnoreNull("type", type)
                     .addAll("services[]", services)
                     .addIgnoreNull("mobile", mobile)
@@ -512,7 +537,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "state", "!visn", "!zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "state", "!visn", "!zip"})
   FacilitiesResponse jsonFacilitiesByState(
       @RequestParam(value = "state") String state,
       @RequestParam(value = "type", required = false) String type,
@@ -551,7 +576,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "!state", "!type", "visn", "!zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!type", "visn", "!zip"})
   FacilitiesResponse jsonFacilitiesByVisn(
       @RequestParam(value = "visn") String visn,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
@@ -580,7 +605,7 @@ public class FacilitiesControllerV0 {
   @GetMapping(
       value = "/facilities",
       produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "!state", "!visn", "zip"})
+      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "zip"})
   FacilitiesResponse jsonFacilitiesByZip(
       @RequestParam(value = "zip") String zip,
       @RequestParam(value = "type", required = false) String type,

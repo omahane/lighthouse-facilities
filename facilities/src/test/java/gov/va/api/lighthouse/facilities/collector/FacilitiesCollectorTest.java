@@ -7,12 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
+import gov.va.api.lighthouse.facilities.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -324,13 +326,62 @@ public class FacilitiesCollectorTest {
             ResponseEntity.of(
                 Optional.of(
                     "<cems>"
-                        + "<cem station=\"910\" cem_url=\"https://www.cem.va.gov/cems/nchp/FtRichardson.asp\"/>"
+                        + "<cem station=\"10\" cem_url=\"https://www.cem.va.gov/cems/nchp/FtRichardson.asp\"/>"
                         + "</cems>")));
+
+    DatamartDetailedService covidService =
+        DatamartDetailedService.builder()
+            .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
+            .active(true)
+            .path("replace_this_path")
+            .build();
+    DatamartCmsOverlay overlay =
+        DatamartCmsOverlay.builder()
+            .operatingStatus(
+                DatamartFacility.OperatingStatus.builder()
+                    .code(DatamartFacility.OperatingStatusCode.NORMAL)
+                    .build())
+            .detailedServices(List.of(covidService))
+            .build();
+    var pk = FacilityEntity.Pk.fromIdString("vha_456");
+    CmsOverlayEntity overlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .build();
+    List<CmsOverlayEntity> mockOverlays = new ArrayList<>();
+    IntStream.range(1, 5000)
+        .forEachOrdered(
+            n -> {
+              CmsOverlayEntity entity =
+                  CmsOverlayEntity.builder()
+                      .id(FacilityEntity.Pk.fromIdString("vha_" + Integer.toString(n)))
+                      .cmsOperatingStatus(overlayEntity.cmsOperatingStatus())
+                      .cmsServices(overlayEntity.cmsServices())
+                      .overlayServices(
+                          Set.of(
+                              "Covid19Vaccine",
+                              "ColonSurgery",
+                              "CriticalCare",
+                              "PrimaryCare",
+                              "EmergencyCare"))
+                      .build();
+              mockOverlays.add(entity);
+            });
+    mockOverlays.add(overlayEntity);
+    CmsOverlayRepository mockCmsOverlayRepository = mock(CmsOverlayRepository.class);
+    when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays);
+
     assertThat(
             new FacilitiesCollector(
                     insecureRestTemplateProvider,
                     jdbcTemplate,
-                    new CmsOverlayCollector(cmsOverlayRepository),
+                    new CmsOverlayCollector(mockCmsOverlayRepository),
                     "http://atc",
                     "http://atp",
                     "http://statecems")

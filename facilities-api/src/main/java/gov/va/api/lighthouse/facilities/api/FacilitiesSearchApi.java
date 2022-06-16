@@ -29,7 +29,9 @@ public interface FacilitiesSearchApi {
               + "(Relative order is unimportant.)"
               + "\n\n"
               + "A query by latitude and longitude returns all facilities in the system, "
-              + "sorted by distance from that location."
+              + "sorted by distance from that location. Providing an optional radius in miles to "
+              + "this query will narrow the scope of the returned facilities to those falling "
+              + "within the specified radius from that location."
               + "\n\n"
               + "All location queries support filtering by facility type, available services, and"
               + " mobile status."
@@ -57,7 +59,7 @@ public interface FacilitiesSearchApi {
               + "- `ids`"
               + "\n\n"
               + "- `lat` and `long`, with the option "
-              + "of any combination of `ids`, `type`, `services[]`, or `mobile`"
+              + "of any combination of `radius`, `ids`, `type`, `services[]`, or `mobile`"
               + "\n\n"
               + "- `state`, with the option of any combination of `type`, `services[]`, or"
               + " `mobile`"
@@ -166,6 +168,17 @@ public interface FacilitiesSearchApi {
               schema = @Schema(type = "number", format = "float"),
               examples = @ExampleObject(name = "coordinates", value = "-123.4"))
           BigDecimal lng,
+      @Parameter(
+              name = "radius",
+              in = ParameterIn.QUERY,
+              description =
+                  "Optional radial distance from specified latitude and longitude to "
+                      + "filter facilities search in WGS84 coordinate reference system.",
+              style = ParameterStyle.FORM,
+              explode = Explode.TRUE,
+              schema = @Schema(type = "number", format = "float"),
+              examples = @ExampleObject(name = "distance", value = "75.0"))
+          BigDecimal radius,
       @Parameter(
               name = "bbox[]",
               in = ParameterIn.QUERY,

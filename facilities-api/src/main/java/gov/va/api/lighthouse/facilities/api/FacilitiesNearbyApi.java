@@ -30,10 +30,6 @@ public interface FacilitiesNearbyApi {
               + "`city`, `state`, and `zip`) or coordinates (`lat` and `lng`). "
               + "Optional filter parameters include `drive_time` and `services[]`. "
               + "\n\n"
-              + "Results of this operation are paginated. "
-              + "Responses include pagination information in the standard JSON API \"links\" and "
-              + "\"meta\" elements. "
-              + "\n\n"
               + "The \"attributes\" element has information about the "
               + "drive-time band that contains the requested location for each facility "
               + "in the response. The values of `min_time` and `max_time` are in minutes. "
@@ -149,17 +145,5 @@ public interface FacilitiesNearbyApi {
               in = ParameterIn.QUERY,
               style = ParameterStyle.FORM,
               explode = Explode.TRUE)
-          List<String> services,
-      @Parameter(
-              name = "page",
-              description = "Page of results to return per paginated response.",
-              in = ParameterIn.QUERY,
-              schema = @Schema(defaultValue = "1"))
-          Integer page,
-      @Parameter(
-              name = "per_page",
-              description = "Number of results to return per paginated response.",
-              in = ParameterIn.QUERY,
-              schema = @Schema(defaultValue = "20"))
-          Integer perPage);
+          List<String> services);
 }

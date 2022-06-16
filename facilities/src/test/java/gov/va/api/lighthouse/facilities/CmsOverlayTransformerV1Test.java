@@ -2,8 +2,8 @@ package gov.va.api.lighthouse.facilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -40,19 +40,19 @@ public class CmsOverlayTransformerV1Test {
                 .build())
         .detailedServices(
             List.of(
-                DetailedService.builder()
+                DatamartDetailedService.builder()
                     .active(true)
                     .name("COVID-19 vaccines")
                     .path("https://www.melbourne.va.gov/services/covid-19-vaccines.asp")
                     .phoneNumbers(
                         List.of(
-                            DetailedService.AppointmentPhoneNumber.builder()
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .number("937-268-6511")
                                 .label("Main phone")
                                 .type("tel")
                                 .extension("71234")
                                 .build(),
-                            DetailedService.AppointmentPhoneNumber.builder()
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .number("321-213-4253")
                                 .label("After hours phone")
                                 .type("tel")
@@ -68,11 +68,11 @@ public class CmsOverlayTransformerV1Test {
                     .onlineSchedulingAvailable("true")
                     .serviceLocations(
                         List.of(
-                            DetailedService.DetailedServiceLocation.builder()
+                            DatamartDetailedService.DetailedServiceLocation.builder()
                                 .additionalHoursInfo(
                                     "Location hours times may vary depending on staff availability")
                                 .facilityServiceHours(
-                                    DetailedService.DetailedServiceHours.builder()
+                                    DatamartDetailedService.DetailedServiceHours.builder()
                                         .sunday("Closed")
                                         .monday("9AM-5PM")
                                         .tuesday("9AM-5PM")
@@ -83,33 +83,36 @@ public class CmsOverlayTransformerV1Test {
                                         .build())
                                 .emailContacts(
                                     List.of(
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("georgea@va.gov")
                                             .emailLabel("George Anderson")
                                             .build(),
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("john.doe@va.gov")
                                             .emailLabel("John Doe")
                                             .build(),
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("jane.doe@va.gov")
                                             .emailLabel("Jane Doe")
                                             .build()))
                                 .appointmentPhoneNumbers(
                                     List.of(
-                                        DetailedService.AppointmentPhoneNumber.builder()
+                                        DatamartDetailedService.AppointmentPhoneNumber.builder()
                                             .number("932-934-6731")
                                             .type("tel")
                                             .label("Main Phone")
                                             .extension("3245")
                                             .build(),
-                                        DetailedService.AppointmentPhoneNumber.builder()
+                                        DatamartDetailedService.AppointmentPhoneNumber.builder()
                                             .number("956-862-6651")
                                             .type("mobile")
                                             .label("Mobile phone")
                                             .build()))
                                 .serviceLocationAddress(
-                                    DetailedService.DetailedServiceAddress.builder()
+                                    DatamartDetailedService.DetailedServiceAddress.builder()
                                         .address1("50 Irving Street, Northwest")
                                         .buildingNameNumber("Baxter Building")
                                         .city("Washington")
@@ -122,19 +125,19 @@ public class CmsOverlayTransformerV1Test {
                                 .build()))
                     .changed("2021-02-04T22:36:49+00:00")
                     .build(),
-                DetailedService.builder()
+                DatamartDetailedService.builder()
                     .active(true)
                     .name("Cardiology")
                     .path("https://www.melbourne.va.gov/services/cardiology.asp")
                     .phoneNumbers(
                         List.of(
-                            DetailedService.AppointmentPhoneNumber.builder()
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .number("924-268-4253")
                                 .label("Main phone")
                                 .type("tel")
                                 .extension("71432")
                                 .build(),
-                            DetailedService.AppointmentPhoneNumber.builder()
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .number("321-726-6526")
                                 .label("After hours phone")
                                 .type("tel")
@@ -148,11 +151,11 @@ public class CmsOverlayTransformerV1Test {
                     .onlineSchedulingAvailable("true")
                     .serviceLocations(
                         List.of(
-                            DetailedService.DetailedServiceLocation.builder()
+                            DatamartDetailedService.DetailedServiceLocation.builder()
                                 .additionalHoursInfo(
                                     "Location hours times may vary depending on staff availability")
                                 .facilityServiceHours(
-                                    DetailedService.DetailedServiceHours.builder()
+                                    DatamartDetailedService.DetailedServiceHours.builder()
                                         .sunday("Closed")
                                         .monday("9AM-5PM")
                                         .tuesday("9AM-5PM")
@@ -163,33 +166,36 @@ public class CmsOverlayTransformerV1Test {
                                         .build())
                                 .emailContacts(
                                     List.of(
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("georgea@va.gov")
                                             .emailLabel("George Anderson")
                                             .build(),
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("john.doe@va.gov")
                                             .emailLabel("John Doe")
                                             .build(),
-                                        DetailedService.DetailedServiceEmailContact.builder()
+                                        DatamartDetailedService.DetailedServiceEmailContact
+                                            .builder()
                                             .emailAddress("jane.doe@va.gov")
                                             .emailLabel("Jane Doe")
                                             .build()))
                                 .appointmentPhoneNumbers(
                                     List.of(
-                                        DetailedService.AppointmentPhoneNumber.builder()
+                                        DatamartDetailedService.AppointmentPhoneNumber.builder()
                                             .number("932-934-6731")
                                             .type("tel")
                                             .label("Main Phone")
                                             .extension("3245")
                                             .build(),
-                                        DetailedService.AppointmentPhoneNumber.builder()
+                                        DatamartDetailedService.AppointmentPhoneNumber.builder()
                                             .number("956-862-6651")
                                             .type("mobile")
                                             .label("Mobile phone")
                                             .build()))
                                 .serviceLocationAddress(
-                                    DetailedService.DetailedServiceAddress.builder()
+                                    DatamartDetailedService.DetailedServiceAddress.builder()
                                         .address1("2513 Irving Street, Northwest")
                                         .buildingNameNumber("Baxter Building")
                                         .city("Washington")

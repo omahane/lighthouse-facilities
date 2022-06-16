@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -10,16 +9,23 @@ import lombok.experimental.UtilityClass;
 /** Helper class for CMS overlay operating status and detailed services. */
 @UtilityClass
 public final class CmsOverlayHelper {
-
   private static final ObjectMapper DATAMART_MAPPER =
       DatamartFacilitiesJacksonConfig.createMapper();
 
   /** Obtain list of detailed services from JSON string. */
   @SneakyThrows
-  public static List<DetailedService> getDetailedServices(String detailedServices) {
+  public static List<DatamartDetailedService> getDetailedServices(String detailedServices) {
     return (detailedServices == null)
         ? List.of()
-        : List.of(DATAMART_MAPPER.readValue(detailedServices, DetailedService[].class));
+        : List.of(DATAMART_MAPPER.readValue(detailedServices, DatamartDetailedService[].class));
+  }
+
+  /** Obtain DatamartFacility health care system from JSON string. */
+  @SneakyThrows
+  public static DatamartCmsOverlay.HealthCareSystem getHealthCareSystem(String healthCareSystem) {
+    return (healthCareSystem == null)
+        ? null
+        : DATAMART_MAPPER.readValue(healthCareSystem, DatamartCmsOverlay.HealthCareSystem.class);
   }
 
   /** Obtain DatamartFacility operating status from JSON string. */
@@ -32,10 +38,17 @@ public final class CmsOverlayHelper {
 
   /** Obtain JSON string representation of detailed service list. */
   @SneakyThrows
-  public static String serializeDetailedServices(List<DetailedService> detailedServices) {
+  public static String serializeDetailedServices(List<DatamartDetailedService> detailedServices) {
     return (detailedServices == null || detailedServices.isEmpty())
         ? null
         : DATAMART_MAPPER.writeValueAsString(detailedServices);
+  }
+
+  /** Obtain JSON string representation of DatamartFacility health care system. */
+  @SneakyThrows
+  public static String serializeHealthCareSystem(
+      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
+    return (healthCareSystem == null) ? null : DATAMART_MAPPER.writeValueAsString(healthCareSystem);
   }
 
   /** Obtain JSON string representation of DatamartFacility operating status. */

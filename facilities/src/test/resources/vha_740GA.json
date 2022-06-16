@@ -1,100 +1,92 @@
 {
-  "data" : {
-    "id" : "vha_740GA",
-    "type" : "va_facilities",
-    "attributes" : {
-      "name" : "Harlingen VA Clinic-Treasure Hills",
-      "facility_type" : "va_health_facility",
-      "classification" : "Multi-Specialty CBOC",
-      "website" : "https://www.texasvalley.va.gov/locations/Harlingen_OPC.asp",
-      "lat" : 26.1745479800001,
-      "long" : -97.6667188,
-      "time_zone" : "America/New_York",
-      "address" : {
-        "mailing" : { },
-        "physical" : {
-          "zip" : "78550-8736",
-          "city" : "Harlingen",
-          "state" : "TX",
-          "address_1" : "2106 Treasure Hills Boulevard",
-          "address_2" : null,
-          "address_3" : null
-        }
+  "id" : "vha_740GA",
+  "type" : "va_facilities",
+  "attributes" : {
+    "name" : "Harlingen VA Clinic-Treasure Hills",
+    "facility_type" : "va_health_facility",
+    "classification" : "Multi-Specialty CBOC",
+    "website" : "https://www.texasvalley.va.gov/locations/Harlingen_OPC.asp",
+    "lat" : 26.1745479800001,
+    "long" : -97.6667188,
+    "time_zone" : "America/New_York",
+    "address" : {
+      "mailing" : { },
+      "physical" : {
+        "zip" : "78550-8736",
+        "city" : "Harlingen",
+        "state" : "TX",
+        "address_1" : "2106 Treasure Hills Boulevard",
+        "address_2" : null,
+        "address_3" : null
+      }
+    },
+    "phone" : {
+      "fax" : "956-366-4595",
+      "main" : "956-366-4500",
+      "pharmacy" : "877-752-0650",
+      "after_hours" : "888-686-6350",
+      "patient_advocate" : "956-366-4500 x67810",
+      "mental_health_clinic" : "956-366-4526",
+      "enrollment_coordinator" : "956-291-9791"
+    },
+    "hours" : {
+      "monday" : "800AM-430PM",
+      "tuesday" : "800AM-430PM",
+      "wednesday" : "800AM-430PM",
+      "thursday" : "800AM-430PM",
+      "friday" : "800AM-430PM",
+      "saturday" : "Closed",
+      "sunday" : "Closed"
+    },
+    "services" : {
+      "other" : [ ],
+      "health" : [
+        "emergencyCare",
+        "primaryCare",
+        "mentalHealth",
+        "audiology",
+        "dermatology",
+        "dental"
+      ],
+      "last_updated" : "2020-03-16"
+    },
+    "satisfaction" : {
+      "health" : {
+        "primary_care_urgent" : 0.85,
+        "primary_care_routine" : 0.89
       },
-      "phone" : {
-        "fax" : "956-366-4595",
-        "main" : "956-366-4500",
-        "pharmacy" : "877-752-0650",
-        "after_hours" : "888-686-6350",
-        "patient_advocate" : "956-366-4500 x67810",
-        "mental_health_clinic" : "956-366-4526",
-        "enrollment_coordinator" : "956-291-9791"
-      },
-      "hours" : {
-        "monday" : "800AM-430PM",
-        "tuesday" : "800AM-430PM",
-        "wednesday" : "800AM-430PM",
-        "thursday" : "800AM-430PM",
-        "friday" : "800AM-430PM",
-        "saturday" : "Closed",
-        "sunday" : "Closed"
-      },
-      "services" : {
-        "other" : [ ],
-        "health" : [
-          "EmergencyCare",
-          "PrimaryCare",
-          "MentalHealthCare",
-          "Audiology",
-          "Dermatology",
-          "SpecialtyCare",
-          "DentalServices"
-        ],
-        "last_updated" : "2020-03-16"
-      },
-      "satisfaction" : {
-        "health" : {
-          "primary_care_urgent" : 0.85,
-          "primary_care_routine" : 0.89
+      "effective_date" : "2019-06-20"
+    },
+    "wait_times" : {
+      "health" : [
+        {
+          "service" : "audiology",
+          "new" : 39.871345,
+          "established" : 6.566929
         },
-        "effective_date" : "2019-06-20"
-      },
-      "wait_times" : {
-        "health" : [
-          {
-            "service" : "Audiology",
-            "new" : 39.871345,
-            "established" : 6.566929
-          },
-          {
-            "service" : "Dermatology",
-            "new" : 2.60606,
-            "established" : 5.571428
-          },
-          {
-            "service" : "PrimaryCare",
-            "new" : 20.641975,
-            "established" : 2.113052
-          },
-          {
-            "service" : "SpecialtyCare",
-            "new" : 22.694915,
-            "established" : 2.26008
-          },
-          {
-            "service" : "MentalHealthCare",
-            "new" : 3.045454,
-            "established" : 0.844202
-          }
-        ],
-        "effective_date" : "2020-03-16"
-      },
-      "mobile" : false,
-      "active_status" : "A",
-      "operating_status" : {
-        "code" : "NORMAL"
-      },
-      "visn" : "17"
-    }
+        {
+          "service" : "dermatology",
+          "new" : 2.60606,
+          "established" : 5.571428
+        },
+        {
+          "service" : "primaryCare",
+          "new" : 20.641975,
+          "established" : 2.113052
+        },
+        {
+          "service" : "mentalHealth",
+          "new" : 3.045454,
+          "established" : 0.844202
+        }
+      ],
+      "effective_date" : "2020-03-16"
+    },
+    "mobile" : false,
+    "active_status" : "A",
+    "operating_status" : {
+      "code" : "NORMAL"
+    },
+    "visn" : "17"
   }
 }

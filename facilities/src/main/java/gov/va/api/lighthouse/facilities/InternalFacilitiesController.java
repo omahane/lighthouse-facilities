@@ -20,12 +20,14 @@ import gov.va.api.health.autoconfig.logging.Loggable;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,6 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -118,13 +121,12 @@ public class InternalFacilitiesController {
   }
 
   private static Boolean isMobileCenter(FacilityEntity facility) {
-    return Optional.ofNullable(facility.mobile()).orElse(false)
-        && facility.id().stationNumber().contains("MVC");
+    return Optional.ofNullable(facility.mobile()).orElse(false);
   }
 
   /** Populate the given record with facility data _EXCEPT_ of the PK. */
   @SneakyThrows
-  static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
+  public static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
     checkArgument(record.id() != null);
     record.latitude(datamartFacility.attributes().latitude().doubleValue());
     record.longitude(datamartFacility.attributes().longitude().doubleValue());
@@ -204,6 +206,7 @@ public class InternalFacilitiesController {
    * Delete an overlay if thisNodeOnly is not specified or partial overlay identified by
    * thisNodeOnly.
    */
+  @SneakyThrows
   @DeleteMapping(value = {"/facilities/{id}/cms-overlay", "/facilities/{id}/cms-overlay/{node}"})
   ResponseEntity<Void> deleteCmsOverlayById(
       @PathVariable("id") String id,
@@ -217,6 +220,7 @@ public class InternalFacilitiesController {
       log.info("Deleting cms overlay for id: {}", sanitize(id));
       overlayEntity.cmsOperatingStatus(null);
       overlayEntity.cmsServices(null);
+      overlayEntity.healthCareSystem(null);
     } else if (thisNodeOnly.equalsIgnoreCase("operating_status")) {
       if (overlayEntity.cmsOperatingStatus() == null) {
         log.info("CmsOverlay {} does not have an operating_status, ignoring request", sanitize(id));
@@ -231,22 +235,51 @@ public class InternalFacilitiesController {
       }
       log.info("Deleting detailed_services node from overlay for id: {}", sanitize(id));
       overlayEntity.cmsServices(null);
+    } else if (thisNodeOnly.equalsIgnoreCase("system")) {
+      if (overlayEntity.healthCareSystem() == null) {
+        log.info("CmsOverlay {} does not have system, ignoring request", sanitize(id));
+        return ResponseEntity.accepted().build();
+      }
+      log.info("Deleting system node from overlay for id: {}", sanitize(id));
+      overlayEntity.healthCareSystem(null);
     } else {
       log.info("CmsOverlay field {} does not exist.", sanitize(thisNodeOnly));
       throw new ExceptionsUtils.NotFound(thisNodeOnly);
     }
-    if (overlayEntity.cmsOperatingStatus() == null && overlayEntity.cmsServices() == null) {
+    if (overlayEntity.cmsOperatingStatus() == null
+        && overlayEntity.cmsServices() == null
+        && overlayEntity.healthCareSystem() == null) {
       cmsOverlayRepository.delete(overlayEntity);
     } else {
       cmsOverlayRepository.save(overlayEntity);
     }
     FacilityEntity facilityEntity = facilityEntityById(id).orElse(null);
+
     if (facilityEntity != null) {
       facilityEntity
           .cmsOperatingStatus(overlayEntity.cmsOperatingStatus())
           .cmsServices(overlayEntity.cmsServices());
       if (overlayEntity.cmsServices() == null) {
         facilityEntity.overlayServices(new HashSet<>());
+      }
+
+      if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("detailed_services")) {
+        DatamartFacility df =
+            DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
+        if (df.attributes().services.health() != null) {
+          List<DatamartFacility.HealthService> healthServicesWithoutCovid19Vaccine =
+              df.attributes().services.health().stream()
+                  .filter(hs -> !hs.equals(HealthService.Covid19Vaccine))
+                  .collect(Collectors.toList());
+          Collections.sort(healthServicesWithoutCovid19Vaccine);
+          df.attributes().services.health(healthServicesWithoutCovid19Vaccine);
+
+          if (facilityEntity.services() != null) {
+            facilityEntity.services().remove("Covid19Vaccine");
+          }
+
+          facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(df));
+        }
       }
       facilityRepository.save(facilityEntity);
     }
@@ -437,6 +470,7 @@ public class InternalFacilitiesController {
      * Determine if there is something wrong with the record, but it is still usable.
      */
     List<String> duplicateFacilities = detectDuplicateFacilities(record);
+    Collections.sort(duplicateFacilities);
     if (!duplicateFacilities.isEmpty()) {
       response
           .problems()

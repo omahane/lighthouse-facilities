@@ -1,9 +1,9 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Attributes;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Geometry;
@@ -130,55 +130,6 @@ public class ModelTest {
     roundTrip(GenericError.builder().message("First Try Baby").build());
   }
 
-  @Test
-  void geoFacilitiesResponse() {
-    roundTrip(
-        GeoFacilitiesResponse.builder()
-            .type(GeoFacilitiesResponse.Type.FeatureCollection)
-            .features(List.of(geoFacility()))
-            .build());
-  }
-
-  private GeoFacility geoFacility() {
-    return GeoFacility.builder()
-        .type(GeoFacility.Type.Feature)
-        .geometry(
-            GeoFacility.Geometry.builder()
-                .type(GeoFacility.GeometryType.Point)
-                .coordinates(
-                    List.of(BigDecimal.valueOf(-77.0367761), BigDecimal.valueOf(38.9004181)))
-                .build())
-        .properties(
-            GeoFacility.Properties.builder()
-                .id("1234")
-                .name("Cutsortium")
-                .facilityType(FacilityType.va_health_facility)
-                .classification("VA Medical Center (VAMC)")
-                .website("http://www.washingtondc.va.gov")
-                .address(addresses())
-                .phone(phones())
-                .hours(hours())
-                .services(services())
-                .satisfaction(satisfaction())
-                .waitTimes(waitTimes())
-                .mobile(true)
-                .activeStatus(ActiveStatus.A)
-                .operatingStatus(operatingStatus())
-                .visn("20")
-                .build())
-        .build();
-  }
-
-  @Test
-  void geoFacilityReadResponse() {
-    roundTrip(GeoFacilityReadResponse.of(geoFacility()));
-  }
-
-  @Test
-  void geoFacilityRoundTrip() {
-    roundTrip(geoFacility());
-  }
-
   private Facility.Hours hours() {
     return Facility.Hours.builder()
         .monday("CLOSED")
@@ -251,7 +202,7 @@ public class ModelTest {
 
   @SneakyThrows
   private <T> void roundTrip(T object) {
-    ObjectMapper mapper = JacksonConfig.createMapper();
+    ObjectMapper mapper = createMapper();
     String json = mapper.writeValueAsString(object);
     Object evilTwin = mapper.readValue(json, object.getClass());
     assertThat(evilTwin).isEqualTo(object);

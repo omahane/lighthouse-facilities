@@ -1,0 +1,51 @@
+{
+  "data" : {
+    "id" : "vba_322b",
+    "type" : "va_facilities",
+    "attributes" : {
+      "name" : "Montgomery Vocational Rehabilitation and Employment Office",
+      "facilityType" : "va_benefits_facility",
+      "classification" : "Voc Rehab And Employment",
+      "website" : "NULL",
+      "lat" : 32.3615470600001,
+      "long" : -86.24177373,
+      "timeZone" : "America/New_York",
+      "address" : {
+        "physical" : {
+          "zip" : "36109",
+          "city" : "Montgomery",
+          "state" : "AL",
+          "address1" : "345 Perry Hill Rd"
+        }
+      },
+      "phone" : {
+        "fax" : "334-396-9091",
+        "main" : "334-213-3333"
+      },
+      "hours" : {
+        "monday" : "8:00AM-4:00PM",
+        "tuesday" : "8:00AM-4:00PM",
+        "wednesday" : "8:00AM-4:00PM",
+        "thursday" : "8:00AM-4:00PM",
+        "friday" : "8:00AM-4:00PM",
+        "saturday" : "Closed",
+        "sunday" : "Closed"
+      },
+      "operationalHoursSpecialInstructions" : [
+        "Vet center 1 is available.",
+        "Vet center 2 is available.",
+        "Vet center 3 is available."
+      ],
+      "services" : {
+        "benefits" : [
+          "EducationAndCareerCounseling",
+          "VocationalRehabilitationAndEmploymentAssistance"
+        ]
+      },
+      "activeStatus" : "A",
+      "operatingStatus" : {
+        "code" : "NORMAL"
+      }
+    }
+  }
+}

@@ -293,7 +293,8 @@ final class DatamartJacksonSerializers {
           && value.afterHours() == null
           && value.patientAdvocate() == null
           && value.mentalHealthClinic() == null
-          && value.enrollmentCoordinator() == null;
+          && value.enrollmentCoordinator() == null
+          && value.healthConnect() == null;
     }
 
     @SneakyThrows
@@ -326,6 +327,7 @@ final class DatamartJacksonSerializers {
         writeNonNullOrHealth(jgen, "patient_advocate", value.patientAdvocate());
         writeNonNull(jgen, "mental_health_clinic", value.mentalHealthClinic());
         writeNonNullOrHealth(jgen, "enrollment_coordinator", value.enrollmentCoordinator());
+        writeNonNullOrHealth(jgen, "health_connect", value.healthConnect());
       } else {
         if (idStartsWith(jgen, "nca_")) {
           jgen.writeObjectField("fax", null);

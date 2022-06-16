@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities.collector;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,8 +78,9 @@ class HealthsCollectorTest {
             .insecureRestTemplate(insecureRestTemplate)
             .websites(emptyMap())
             .build();
-    assertThrows(
-        InvocationTargetException.class, () -> loadAccessToPwtMethod.invoke(collector, null));
+    assertThatThrownBy(() -> loadAccessToPwtMethod.invoke(collector, null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new RestClientException("oh noez"));
   }
 
   @Test

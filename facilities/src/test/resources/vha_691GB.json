@@ -1,93 +1,85 @@
 {
-  "data" : {
-    "id" : "vha_691GB",
-    "type" : "va_facilities",
-    "attributes" : {
-      "name" : "Santa Barbara VA Clinic",
-      "facility_type" : "va_health_facility",
-      "classification" : "Primary Care CBOC",
-      "website" : "https://www.losangeles.va.gov/locations/directions-SB.asp",
-      "lat" : 34.4423637,
-      "long" : -119.77646693,
-      "time_zone" : "America/New_York",
-      "address" : {
-        "mailing" : { },
-        "physical" : {
-          "zip" : "93110-1002",
-          "city" : "Santa Barbara",
-          "state" : "CA",
-          "address_1" : "4440 Calle Real",
-          "address_2" : null,
-          "address_3" : null
-        }
+  "id" : "vha_691GB",
+  "type" : "va_facilities",
+  "attributes" : {
+    "name" : "Santa Barbara VA Clinic",
+    "facility_type" : "va_health_facility",
+    "classification" : "Primary Care CBOC",
+    "website" : "https://www.losangeles.va.gov/locations/directions-SB.asp",
+    "lat" : 34.4423637,
+    "long" : -119.77646693,
+    "time_zone" : "America/New_York",
+    "address" : {
+      "mailing" : { },
+      "physical" : {
+        "zip" : "93110-1002",
+        "city" : "Santa Barbara",
+        "state" : "CA",
+        "address_1" : "4440 Calle Real",
+        "address_2" : null,
+        "address_3" : null
+      }
+    },
+    "phone" : {
+      "fax" : "805-683-3631",
+      "main" : "805-683-1491",
+      "pharmacy" : "800-952-4852",
+      "after_hours" : "877-252-4866",
+      "patient_advocate" : "818-895-9564",
+      "mental_health_clinic" : "310-268-4449",
+      "enrollment_coordinator" : "818-891-7711 x35894"
+    },
+    "hours" : {
+      "monday" : "800AM-430PM",
+      "tuesday" : "800AM-430PM",
+      "wednesday" : "800AM-430PM",
+      "thursday" : "800AM-430PM",
+      "friday" : "800AM-430PM",
+      "saturday" : "Closed",
+      "sunday" : "Closed"
+    },
+    "services" : {
+      "other" : [ ],
+      "health" : [
+        "primaryCare",
+        "mentalHealth",
+        "orthopedics"
+      ],
+      "last_updated" : "2020-03-16"
+    },
+    "satisfaction" : {
+      "health" : {
+        "primary_care_urgent" : 0.92,
+        "primary_care_routine" : 0.93
       },
-      "phone" : {
-        "fax" : "805-683-3631",
-        "main" : "805-683-1491",
-        "pharmacy" : "800-952-4852",
-        "after_hours" : "877-252-4866",
-        "patient_advocate" : "818-895-9564",
-        "mental_health_clinic" : "310-268-4449",
-        "enrollment_coordinator" : "818-891-7711 x35894"
-      },
-      "hours" : {
-        "monday" : "800AM-430PM",
-        "tuesday" : "800AM-430PM",
-        "wednesday" : "800AM-430PM",
-        "thursday" : "800AM-430PM",
-        "friday" : "800AM-430PM",
-        "saturday" : "Closed",
-        "sunday" : "Closed"
-      },
-      "services" : {
-        "other" : [ ],
-        "health" : [
-          "PrimaryCare",
-          "MentalHealthCare",
-          "Orthopedics",
-          "SpecialtyCare"
-        ],
-        "last_updated" : "2020-03-16"
-      },
-      "satisfaction" : {
-        "health" : {
-          "primary_care_urgent" : 0.92,
-          "primary_care_routine" : 0.93
+      "effective_date" : "2019-06-20"
+    },
+    "wait_times" : {
+      "health" : [
+        {
+          "service" : "orthopedics",
+          "new" : 26.25,
+          "established" : null
         },
-        "effective_date" : "2019-06-20"
-      },
-      "wait_times" : {
-        "health" : [
-          {
-            "service" : "Orthopedics",
-            "new" : 26.25,
-            "established" : null
-          },
-          {
-            "service" : "PrimaryCare",
-            "new" : 32.925925,
-            "established" : 9.498175
-          },
-          {
-            "service" : "SpecialtyCare",
-            "new" : 20.0625,
-            "established" : 4.7
-          },
-          {
-            "service" : "MentalHealthCare",
-            "new" : 7.384615,
-            "established" : 0.842696
-          }
-        ],
-        "effective_date" : "2020-03-16"
-      },
-      "mobile" : false,
-      "active_status" : "A",
-      "operating_status" : {
-        "code" : "NORMAL",
-        "additional_info" : "all day, every day"
-      },
-      "visn" : "22"
-    }
+        {
+          "service" : "primaryCare",
+          "new" : 32.925925,
+          "established" : 9.498175
+        },
+        {
+          "service" : "mentalHealth",
+          "new" : 7.384615,
+          "established" : 0.842696
+        }
+      ],
+      "effective_date" : "2020-03-16"
+    },
+    "mobile" : false,
+    "active_status" : "A",
+    "operating_status" : {
+      "code" : "NORMAL",
+      "additional_info" : "all day, every day"
+    },
+    "visn" : "22"
   }
 }

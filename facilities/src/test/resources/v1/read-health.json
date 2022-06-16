@@ -1,0 +1,89 @@
+{
+  "data" : {
+    "id" : "vha_402GA",
+    "type" : "va_facilities",
+    "attributes" : {
+      "name" : "Caribou VA Clinic",
+      "facilityType" : "va_health_facility",
+      "classification" : "Primary Care CBOC",
+      "website" : "https://www.maine.va.gov/locations/caribou.asp",
+      "lat" : 46.8780264900001,
+      "long" : -68.00939541,
+      "timeZone" : "America/New_York",
+      "address" : {
+        "physical" : {
+          "zip" : "04736-3567",
+          "city" : "Caribou",
+          "state" : "ME",
+          "address1" : "163 Van Buren Road",
+          "address3" : "Suite 6"
+        }
+      },
+      "phone" : {
+        "fax" : "207-493-3877",
+        "main" : "207-493-3800",
+        "pharmacy" : "207-623-8411 x5770",
+        "afterHours" : "844-750-8426",
+        "patientAdvocate" : "207-623-5760",
+        "mentalHealthClinic" : "207-623-8411 x 7490",
+        "enrollmentCoordinator" : "207-623-8411 x5688"
+      },
+      "hours" : {
+        "monday" : "700AM-430PM",
+        "tuesday" : "700AM-430PM",
+        "wednesday" : "700AM-430PM",
+        "thursday" : "700AM-430PM",
+        "friday" : "700AM-430PM",
+        "saturday" : "Closed",
+        "sunday" : "Closed"
+      },
+      "operationalHoursSpecialInstructions" : [
+        "Vet center 1 is available.",
+        "Vet center 2 is available.",
+        "Vet center 3 is available."
+      ],
+      "services" : {
+        "health" : [
+          "emergencyCare",
+          "primaryCare",
+          "mentalHealth",
+          "dermatology"
+        ],
+        "lastUpdated" : "2020-02-24"
+      },
+      "satisfaction" : {
+        "health" : {
+          "primaryCareUrgent" : 0.89,
+          "primaryCareRoutine" : 0.91
+        },
+        "effectiveDate" : "2019-06-20"
+      },
+      "waitTimes" : {
+        "health" : [
+          {
+            "service" : "dermatology",
+            "new" : 3.714285
+          },
+          {
+            "service" : "primaryCare",
+            "new" : 13.727272,
+            "established" : 10.392441
+          },
+          {
+            "service" : "mentalHealth",
+            "new" : 5.75,
+            "established" : 2.634703
+          }
+        ],
+        "effectiveDate" : "2020-02-24"
+      },
+      "mobile" : false,
+      "activeStatus" : "A",
+      "operatingStatus" : {
+        "code" : "NOTICE",
+        "additionalInfo" : "all day, every day"
+      },
+      "visn" : "1"
+    }
+  }
+}

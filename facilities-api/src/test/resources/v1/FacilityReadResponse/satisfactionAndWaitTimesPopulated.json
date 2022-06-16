@@ -1,0 +1,31 @@
+{
+  "data" : {
+    "id" : "vha_402",
+    "attributes" : {
+      "address" : {
+        "mailing" : {
+          "zip" : "20422-0001",
+          "city" : "Washington",
+          "state" : "DC",
+          "address1" : "50 Irving Street, Northwest",
+          "address2" : "Bldg 2",
+          "address3" : "Suite 7"
+        }
+      },
+      "satisfaction" : {
+        "health" : {
+          "primaryCareUrgent" : 10
+        },
+        "effectiveDate" : "2022-01-13"
+      },
+      "waitTimes" : {
+        "health" : [
+          {
+            "new" : 1
+          }
+        ],
+        "effectiveDate" : "2022-01-13"
+      }
+    }
+  }
+}

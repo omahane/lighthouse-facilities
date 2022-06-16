@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
+import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatusCode;
@@ -343,6 +343,13 @@ public class CmsOverlayIT {
             .code(OperatingStatusCode.NOTICE)
             .additionalInfo("Update1")
             .build();
+    CmsOverlay.HealthCareSystem healthCareSystem =
+        CmsOverlay.HealthCareSystem.builder()
+            .name("Example Health Care System Name")
+            .url("https://www.va.gov/example/locations/facility")
+            .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+            .healthConnectPhone("123-456-7890 x123")
+            .build();
     var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
@@ -426,6 +433,80 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
         .isEqualTo(detailedServices());
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .body(
+                    MAPPER.writeValueAsString(
+                        CmsOverlay.builder().healthCareSystem(healthCareSystem).build()))
+                .request(
+                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+        .expect(200);
+    cmsOverlay =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(
+                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+            .expect(200)
+            .expectValid(CmsOverlayResponse.class);
+    assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
+    assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(healthCareSystem);
+    assertThat(cmsOverlay.overlay().detailedServices())
+        .usingRecursiveComparison()
+        .isEqualTo(detailedServices());
+    facility =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
+            .expect(200)
+            .expectValid(FacilityReadResponse.class)
+            .facility();
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    ExpectedResponse.of(
+            requestSpecificationInternal()
+                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
+        .expect(200);
+    facility =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
+            .expect(200)
+            .expectValid(FacilityReadResponse.class)
+            .facility();
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(healthCareSystem.healthConnectPhone());
+    ExpectedResponse.of(
+        requestSpecificationInternal()
+            .request(
+                Method.DELETE,
+                svcInternal.urlWithApiPath()
+                    + "internal/management/facilities/"
+                    + id
+                    + "/cms-overlay/system"));
+    cmsOverlay =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(
+                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+            .expect(200)
+            .expectValid(CmsOverlayResponse.class);
+    assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
+    assertThat(cmsOverlay.overlay().healthCareSystem()).isNull();
+    assertThat(cmsOverlay.overlay().detailedServices())
+        .usingRecursiveComparison()
+        .isEqualTo(detailedServices());
+    ExpectedResponse.of(
+            requestSpecificationInternal()
+                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
+        .expect(200);
+    facility =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
+            .expect(200)
+            .expectValid(FacilityReadResponse.class)
+            .facility();
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
   }
 
   @Test

@@ -4,12 +4,12 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Audiology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Cardiology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.CaregiverSupport;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.DentalServices;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Dental;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Dermatology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.EmergencyCare;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Gastroenterology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Gynecology;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.MentalHealthCare;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.MentalHealth;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Nutrition;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Ophthalmology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Optometry;
@@ -89,7 +89,7 @@ final class HealthTransformer {
     map.put("DERMATOLOGY", Dermatology);
     map.put("GASTROENTEROLOGY", Gastroenterology);
     map.put("GYNECOLOGY", Gynecology);
-    map.put("MENTAL HEALTH", MentalHealthCare);
+    map.put("MENTAL HEALTH", MentalHealth);
     map.put("OPHTHALMOLOGY", Ophthalmology);
     map.put("OPTOMETRY", Optometry);
     map.put("ORTHOPEDICS", Orthopedics);
@@ -362,7 +362,7 @@ final class HealthTransformer {
       services.add(UrgentCare);
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.DENTISTRY.contains(trimToEmpty(sc.code())))) {
-      services.add(DentalServices);
+      services.add(Dental);
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.NUTRITION.contains(trimToEmpty(sc.code())))) {
       services.add(Nutrition);

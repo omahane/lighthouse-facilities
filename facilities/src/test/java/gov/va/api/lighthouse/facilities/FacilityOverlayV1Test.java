@@ -3,8 +3,8 @@ package gov.va.api.lighthouse.facilities;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;

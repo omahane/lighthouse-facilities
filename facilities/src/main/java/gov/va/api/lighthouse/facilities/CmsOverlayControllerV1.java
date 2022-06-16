@@ -6,11 +6,13 @@ import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedServiceResponse;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +76,9 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
       @PathVariable("service_id") String serviceId) {
     return ResponseEntity.ok(
         DetailedServiceResponse.builder()
-            .data(getOverlayDetailedService(facilityId, serviceId))
+            .data(
+                DetailedServiceTransformerV1.toDetailedService(
+                    getOverlayDetailedService(facilityId, serviceId)))
             .build());
   }
 
@@ -86,7 +90,8 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
       @PathVariable("id") String facilityId,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    List<DetailedService> services = getOverlayDetailedServices(facilityId);
+    List<DetailedService> services =
+        DetailedServiceTransformerV1.toDetailedServices(getOverlayDetailedServices(facilityId));
     PageLinkerV1 linker =
         PageLinkerV1.builder()
             .url(linkerUrl + "facilities/" + facilityId + "/services")
@@ -132,6 +137,9 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                                 cmsOverlayEntity.cmsOperatingStatus()))
                         .detailedServices(
                             CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
+                        .healthCareSystem(
+                            CmsOverlayHelper.getHealthCareSystem(
+                                cmsOverlayEntity.healthCareSystem()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);
@@ -155,6 +163,8 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
     DatamartCmsOverlay datamartCmsOverlay = CmsOverlayTransformerV1.toVersionAgnostic(overlay);
     updateCmsOverlayData(existingCmsOverlayEntity, id, datamartCmsOverlay);
+    overlay.detailedServices(
+        DetailedServiceTransformerV1.toDetailedServices(datamartCmsOverlay.detailedServices()));
     if (existingFacilityEntity.isEmpty()) {
       log.info("Received Unknown Facility ID ({}) for CMS Overlay", sanitize(id));
       return ResponseEntity.accepted().build();
@@ -170,7 +180,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
       Optional<CmsOverlayEntity> existingCmsOverlayEntity, String id, DatamartCmsOverlay overlay) {
     CmsOverlayEntity cmsOverlayEntity;
     if (existingCmsOverlayEntity.isEmpty()) {
-      List<DetailedService> activeServices =
+      List<DatamartDetailedService> activeServices =
           getActiveServicesFromOverlay(id, overlay.detailedServices());
       cmsOverlayEntity =
           CmsOverlayEntity.builder()
@@ -178,6 +188,8 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
               .cmsOperatingStatus(
                   CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
               .cmsServices(CmsOverlayHelper.serializeDetailedServices(activeServices))
+              .healthCareSystem(
+                  CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
               .build();
     } else {
       cmsOverlayEntity = existingCmsOverlayEntity.get();
@@ -185,12 +197,16 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         cmsOverlayEntity.cmsOperatingStatus(
             CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()));
       }
-      List<DetailedService> overlayServices = overlay.detailedServices();
+      List<DatamartDetailedService> overlayServices = overlay.detailedServices();
       if (overlayServices != null) {
-        List<DetailedService> toSaveDetailedServices =
+        List<DatamartDetailedService> toSaveDetailedServices =
             findServicesToSave(cmsOverlayEntity, id, overlay.detailedServices(), DATAMART_MAPPER);
         cmsOverlayEntity.cmsServices(
             CmsOverlayHelper.serializeDetailedServices(toSaveDetailedServices));
+      }
+      if (overlay.healthCareSystem != null) {
+        cmsOverlayEntity.healthCareSystem(
+            CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()));
       }
     }
     cmsOverlayRepository.save(cmsOverlayEntity);
@@ -205,7 +221,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     DatamartFacility facility =
         DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
     // Only save active services from the overlay if they exist
-    List<DetailedService> toSaveDetailedServices;
+    List<DatamartDetailedService> toSaveDetailedServices;
     if (existingCmsOverlayEntity.isEmpty()) {
       toSaveDetailedServices = getActiveServicesFromOverlay(id, overlay.detailedServices());
     } else {
@@ -213,6 +229,26 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
           findServicesToSave(
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
+
+    Set<DatamartFacility.HealthService> facilityHealthServices = new HashSet<>();
+    if (!toSaveDetailedServices.isEmpty()) {
+      Set<String> detailedServices = new HashSet<>();
+      for (DatamartDetailedService service : toSaveDetailedServices) {
+        if (service.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
+          detailedServices.add("Covid19Vaccine");
+          if (facilityEntity.services() != null) {
+            facilityEntity.services().add("Covid19Vaccine");
+          } else {
+            facilityEntity.services(Set.of("Covid19Vaccine"));
+          }
+          facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
+        } else {
+          detailedServices.add(service.name());
+        }
+      }
+      facilityEntity.overlayServices(detailedServices);
+    }
+
     if (facility != null) {
       DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
       if (operatingStatus != null) {
@@ -228,19 +264,19 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
             .attributes()
             .detailedServices(toSaveDetailedServices.isEmpty() ? null : toSaveDetailedServices);
       }
+
+      if (facility.attributes().services.health() != null) {
+        facilityHealthServices.addAll(facility.attributes().services.health());
+      }
+
+      List<DatamartFacility.HealthService> facilityHealthServiceList =
+          new ArrayList<>(facilityHealthServices);
+      Collections.sort(facilityHealthServiceList);
+      facility.attributes().services().health(facilityHealthServiceList);
+
       facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
     }
-    if (!toSaveDetailedServices.isEmpty()) {
-      Set<String> detailedServices = new HashSet<>();
-      for (DetailedService service : toSaveDetailedServices) {
-        if (service.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
-          detailedServices.add("Covid19Vaccine");
-        } else {
-          detailedServices.add(service.name());
-        }
-      }
-      facilityEntity.overlayServices(detailedServices);
-    }
+
     facilityRepository.save(facilityEntity);
   }
 }

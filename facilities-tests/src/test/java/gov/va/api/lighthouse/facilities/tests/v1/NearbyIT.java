@@ -3,7 +3,7 @@ package gov.va.api.lighthouse.facilities.tests.v1;
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
 
-import gov.va.api.lighthouse.facilities.api.v0.NearbyResponse;
+import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
 import org.junit.jupiter.api.Test;
 
 public class NearbyIT {

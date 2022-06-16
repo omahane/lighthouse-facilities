@@ -1,9 +1,10 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,9 +20,10 @@ import lombok.Value;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
 @Schema(description = "GeoJSON-complaint Feature object describing a VA Facility")
 public final class GeoFacility {
-  @Schema(example = "Feature")
+  @Schema(description = "Top level category describing the type of facility.", example = "Feature")
   @NotNull
   Type type;
 
@@ -41,13 +43,19 @@ public final class GeoFacility {
   @Builder
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @Schema(nullable = true)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(
+      description = "Geometric data giving the physical location of a VA Facility.",
+      nullable = true)
   public static final class Geometry {
-    @Schema(example = "Point")
+    @Schema(description = "Describes the type of geometric data provided.", example = "Point")
     @NotNull
     GeometryType type;
 
-    @Schema(example = "[-77.0367761, 38.9004181]", nullable = true)
+    @Schema(
+        description = "The latitude and longitude of the Facility's physical location.",
+        example = "[-77.0367761, 38.9004181]",
+        nullable = true)
     @Size(min = 2, max = 2)
     List<BigDecimal> coordinates;
   }
@@ -56,6 +64,7 @@ public final class GeoFacility {
   @Builder
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @JsonPropertyOrder({
     "id",
     "name",
@@ -75,42 +84,66 @@ public final class GeoFacility {
     "operating_status",
     "visn"
   })
+  @Schema(description = "Details describing a facility.", nullable = true)
   public static final class Properties {
-    @Schema(example = "vha_688")
+    @Schema(description = "Identifier representing the Facility.", example = "vha_688")
     @NotNull
     String id;
 
-    @Schema(example = "Washington VA Medical Center", nullable = true)
+    @Schema(
+        description = "Name associated with given facility.",
+        example = "Washington VA Medical Center")
     String name;
 
     @NotNull
     @JsonProperty("facility_type")
+    @Schema(
+        description =
+            "One of facility top-level type categories (e.g.) "
+                + "health, benefits, cemetery and vet center.",
+        example = "va_health_facility")
     Facility.FacilityType facilityType;
 
-    @Schema(example = "VA Medical Center (VAMC)", nullable = true)
+    @Schema(
+        description = "Subtype of facility which can further be used to describe facility.",
+        example = "VA Medical Center (VAMC)",
+        nullable = true)
     String classification;
 
-    @Schema(example = "http://www.washingtondc.va.gov", nullable = true)
+    @Schema(
+        description = "Web address of facility.",
+        example = "http://www.washingtondc.va.gov",
+        nullable = true)
     String website;
 
     @Schema(description = "Facility time zone", format = "String", example = "America/New_York")
     @JsonProperty("time_zone")
     String timeZone;
 
-    @Schema(nullable = true)
+    @Schema(description = "Collection of addresses associated with a facility.", nullable = true)
     @Valid
     Facility.Addresses address;
 
-    @Schema(nullable = true)
+    @Schema(
+        description = "Phone number contact for facility.",
+        example = "1-800-827-1000",
+        nullable = true)
     @Valid
     Facility.Phone phone;
 
-    @Schema(nullable = true)
+    @Schema(
+        description = "Operating hours for facility.",
+        example = "\"monday\": \"9:30AM-4:00PM\",",
+        nullable = true)
     @Valid
     Facility.Hours hours;
 
     @Schema(
-        example = "Administrative hours are Monday-Friday 8:00 a.m. to 4:30 p.m.",
+        description = "Additional information about facility operating hours.",
+        example =
+            "[\"More hours are available for some services.\","
+                + "\"If you need to talk to someone, call the Vet Center at 1-877-927-8387.\","
+                + "\"Vet Center hours are dependent upon outreach assignments.\" ]",
         nullable = true)
     @JsonProperty("operational_hours_special_instructions")
     String operationalHoursSpecialInstructions;
@@ -131,7 +164,9 @@ public final class GeoFacility {
     @Schema(example = "false", nullable = true)
     Boolean mobile;
 
-    @Schema(nullable = true)
+    @Schema(
+        description = "This field is deprecated and replaced with \"operating_status\".",
+        nullable = true)
     @JsonProperty("active_status")
     Facility.ActiveStatus activeStatus;
 

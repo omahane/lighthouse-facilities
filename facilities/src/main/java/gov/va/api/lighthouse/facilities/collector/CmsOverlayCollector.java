@@ -8,16 +8,20 @@ import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
 import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
+import gov.va.api.lighthouse.facilities.DatamartDetailedService;
+import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +32,7 @@ public class CmsOverlayCollector {
   private final CmsOverlayRepository cmsOverlayRepository;
 
   /** Method for determining whether Covid service is contained within detailed services. */
-  public static boolean containsCovidService(List<DetailedService> detailedServices) {
+  public static boolean containsCovidService(List<DatamartDetailedService> detailedServices) {
     return detailedServices != null
         && detailedServices.parallelStream()
             .anyMatch(f -> f.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19));
@@ -43,11 +47,34 @@ public class CmsOverlayCollector {
         HashMap::new);
   }
 
+  private AbstractMap.SimpleEntry<String, HealthService> filterCovid19ServiceFromCmsOverlayServices(
+      CmsOverlayEntity cmsOverlayEntity) {
+    Optional<DatamartFacility.HealthService> opt =
+        cmsOverlayEntity.overlayServices().stream()
+            .filter(s -> EnumUtils.isValidEnum(HealthService.class, s))
+            .map(s -> DatamartFacility.HealthService.valueOf(s))
+            .filter(s -> s.equals(HealthService.Covid19Vaccine))
+            .findFirst();
+    if (opt.isPresent()) {
+      return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), opt.get());
+    }
+    return null;
+  }
+
+  /** Return a map of facilities that have covid 19 vaccines. This is a V0 utility function. */
+  public HashMap<String, HealthService> getCovid19VaccineServices() {
+    HashMap<String, HealthService> cmsOverlayServices =
+        Streams.stream(cmsOverlayRepository.findAll())
+            .map(this::filterCovid19ServiceFromCmsOverlayServices)
+            .filter(Objects::nonNull)
+            .collect(convertOverlayToMap());
+    return cmsOverlayServices;
+  }
+
   /** Load and return map of CMS overlays for each facility id. */
   public HashMap<String, DatamartCmsOverlay> loadAndUpdateCmsOverlays() {
     HashMap<String, DatamartCmsOverlay> overlays =
         Streams.stream(cmsOverlayRepository.findAll())
-            // .parallel()
             .map(this::makeOverlayFromEntity)
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
@@ -67,19 +94,25 @@ public class CmsOverlayCollector {
               .detailedServices(
                   cmsOverlayEntity.cmsServices() != null
                       ? // updateServiceUrlPaths(
-                      //  cmsOverlayEntity.id().toIdString(),
-                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()) // )
+                      // cmsOverlayEntity.id().toIdString(),
+                      // )
+                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices())
                       : null)
+              .healthCareSystem(
+                  CmsOverlayHelper.getHealthCareSystem(cmsOverlayEntity.healthCareSystem()))
               .build();
       // Save updates made to overlay with Covid services
       final OperatingStatus operatingStatus = overlay.operatingStatus();
-      final List<DetailedService> detailedServices = overlay.detailedServices();
+      final List<DatamartDetailedService> detailedServices = overlay.detailedServices();
       if (containsCovidService(detailedServices)) {
         cmsOverlayRepository.save(
             CmsOverlayEntity.builder()
                 .id(cmsOverlayEntity.id())
                 .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
                 .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
+                .overlayServices(cmsOverlayEntity.overlayServices())
+                .healthCareSystem(
+                    CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
                 .build());
         log.info(
             "CMS overlay updated for {} facility", sanitize(cmsOverlayEntity.id().toIdString()));

@@ -65,6 +65,7 @@ public class ReadHealthByIdJsonTest {
                             Facility.Phone.builder()
                                 .fax("207-493-3877")
                                 .main("207-493-3800")
+                                .healthConnect("512-325-1255")
                                 .pharmacy("207-623-8411 x5770")
                                 .afterHours("844-750-8426")
                                 .patientAdvocate("207-623-5760")
@@ -130,6 +131,6 @@ public class ReadHealthByIdJsonTest {
 
   @Test
   void unmarshallSample() {
-    assertReadable("/read-health.json");
+    assertReadable("/v0/read-health.json");
   }
 }

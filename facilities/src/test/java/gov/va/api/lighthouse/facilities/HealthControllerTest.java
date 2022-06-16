@@ -2,6 +2,8 @@ package gov.va.api.lighthouse.facilities;
 
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -10,6 +12,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.web.context.request.RequestContextHolder.setRequestAttributes;
 
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -214,6 +217,28 @@ public class HealthControllerTest {
   }
 
   @Test
+  @SneakyThrows
+  void exceptions() {
+    Method reloadLastUpdatedMethod =
+        HealthController.class.getDeclaredMethod("testReloadLastUpdated", Instant.class);
+    reloadLastUpdatedMethod.setAccessible(true);
+    Instant nullInstant = null;
+    assertThrows(
+        NullPointerException.class, () -> reloadLastUpdatedMethod.invoke(null, nullInstant));
+    Method etlLastUpdatedMethod =
+        HealthController.class.getDeclaredMethod("testEtlLastUpdated", Instant.class);
+    etlLastUpdatedMethod.setAccessible(true);
+    assertThrows(NullPointerException.class, () -> etlLastUpdatedMethod.invoke(null, nullInstant));
+    Method withTrailingSlashMethod =
+        HealthController.class.getDeclaredMethod("withTrailingSlash", String.class);
+    withTrailingSlashMethod.setAccessible(true);
+    String nullUrl = null;
+    assertThatThrownBy(() -> withTrailingSlashMethod.invoke(null, nullUrl))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("url is marked non-null but is null"));
+  }
+
+  @Test
   void healthResourceAccessException() {
     setRequestAttributes(mock(RequestAttributes.class));
     when(insecureRestTemplateProvider.restTemplate()).thenReturn(restTemplate);
@@ -236,11 +261,30 @@ public class HealthControllerTest {
   }
 
   @Test
+  void stateCemeteriesAccessException() {
+    setRequestAttributes(mock(RequestAttributes.class));
+    when(insecureRestTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplate.exchange(
+            startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(ok());
+    when(restTemplate.exchange(
+            startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(ok());
+    when(restTemplate.exchange(
+            startsWith("http://statecems"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(String.class)))
+        .thenThrow(ResourceAccessException.class);
+    ResponseEntity<Health> response = _controller().collectorBackendHealth();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  @Test
   @SneakyThrows
   void verifyMissingTrailingSlashAppended() {
     String urlMissingTrailingSlash = "https://developer.va.gov";
     String urlWithTrailingSlash = "https://developer.va.gov/";
-
     Method withTrailingSlashMethod =
         HealthController.class.getDeclaredMethod("withTrailingSlash", String.class);
     withTrailingSlashMethod.setAccessible(true);
@@ -252,15 +296,26 @@ public class HealthControllerTest {
             "http://atc",
             "http://atp",
             "http://cemeteries");
+    assertThat(withTrailingSlashMethod.invoke(controller, urlMissingTrailingSlash))
+        .isEqualTo(urlWithTrailingSlash);
+    assertThat(withTrailingSlashMethod.invoke(controller, urlWithTrailingSlash))
+        .isEqualTo(urlWithTrailingSlash);
+    assertThat(withTrailingSlashMethod.invoke(controller, urlMissingTrailingSlash))
+        .isEqualTo(urlWithTrailingSlash);
+    assertThat(withTrailingSlashMethod.invoke(controller, urlWithTrailingSlash))
+        .isEqualTo(urlWithTrailingSlash);
+  }
 
-    assertThat(withTrailingSlashMethod.invoke(controller, urlMissingTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
-    assertThat(withTrailingSlashMethod.invoke(controller, urlWithTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
-    assertThat(withTrailingSlashMethod.invoke(controller, urlMissingTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
-    assertThat(withTrailingSlashMethod.invoke(controller, urlWithTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
+  @Test
+  @SneakyThrows
+  void withTrailingSlash() {
+    Method withTrailingSlashMethod =
+        HealthController.class.getDeclaredMethod("withTrailingSlash", String.class);
+    withTrailingSlashMethod.setAccessible(true);
+    assertThat(withTrailingSlashMethod.invoke(_controller(), "http://foo.bar"))
+        .isEqualTo("http://foo.bar/");
+    assertThat(withTrailingSlashMethod.invoke(_controller(), "http://foo.bar/"))
+        .isEqualTo("http://foo.bar/");
   }
 
   @Value

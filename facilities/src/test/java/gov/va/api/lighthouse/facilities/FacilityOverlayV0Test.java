@@ -3,8 +3,8 @@ package gov.va.api.lighthouse.facilities;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
+import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.FacilityAttributes;
@@ -39,12 +39,18 @@ public class FacilityOverlayV0Test {
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         List.of(Facility.HealthService.Covid19Vaccine),
-        entity(fromActiveStatus(null), overlay(null, true)));
+        entity(
+            fromActiveStatus(
+                null,
+                Facility.Services.builder()
+                    .health(List.of(Facility.HealthService.Covid19Vaccine))
+                    .build()),
+            overlay(null, true)));
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(null), overlay(null, false)));
+        entity(fromActiveStatus(null, Facility.Services.builder().build()), overlay(null, false)));
   }
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
@@ -132,9 +138,9 @@ public class FacilityOverlayV0Test {
         .build();
   }
 
-  private Facility fromActiveStatus(ActiveStatus status) {
+  private Facility fromActiveStatus(ActiveStatus status, Facility.Services services) {
     return Facility.builder()
-        .attributes(FacilityAttributes.builder().activeStatus(status).build())
+        .attributes(FacilityAttributes.builder().activeStatus(status).services(services).build())
         .build();
   }
 
@@ -148,17 +154,17 @@ public class FacilityOverlayV0Test {
         ActiveStatus.A,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(ActiveStatus.A), null));
+        entity(fromActiveStatus(ActiveStatus.A, Facility.Services.builder().build()), null));
     assertStatus(
         ActiveStatus.T,
         OperatingStatus.builder().code(OperatingStatusCode.CLOSED).build(),
         null,
-        entity(fromActiveStatus(ActiveStatus.T), null));
+        entity(fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()), null));
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(null), null));
+        entity(fromActiveStatus(null, Facility.Services.builder().build()), null));
   }
 
   private CmsOverlay overlay(OperatingStatus neato, boolean cmsServiceActiveValue) {

@@ -3,7 +3,7 @@ package gov.va.api.lighthouse.facilities.collector;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
+import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
@@ -20,8 +20,8 @@ public final class CovidServiceUpdater {
 
   /** Utility method for updating Covid related service URLs for facilities. */
   @SneakyThrows
-  public static List<DetailedService> updateServiceUrlPaths(
-      @NotNull String id, @NotNull List<DetailedService> detailedServices) {
+  public static List<DatamartDetailedService> updateServiceUrlPaths(
+      @NotNull String id, @NotNull List<DatamartDetailedService> detailedServices) {
     final Map<String, String> websites = loadWebsites(COVID_CSV_WEBSITES_RESOURCE_NAME);
     detailedServices.parallelStream()
         .filter(d -> d.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19))

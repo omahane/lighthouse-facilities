@@ -1,0 +1,42 @@
+{
+  "data" : {
+    "id" : "vc_0101V",
+    "type" : "va_facilities",
+    "attributes" : {
+      "name" : "Boston Vet Center",
+      "facilityType" : "vet_center",
+      "lat" : 42.3445959000001,
+      "long" : -71.0361051099999,
+      "timeZone" : "America/New_York",
+      "address" : {
+        "physical" : {
+          "zip" : "02210",
+          "city" : "Boston",
+          "state" : "MA",
+          "address1" : "7 Drydock Avenue",
+          "address2" : "Suite 2070"
+        }
+      },
+      "phone" : {
+        "main" : "857-203-6461"
+      },
+      "hours" : {
+        "monday" : "830AM-700PM",
+        "tuesday" : "830AM-700PM",
+        "wednesday" : "830AM-600PM",
+        "thursday" : "830AM-600PM",
+        "friday" : "830AM-430PM",
+        "saturday" : "Closed",
+        "sunday" : "Closed"
+      },
+      "operationalHoursSpecialInstructions" : [
+        "Vet center 1 is available.",
+        "Vet center 2 is available.",
+        "Vet center 3 is available."
+      ],
+      "operatingStatus" : {
+        "code" : "NORMAL"
+      }
+    }
+  }
+}

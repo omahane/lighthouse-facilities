@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -64,7 +63,7 @@ public class HomeController {
       value = {"/", "/docs/v0/api", "/v0/facilities/openapi.json"},
       produces = "application/json")
   Object openapiJson() {
-    return JacksonConfig.createMapper().readValue(openapiContent(), Object.class);
+    return openapiContent();
   }
 
   @Builder

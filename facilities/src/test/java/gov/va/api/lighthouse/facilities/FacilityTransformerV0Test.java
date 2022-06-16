@@ -1,9 +1,10 @@
 package gov.va.api.lighthouse.facilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import gov.va.api.lighthouse.facilities.api.cms.DetailedService;
+import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,7 +14,7 @@ import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-public class FacilityTransformerV0Test {
+public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
   private DatamartFacility datamartFacility() {
     return DatamartFacility.builder()
         .id("vha_123GA")
@@ -55,6 +56,7 @@ public class FacilityTransformerV0Test {
                     DatamartFacility.Phone.builder()
                         .main("202-555-1212")
                         .pharmacy("202-555-1213")
+                        .healthConnect("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")
                         .afterHours("202-555-1216")
@@ -112,22 +114,32 @@ public class FacilityTransformerV0Test {
                     DatamartFacility.OperatingStatus.builder()
                         .code(DatamartFacility.OperatingStatusCode.NORMAL)
                         .additionalInfo("additional operating status info")
+                        .supplementalStatuses(
+                            List.of(
+                                DatamartFacility.SupplementalStatus.builder()
+                                    .id("COVID_HIGH")
+                                    .label("This is a high Covid level")
+                                    .build(),
+                                DatamartFacility.SupplementalStatus.builder()
+                                    .id("EBOLA_LOW")
+                                    .label("This is a low Ebola level")
+                                    .build()))
                         .build())
                 .detailedServices(
                     List.of(
-                        DetailedService.builder()
+                        DatamartDetailedService.builder()
                             .active(true)
                             .name("COVID-19 vaccines")
                             .path("https://www.melbourne.va.gov/services/covid-19-vaccines.asp")
                             .phoneNumbers(
                                 List.of(
-                                    DetailedService.AppointmentPhoneNumber.builder()
+                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
                                         .number("937-268-6511")
                                         .label("Main phone")
                                         .type("tel")
                                         .extension("71234")
                                         .build(),
-                                    DetailedService.AppointmentPhoneNumber.builder()
+                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
                                         .number("321-213-4253")
                                         .label("After hours phone")
                                         .type("tel")
@@ -143,11 +155,11 @@ public class FacilityTransformerV0Test {
                             .onlineSchedulingAvailable("true")
                             .serviceLocations(
                                 List.of(
-                                    DetailedService.DetailedServiceLocation.builder()
+                                    DatamartDetailedService.DetailedServiceLocation.builder()
                                         .additionalHoursInfo(
                                             "Location hours times may vary depending on staff availability")
                                         .facilityServiceHours(
-                                            DetailedService.DetailedServiceHours.builder()
+                                            DatamartDetailedService.DetailedServiceHours.builder()
                                                 .sunday("Closed")
                                                 .monday("9AM-5PM")
                                                 .tuesday("9AM-5PM")
@@ -158,36 +170,38 @@ public class FacilityTransformerV0Test {
                                                 .build())
                                         .emailContacts(
                                             List.of(
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("georgea@va.gov")
                                                     .emailLabel("George Anderson")
                                                     .build(),
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("john.doe@va.gov")
                                                     .emailLabel("John Doe")
                                                     .build(),
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("jane.doe@va.gov")
                                                     .emailLabel("Jane Doe")
                                                     .build()))
                                         .appointmentPhoneNumbers(
                                             List.of(
-                                                DetailedService.AppointmentPhoneNumber.builder()
+                                                DatamartDetailedService.AppointmentPhoneNumber
+                                                    .builder()
                                                     .number("932-934-6731")
                                                     .type("tel")
                                                     .label("Main Phone")
                                                     .extension("3245")
                                                     .build(),
-                                                DetailedService.AppointmentPhoneNumber.builder()
+                                                DatamartDetailedService.AppointmentPhoneNumber
+                                                    .builder()
                                                     .number("956-862-6651")
                                                     .type("mobile")
                                                     .label("Mobile phone")
                                                     .build()))
                                         .serviceLocationAddress(
-                                            DetailedService.DetailedServiceAddress.builder()
+                                            DatamartDetailedService.DetailedServiceAddress.builder()
                                                 .address1("50 Irving Street, Northwest")
                                                 .buildingNameNumber("Baxter Building")
                                                 .city("Washington")
@@ -200,19 +214,19 @@ public class FacilityTransformerV0Test {
                                         .build()))
                             .changed("2021-02-04T22:36:49+00:00")
                             .build(),
-                        DetailedService.builder()
+                        DatamartDetailedService.builder()
                             .active(true)
                             .name("Cardiology")
                             .path("https://www.melbourne.va.gov/services/cardiology.asp")
                             .phoneNumbers(
                                 List.of(
-                                    DetailedService.AppointmentPhoneNumber.builder()
+                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
                                         .number("924-268-4253")
                                         .label("Main phone")
                                         .type("tel")
                                         .extension("71432")
                                         .build(),
-                                    DetailedService.AppointmentPhoneNumber.builder()
+                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
                                         .number("321-726-6526")
                                         .label("After hours phone")
                                         .type("tel")
@@ -226,11 +240,11 @@ public class FacilityTransformerV0Test {
                             .onlineSchedulingAvailable("true")
                             .serviceLocations(
                                 List.of(
-                                    DetailedService.DetailedServiceLocation.builder()
+                                    DatamartDetailedService.DetailedServiceLocation.builder()
                                         .additionalHoursInfo(
                                             "Location hours times may vary depending on staff availability")
                                         .facilityServiceHours(
-                                            DetailedService.DetailedServiceHours.builder()
+                                            DatamartDetailedService.DetailedServiceHours.builder()
                                                 .sunday("Closed")
                                                 .monday("9AM-5PM")
                                                 .tuesday("9AM-5PM")
@@ -241,36 +255,38 @@ public class FacilityTransformerV0Test {
                                                 .build())
                                         .emailContacts(
                                             List.of(
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("georgea@va.gov")
                                                     .emailLabel("George Anderson")
                                                     .build(),
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("john.doe@va.gov")
                                                     .emailLabel("John Doe")
                                                     .build(),
-                                                DetailedService.DetailedServiceEmailContact
+                                                DatamartDetailedService.DetailedServiceEmailContact
                                                     .builder()
                                                     .emailAddress("jane.doe@va.gov")
                                                     .emailLabel("Jane Doe")
                                                     .build()))
                                         .appointmentPhoneNumbers(
                                             List.of(
-                                                DetailedService.AppointmentPhoneNumber.builder()
+                                                DatamartDetailedService.AppointmentPhoneNumber
+                                                    .builder()
                                                     .number("932-934-6731")
                                                     .type("tel")
                                                     .label("Main Phone")
                                                     .extension("3245")
                                                     .build(),
-                                                DetailedService.AppointmentPhoneNumber.builder()
+                                                DatamartDetailedService.AppointmentPhoneNumber
+                                                    .builder()
                                                     .number("956-862-6651")
                                                     .type("mobile")
                                                     .label("Mobile phone")
                                                     .build()))
                                         .serviceLocationAddress(
-                                            DetailedService.DetailedServiceAddress.builder()
+                                            DatamartDetailedService.DetailedServiceAddress.builder()
                                                 .address1("2513 Irving Street, Northwest")
                                                 .buildingNameNumber("Baxter Building")
                                                 .city("Washington")
@@ -299,6 +315,14 @@ public class FacilityTransformerV0Test {
   }
 
   private Facility facility() {
+    return facility(
+        List.of(
+            Facility.HealthService.PrimaryCare,
+            Facility.HealthService.UrgentCare,
+            Facility.HealthService.EmergencyCare));
+  }
+
+  private Facility facility(List<Facility.HealthService> healthServices) {
     return Facility.builder()
         .id("vha_123GA")
         .type(Facility.Type.va_facilities)
@@ -338,6 +362,7 @@ public class FacilityTransformerV0Test {
                 .phone(
                     Facility.Phone.builder()
                         .main("202-555-1212")
+                        .healthConnect("202-555-1213")
                         .pharmacy("202-555-1213")
                         .patientAdvocate("202-555-1214")
                         .fax("202-555-1215")
@@ -356,11 +381,7 @@ public class FacilityTransformerV0Test {
                                 Facility.BenefitsService.EducationClaimAssistance,
                                 Facility.BenefitsService.FamilyMemberClaimAssistance))
                         .other(List.of(Facility.OtherService.OnlineScheduling))
-                        .health(
-                            List.of(
-                                Facility.HealthService.PrimaryCare,
-                                Facility.HealthService.UrgentCare,
-                                Facility.HealthService.EmergencyCare))
+                        .health(healthServices)
                         .lastUpdated(LocalDate.parse("2018-01-01"))
                         .build())
                 .activeStatus(Facility.ActiveStatus.A)
@@ -396,6 +417,16 @@ public class FacilityTransformerV0Test {
                     Facility.OperatingStatus.builder()
                         .code(Facility.OperatingStatusCode.NORMAL)
                         .additionalInfo("additional operating status info")
+                        .supplementalStatuses(
+                            List.of(
+                                Facility.SupplementalStatus.builder()
+                                    .id("COVID_HIGH")
+                                    .label("This is a high Covid level")
+                                    .build(),
+                                Facility.SupplementalStatus.builder()
+                                    .id("EBOLA_LOW")
+                                    .label("This is a low Ebola level")
+                                    .build()))
                         .build())
                 .detailedServices(
                     List.of(
@@ -581,7 +612,93 @@ public class FacilityTransformerV0Test {
   }
 
   @Test
-  public void facilityVisitorRoundtrip() {
+  void healthServiceRoundTripUsingServiceId() {
+    for (String json :
+        List.of(
+            "\"audiology\"",
+            "\"cardiology\"",
+            "\"caregiverSupport\"",
+            "\"covid19Vaccine\"",
+            "\"dental\"",
+            "\"dermatology\"",
+            "\"emergencyCare\"",
+            "\"gastroenterology\"",
+            "\"gynecology\"",
+            "\"mentalHealth\"",
+            "\"ophthalmology\"",
+            "\"optometry\"",
+            "\"orthopedics\"",
+            "\"nutrition\"",
+            "\"podiatry\"",
+            "\"primaryCare\"",
+            "\"specialtyCare\"",
+            "\"urgentCare\"",
+            "\"urology\"",
+            "\"womensHealth\"")) {
+      // Convert to FAPI V0 Health Service
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthServiceV0 =
+          convertToHealthServiceV0(json);
+      // Convert to Datamart Health Service
+      String jsonHealthService = convertToJson(healthServiceV0);
+      DatamartFacility.HealthService datamartHealthService =
+          convertToDatamartHealthService(jsonHealthService);
+      // Convert to FAPI V1 Health Service
+      jsonHealthService = convertToJson(datamartHealthService);
+      gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService healthServiceV1 =
+          convertToHealthServiceV1(jsonHealthService);
+      // Convert back to FAPI V0 Health Service and compare beginning to end
+      jsonHealthService = convertToJson(healthServiceV1);
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthService =
+          convertToHealthServiceV0(jsonHealthService);
+      assertThat(healthService).isEqualTo(healthServiceV0);
+    }
+  }
+
+  @Test
+  void healthServiceRoundTripUsingServiceName() {
+    for (String json :
+        List.of(
+            "\"Audiology\"",
+            "\"Cardiology\"",
+            "\"CaregiverSupport\"",
+            "\"Covid19Vaccine\"",
+            "\"DentalServices\"",
+            "\"Dermatology\"",
+            "\"EmergencyCare\"",
+            "\"Gastroenterology\"",
+            "\"Gynecology\"",
+            "\"MentalHealthCare\"",
+            "\"Ophthalmology\"",
+            "\"Optometry\"",
+            "\"Orthopedics\"",
+            "\"Nutrition\"",
+            "\"Podiatry\"",
+            "\"PrimaryCare\"",
+            "\"SpecialtyCare\"",
+            "\"UrgentCare\"",
+            "\"Urology\"",
+            "\"WomensHealth\"")) {
+      // Convert to FAPI V0 Health Service
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthServiceV0 =
+          convertToHealthServiceV0(json);
+      // Convert to Datamart Health Service
+      String jsonHealthService = convertToJson(healthServiceV0);
+      DatamartFacility.HealthService datamartHealthService =
+          convertToDatamartHealthService(jsonHealthService);
+      // Convert to FAPI V1 Health Service
+      jsonHealthService = convertToJson(datamartHealthService);
+      gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService healthServiceV1 =
+          convertToHealthServiceV1(jsonHealthService);
+      // Convert back to FAPI V0 Health Service and compare beginning to end
+      jsonHealthService = convertToJson(healthServiceV1);
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthService =
+          convertToHealthServiceV0(jsonHealthService);
+      assertThat(healthService).isEqualTo(healthServiceV0);
+    }
+  }
+
+  @Test
+  public void losslessFacilityVisitorRoundtrip() {
     Facility facility = facility();
     assertThat(
             FacilityTransformerV0.toFacility(
@@ -589,7 +706,38 @@ public class FacilityTransformerV0Test {
                     FacilityTransformerV1.toFacility(
                         FacilityTransformerV0.toVersionAgnostic(facility)))))
         .usingRecursiveComparison()
+        .ignoringFields("attributes.detailedServices")
         .isEqualTo(facility);
+  }
+
+  @Test
+  public void nonLosslessFacilityVisitorRoundtrip() {
+    Facility facilityWithSpecialtyCare =
+        facility(
+            List.of(
+                Facility.HealthService.PrimaryCare,
+                Facility.HealthService.UrgentCare,
+                Facility.HealthService.EmergencyCare,
+                Facility.HealthService.MentalHealthCare,
+                Facility.HealthService.DentalServices,
+                Facility.HealthService.SpecialtyCare));
+    Facility facilityWithoutSpecialtyCare =
+        facility(
+            List.of(
+                Facility.HealthService.PrimaryCare,
+                Facility.HealthService.UrgentCare,
+                Facility.HealthService.EmergencyCare,
+                Facility.HealthService.MentalHealthCare,
+                Facility.HealthService.DentalServices,
+                Facility.HealthService.SpecialtyCare));
+    assertThat(
+            FacilityTransformerV0.toFacility(
+                FacilityTransformerV1.toVersionAgnostic(
+                    FacilityTransformerV1.toFacility(
+                        FacilityTransformerV0.toVersionAgnostic(facilityWithSpecialtyCare)))))
+        .usingRecursiveComparison()
+        .ignoringFields("attributes.detailedServices")
+        .isEqualTo(facilityWithoutSpecialtyCare);
   }
 
   @Test
@@ -597,41 +745,44 @@ public class FacilityTransformerV0Test {
   public void nullArgs() {
     assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toFacility(null));
     assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toVersionAgnostic(null));
-
     final Method transformDatmartFacilityBenefitsServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityBenefitsService", DatamartFacility.BenefitsService.class);
     transformDatmartFacilityBenefitsServiceMethod.setAccessible(true);
     DatamartFacility.BenefitsService nullBenefits = null;
-    assertThrows(
-        InvocationTargetException.class,
-        () -> transformDatmartFacilityBenefitsServiceMethod.invoke(null, nullBenefits));
+    assertThatThrownBy(
+            () -> transformDatmartFacilityBenefitsServiceMethod.invoke(null, nullBenefits))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(
+            new NullPointerException(
+                "datamartFacilityBenefitsService is marked non-null but is null"));
     final Method transformFacilityBenefitsServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityBenefitsService", Facility.BenefitsService.class);
     transformFacilityBenefitsServiceMethod.setAccessible(true);
     Facility.BenefitsService nullBenefitsV0 = null;
-    assertThrows(
-        InvocationTargetException.class,
-        () -> transformFacilityBenefitsServiceMethod.invoke(null, nullBenefitsV0));
-
+    assertThatThrownBy(() -> transformFacilityBenefitsServiceMethod.invoke(null, nullBenefitsV0))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(
+            new NullPointerException("facilityBenefitsService is marked non-null but is null"));
     final Method transformDatmartFacilityHealthServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityHealthService", DatamartFacility.HealthService.class);
     transformDatmartFacilityHealthServiceMethod.setAccessible(true);
     DatamartFacility.HealthService nullHealth = null;
-    assertThrows(
-        InvocationTargetException.class,
-        () -> transformDatmartFacilityHealthServiceMethod.invoke(null, nullHealth));
+    assertThatThrownBy(() -> transformDatmartFacilityHealthServiceMethod.invoke(null, nullHealth))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(
+            new NullPointerException(
+                "datamartFacilityHealthService is marked non-null but is null"));
     final Method transformFacilityHealthServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityHealthService", Facility.HealthService.class);
     transformFacilityHealthServiceMethod.setAccessible(true);
     Facility.HealthService nullHealthV0 = null;
-    assertThrows(
-        InvocationTargetException.class,
-        () -> transformFacilityHealthServiceMethod.invoke(null, nullHealthV0));
-
+    assertThatThrownBy(() -> transformFacilityHealthServiceMethod.invoke(null, nullHealthV0))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("facilityHealthService is marked non-null but is null"));
     final Method transformDatmartFacilityServicesMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityServices", DatamartFacility.Services.class);
@@ -648,7 +799,6 @@ public class FacilityTransformerV0Test {
     assertThat(transformFacilityServicesMethod.invoke(null, nullServicesV0))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Services.builder().build());
-
     final Method transformDatmartFacilitySatisfactionMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilitySatisfaction", DatamartFacility.Satisfaction.class);
@@ -665,7 +815,6 @@ public class FacilityTransformerV0Test {
     assertThat(transformFacilitySatisfactionMethod.invoke(null, nullSatisfactionV0))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Satisfaction.builder().build());
-
     final Method transformDatmartFacilityPhoneMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityPhone", DatamartFacility.Phone.class);
@@ -682,7 +831,6 @@ public class FacilityTransformerV0Test {
     assertThat(transformFacilityPhoneMethod.invoke(null, nullPhoneV0))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Phone.builder().build());
-
     final Method transformDatmartFacilityHoursMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityHours", DatamartFacility.Hours.class);
@@ -699,7 +847,6 @@ public class FacilityTransformerV0Test {
     assertThat(transformFacilityHoursMethod.invoke(null, nullHoursV0))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Hours.builder().build());
-
     final Method transformDatmartFacilityAddressesMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityAddresses", DatamartFacility.Addresses.class);
@@ -716,7 +863,6 @@ public class FacilityTransformerV0Test {
     assertThat(transformFacilityAddressesMethod.invoke(null, nullAddressesV0))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Addresses.builder().build());
-
     final Method transformDatmartFacilityWaitTimesMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
             "transformFacilityWaitTimes", DatamartFacility.WaitTimes.class);
@@ -736,12 +882,52 @@ public class FacilityTransformerV0Test {
   }
 
   @Test
+  void toFacilityOperatingStatus() {
+    DatamartFacility.OperatingStatus os =
+        DatamartFacility.OperatingStatus.builder().code(null).build();
+    Facility.OperatingStatus actual = FacilityTransformerV0.toFacilityOperatingStatus(os);
+    assertThat(actual.code()).isNull();
+    actual = FacilityTransformerV0.toFacilityOperatingStatus(null);
+    assertThat(actual).isNull();
+  }
+
+  @Test
+  void toVersionAgnosticFacilityOperatingStatus() {
+    Facility.OperatingStatus os = Facility.OperatingStatus.builder().code(null).build();
+    DatamartFacility.OperatingStatus actual =
+        FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus(os);
+    assertThat(actual.code()).isNull();
+    actual = FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus(null);
+    assertThat(actual).isNull();
+  }
+
+  @Test
   public void transformDatamartFacility() {
     Facility expected = facility();
     DatamartFacility datamartFacility = datamartFacility();
     assertThat(FacilityTransformerV0.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformDatamartFacilityPatientWaitTime() {
+    final Method transformFacilityPatientWaitTimeMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityPatientWaitTime", DatamartFacility.PatientWaitTime.class);
+    transformFacilityPatientWaitTimeMethod.setAccessible(true);
+    assertThat(
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null,
+                DatamartFacility.PatientWaitTime.builder()
+                    .service(DatamartFacility.HealthService.Cardiology)
+                    .build()))
+        .isNotNull();
+    assertThat(
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null, DatamartFacility.PatientWaitTime.builder().service(null).build()))
+        .isNotNull();
   }
 
   @Test
@@ -763,6 +949,85 @@ public class FacilityTransformerV0Test {
     assertThat(FacilityTransformerV0.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilityPatientWaitTime() {
+    final Method transformFacilityPatientWaitTimeMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityPatientWaitTime", Facility.PatientWaitTime.class);
+    transformFacilityPatientWaitTimeMethod.setAccessible(true);
+    DatamartFacility.PatientWaitTime actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null,
+                Facility.PatientWaitTime.builder()
+                    .service(Facility.HealthService.Cardiology)
+                    .build());
+    DatamartFacility.PatientWaitTime expected =
+        DatamartFacility.PatientWaitTime.builder()
+            .service(DatamartFacility.HealthService.Cardiology)
+            .build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null, Facility.PatientWaitTime.builder().service(null).build());
+    expected = DatamartFacility.PatientWaitTime.builder().service(null).build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilitySatisfaction() {
+    final Method transformFacilitySatisfactionMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilitySatisfaction", Facility.Satisfaction.class);
+    transformFacilitySatisfactionMethod.setAccessible(true);
+    DatamartFacility.Satisfaction actual =
+        (DatamartFacility.Satisfaction)
+            transformFacilitySatisfactionMethod.invoke(
+                null,
+                Facility.Satisfaction.builder()
+                    .health(
+                        Facility.PatientSatisfaction.builder()
+                            .primaryCareUrgent(BigDecimal.valueOf(1.5))
+                            .primaryCareUrgent(BigDecimal.valueOf(1.6))
+                            .specialtyCareUrgent(BigDecimal.valueOf(2.3))
+                            .specialtyCareRoutine(BigDecimal.valueOf(3.6))
+                            .build())
+                    .build());
+    DatamartFacility.Satisfaction expected =
+        DatamartFacility.Satisfaction.builder()
+            .health(
+                DatamartFacility.PatientSatisfaction.builder()
+                    .primaryCareUrgent(BigDecimal.valueOf(1.5))
+                    .primaryCareUrgent(BigDecimal.valueOf(1.6))
+                    .specialtyCareUrgent(BigDecimal.valueOf(2.3))
+                    .specialtyCareRoutine(BigDecimal.valueOf(3.6))
+                    .build())
+            .build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    actual =
+        (DatamartFacility.Satisfaction)
+            transformFacilitySatisfactionMethod.invoke(
+                null, Facility.Satisfaction.builder().health(null).build());
+    expected = DatamartFacility.Satisfaction.builder().health(null).build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
+  void transformFacilityWaitTimes() {
+    final Method transformFacilityWaitTimesMethod =
+        FacilityTransformerV0.class.getDeclaredMethod(
+            "transformFacilityWaitTimes", Facility.WaitTimes.class);
+    transformFacilityWaitTimesMethod.setAccessible(true);
+    Facility.WaitTimes dw = Facility.WaitTimes.builder().health(null).build();
+    DatamartFacility.WaitTimes actual =
+        (DatamartFacility.WaitTimes) transformFacilityWaitTimesMethod.invoke(null, dw);
+    assertThat(actual.health()).isNull();
   }
 
   @Test

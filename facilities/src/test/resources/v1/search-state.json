@@ -1,0 +1,1128 @@
+{
+  "data" : [
+    {
+      "id" : "vha_520BZ",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Pensacola VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Multi-Specialty CBOC",
+        "website" : "https://www.biloxi.va.gov/locations/JACC.asp",
+        "lat" : 30.4004362900001,
+        "long" : -87.29290128,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32507-1000",
+            "city" : "Pensacola",
+            "state" : "FL",
+            "address1" : "790 Veterans Way"
+          }
+        },
+        "phone" : {
+          "fax" : "850-912-2467",
+          "main" : "850-912-2000",
+          "pharmacy" : "850-912-2109",
+          "afterHours" : "228-523-5000",
+          "patientAdvocate" : "850-912-2050",
+          "mentalHealthClinic" : "850-912-2317",
+          "enrollmentCoordinator" : "228-523-4910"
+        },
+        "hours" : {
+          "monday" : "800AM-430PM",
+          "tuesday" : "800AM-430PM",
+          "wednesday" : "800AM-430PM",
+          "thursday" : "800AM-430PM",
+          "friday" : "800AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "emergencyCare",
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.59,
+            "primaryCareRoutine" : 0.75
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 28.0,
+              "established" : 5.804166
+            },
+            {
+              "service" : "audiology",
+              "new" : 32.102564,
+              "established" : 9.998473
+            },
+            {
+              "service" : "optometry",
+              "new" : 40.747311,
+              "established" : 3.594955
+            },
+            {
+              "service" : "cardiology",
+              "new" : 14.642857,
+              "established" : 0.704545
+            },
+            {
+              "service" : "gynecology",
+              "new" : 27.733333,
+              "established" : 1.343629
+            },
+            {
+              "service" : "dermatology",
+              "new" : 25.632352,
+              "established" : 3.5
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 8.3125,
+              "established" : 2.121951
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 18.125786,
+              "established" : 6.182568
+            },
+            {
+              "service" : "womensHealth",
+              "new" : 23.727272,
+              "established" : 1.043824
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 28.5,
+              "established" : 3.32
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 24.329113,
+              "established" : 5.850568
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "16"
+      }
+    },
+    {
+      "id" : "vha_516",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "C.W. Bill Young Department of Veterans Affairs Medical Center",
+        "facilityType" : "va_health_facility",
+        "classification" : "VA Medical Center (VAMC)",
+        "website" : "https://www.baypines.va.gov/locations/directions.asp",
+        "lat" : 27.81385727,
+        "long" : -82.77945771,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "33744-8200",
+            "city" : "Bay Pines",
+            "state" : "FL",
+            "address1" : "10000 Bay Pines Boulevard"
+          }
+        },
+        "phone" : {
+          "fax" : "727-398-9442",
+          "main" : "727-398-6661",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-9524",
+          "mentalHealthClinic" : "727-398-6661 x 14680",
+          "enrollmentCoordinator" : "727-398-6661 x5684"
+        },
+        "hours" : {
+          "monday" : "24/7",
+          "tuesday" : "24/7",
+          "wednesday" : "24/7",
+          "thursday" : "24/7",
+          "friday" : "24/7",
+          "saturday" : "24/7",
+          "sunday" : "24/7"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology",
+            "ophthalmology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.84,
+            "primaryCareRoutine" : 0.87,
+            "specialtyCareUrgent" : 0.82,
+            "specialtyCareRoutine" : 0.84
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 7.638157,
+              "established" : 3.8031
+            },
+            {
+              "service" : "audiology",
+              "new" : 1.944954,
+              "established" : 0.666156
+            },
+            {
+              "service" : "optometry",
+              "new" : 30.300283,
+              "established" : 11.530419
+            },
+            {
+              "service" : "cardiology",
+              "new" : 10.117948,
+              "established" : 5.128846
+            },
+            {
+              "service" : "gynecology",
+              "new" : 22.230769,
+              "established" : 6.069291
+            },
+            {
+              "service" : "dermatology",
+              "new" : 62.035928,
+              "established" : 15.388888
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 41.289617,
+              "established" : 14.45742
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 20.578274,
+              "established" : 3.628475
+            },
+            {
+              "service" : "ophthalmology",
+              "new" : 13.0,
+              "established" : 13.992223
+            },
+            {
+              "service" : "womensHealth",
+              "new" : 29.3,
+              "established" : 6.356418
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 21.274691,
+              "established" : 9.6
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 6.910526,
+              "established" : 5.242883
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516BZ",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Lee County VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Health Care Center (HCC)",
+        "website" : "https://www.baypines.va.gov/locations/Lee_County_VA_Healthcare_Center_Cape_Coral_FL.asp",
+        "lat" : 26.68356763,
+        "long" : -81.92037569,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "33909-5422",
+            "city" : "Cape Coral",
+            "state" : "FL",
+            "address1" : "2489 Diplomat Parkway East"
+          }
+        },
+        "phone" : {
+          "fax" : "239-652-1951",
+          "main" : "239-652-1800",
+          "pharmacy" : "239-652-1800",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "239-652-1800 x20387",
+          "mentalHealthClinic" : "239-652-1800 x 21373",
+          "enrollmentCoordinator" : "239-652-1800 x20222"
+        },
+        "hours" : {
+          "monday" : "700AM-430PM",
+          "tuesday" : "700AM-430PM",
+          "wednesday" : "700AM-600PM",
+          "thursday" : "700AM-430PM",
+          "friday" : "700AM-430PM",
+          "saturday" : "730AM-330PM",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.76,
+            "primaryCareRoutine" : 0.81
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 22.711538,
+              "established" : 5.216138
+            },
+            {
+              "service" : "audiology",
+              "new" : 1.419028,
+              "established" : 0.109022
+            },
+            {
+              "service" : "optometry",
+              "new" : 109.418269,
+              "established" : 11.285505
+            },
+            {
+              "service" : "cardiology",
+              "new" : 30.144508,
+              "established" : 9.215291
+            },
+            {
+              "service" : "gynecology",
+              "new" : 12.6,
+              "established" : 0.586206
+            },
+            {
+              "service" : "dermatology",
+              "new" : 1.48387,
+              "established" : 0.0
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 41.890109,
+              "established" : 7.988826
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 30.183544,
+              "established" : 2.410745
+            },
+            {
+              "service" : "womensHealth",
+              "new" : 0.0,
+              "established" : 0.0
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 36.958904,
+              "established" : 9.378048
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 9.0,
+              "established" : 7.243732
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516GA",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Sarasota VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Multi-Specialty CBOC",
+        "website" : "https://www.baypines.va.gov/locations/Sarasota_Florida.asp",
+        "lat" : 27.2987631400001,
+        "long" : -82.45619019,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "34233-1540",
+            "city" : "Sarasota",
+            "state" : "FL",
+            "address1" : "5682 Bee Ridge Road",
+            "address3" : "Suite 100"
+          }
+        },
+        "phone" : {
+          "fax" : "941-371-7749",
+          "main" : "941-371-3349",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-9524",
+          "mentalHealthClinic" : "727-398-6661 x 14680",
+          "enrollmentCoordinator" : "941-371-3349 x6900"
+        },
+        "hours" : {
+          "monday" : "700AM-430PM",
+          "tuesday" : "700AM-430PM",
+          "wednesday" : "700AM-600PM",
+          "thursday" : "700AM-430PM",
+          "friday" : "700AM-430PM",
+          "saturday" : "700AM-330PM",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.73,
+            "primaryCareRoutine" : 0.9
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "audiology",
+              "new" : 1.166233,
+              "established" : 0.078571
+            },
+            {
+              "service" : "cardiology",
+              "new" : 11.666666,
+              "established" : 1.384615
+            },
+            {
+              "service" : "gynecology",
+              "new" : 11.25,
+              "established" : 3.125
+            },
+            {
+              "service" : "dermatology",
+              "new" : 8.0,
+              "established" : 0.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 11.425196,
+              "established" : 4.318085
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 29.0
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 12.132352,
+              "established" : 9.596405
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516GB",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "St. Petersburg VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.baypines.va.gov/locations/St_Petersburg_Florida.asp",
+        "lat" : 27.7806798600001,
+        "long" : -82.6467013399999,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "33705-1214",
+            "city" : "St. Petersburg",
+            "state" : "FL",
+            "address1" : "840 Dr. Martin Luther King Jr. Street North"
+          }
+        },
+        "phone" : {
+          "fax" : "727-502-1773",
+          "main" : "727-502-1700",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-9524",
+          "mentalHealthClinic" : "727-398-6661 x 14680",
+          "enrollmentCoordinator" : "727-502-1700 x3702"
+        },
+        "hours" : {
+          "monday" : "730AM-430PM",
+          "tuesday" : "730AM-430PM",
+          "wednesday" : "730AM-430PM",
+          "thursday" : "730AM-430PM",
+          "friday" : "730AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.88,
+            "primaryCareRoutine" : 0.87
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "primaryCare",
+              "new" : 46.4,
+              "established" : 4.336886
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 13.090909,
+              "established" : 4.79562
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516GD",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Bradenton VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Multi-Specialty CBOC",
+        "website" : "https://www.baypines.va.gov/locations/Bradenton_Florida.asp",
+        "lat" : 27.49404365,
+        "long" : -82.49214224,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "34208-5526",
+            "city" : "Bradenton",
+            "state" : "FL",
+            "address1" : "5520 State Route 64",
+            "address3" : "Suite 101"
+          }
+        },
+        "phone" : {
+          "fax" : "941-721-6080",
+          "main" : "941-721-0649",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-9524",
+          "mentalHealthClinic" : "727-398-6661 x 14680",
+          "enrollmentCoordinator" : "941-721-0649"
+        },
+        "hours" : {
+          "monday" : "700AM-430PM",
+          "tuesday" : "700AM-430PM",
+          "wednesday" : "700AM-600PM",
+          "thursday" : "700AM-430PM",
+          "friday" : "700AM-430PM",
+          "saturday" : "700AM-330PM",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology",
+            "optometry",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.7,
+            "primaryCareRoutine" : 0.85
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "audiology",
+              "new" : 0.863509,
+              "established" : 0.466666
+            },
+            {
+              "service" : "optometry",
+              "new" : 80.103703,
+              "established" : 14.488584
+            },
+            {
+              "service" : "cardiology",
+              "new" : 6.0,
+              "established" : 25.9
+            },
+            {
+              "service" : "gynecology",
+              "new" : 26.333333,
+              "established" : 0.0
+            },
+            {
+              "service" : "dermatology",
+              "new" : 0.111111,
+              "established" : 0.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 24.032608,
+              "established" : 7.157208
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 20.6,
+              "established" : 0.0
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 7.925,
+              "established" : 14.698347
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516GH",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Sebring VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.baypines.va.gov/locations/Sebring_Florida.asp",
+        "lat" : 27.5352350900001,
+        "long" : -81.50267174,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "33870-2117",
+            "city" : "Sebring",
+            "state" : "FL",
+            "address1" : "5901 US Highway 27 South"
+          }
+        },
+        "phone" : {
+          "fax" : "863-471-6510",
+          "main" : "863-471-6227",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-6661 x5024",
+          "mentalHealthClinic" : "239-652-1800 x 21373",
+          "enrollmentCoordinator" : "863-471-6227 x22601"
+        },
+        "hours" : {
+          "monday" : "730AM-430PM",
+          "tuesday" : "730AM-430PM",
+          "wednesday" : "730AM-430PM",
+          "thursday" : "730AM-430PM",
+          "friday" : "730AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "dermatology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.61,
+            "primaryCareRoutine" : 0.83
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "audiology",
+              "new" : 45.625,
+              "established" : 4.272727
+            },
+            {
+              "service" : "dermatology",
+              "new" : 1.0,
+              "established" : 0.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 5.487804,
+              "established" : 1.047904
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 10.230769,
+              "established" : 2.875647
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_516GC",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Palm Harbor VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.baypines.va.gov/locations/Palm_Harbor_Florida.asp",
+        "lat" : 28.0922923000001,
+        "long" : -82.7393997299999,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "34684-1908",
+            "city" : "Palm Harbor",
+            "state" : "FL",
+            "address1" : "35209 US Hwy 19 North"
+          }
+        },
+        "phone" : {
+          "fax" : "727-734-5914",
+          "main" : "727-734-5276",
+          "pharmacy" : "888-820-0230",
+          "afterHours" : "888-820-0230",
+          "patientAdvocate" : "727-398-9524",
+          "mentalHealthClinic" : "727-398-6661 x 14680",
+          "enrollmentCoordinator" : "727-734-5276"
+        },
+        "hours" : {
+          "monday" : "700AM-430PM",
+          "tuesday" : "700AM-430PM",
+          "wednesday" : "700AM-430PM",
+          "thursday" : "700AM-430PM",
+          "friday" : "700AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.68,
+            "primaryCareRoutine" : 0.8
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "audiology",
+              "new" : 5.118226,
+              "established" : 0.423868
+            },
+            {
+              "service" : "cardiology",
+              "new" : 4.5,
+              "established" : 9.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 25.434782,
+              "established" : 4.10828
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 9.52,
+              "established" : 10.416135
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_573A4",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Lake City VA Medical Center",
+        "facilityType" : "va_health_facility",
+        "classification" : "VA Medical Center (VAMC)",
+        "website" : "https://www.northflorida.va.gov/locations/LakeCity.asp",
+        "lat" : 30.18177024,
+        "long" : -82.6369190199999,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32025-5808",
+            "city" : "Lake City",
+            "state" : "FL",
+            "address1" : "619 South Marion Avenue"
+          }
+        },
+        "phone" : {
+          "fax" : "386-758-3209",
+          "main" : "386-755-3016",
+          "pharmacy" : "800-349-9457",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "386-755-3016 x392073",
+          "mentalHealthClinic" : "386-755-3016 x 392602",
+          "enrollmentCoordinator" : "352-548-6000 x107084"
+        },
+        "hours" : {
+          "monday" : "24/7",
+          "tuesday" : "24/7",
+          "wednesday" : "24/7",
+          "thursday" : "24/7",
+          "friday" : "24/7",
+          "saturday" : "24/7",
+          "sunday" : "24/7"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology",
+            "ophthalmology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.84,
+            "primaryCareRoutine" : 0.87
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 29.416666,
+              "established" : 3.532019
+            },
+            {
+              "service" : "audiology",
+              "new" : 44.5,
+              "established" : 19.653846
+            },
+            {
+              "service" : "optometry",
+              "new" : 116.414634,
+              "established" : 8.121673
+            },
+            {
+              "service" : "cardiology",
+              "new" : 12.75,
+              "established" : 7.981481
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 25.263157,
+              "established" : 7.392592
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 13.947368,
+              "established" : 5.84
+            },
+            {
+              "service" : "ophthalmology",
+              "new" : 9.923076,
+              "established" : 1.160714
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 6.9375,
+              "established" : 1.36132
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_573GD",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Ocala VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.northflorida.va.gov/locations/Ocala.asp",
+        "lat" : 29.1869977000001,
+        "long" : -82.11769006,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "34470-6856",
+            "city" : "Ocala",
+            "state" : "FL",
+            "address1" : "1515 East Silver Springs Boulevard",
+            "address3" : "Suite 226"
+          }
+        },
+        "phone" : {
+          "fax" : "352-369-3324",
+          "main" : "352-369-3320",
+          "pharmacy" : "800-349-9457",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "352-548-6000 x106019",
+          "mentalHealthClinic" : "352-547-1583",
+          "enrollmentCoordinator" : "352-369-3320 x311328"
+        },
+        "hours" : {
+          "monday" : "730AM-430PM",
+          "tuesday" : "730AM-430PM",
+          "wednesday" : "730AM-530PM",
+          "thursday" : "730AM-430PM",
+          "friday" : "730AM-430PM",
+          "saturday" : "800AM-1200PM",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "dermatology",
+            "gynecology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.76,
+            "primaryCareRoutine" : 0.78
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "gynecology",
+              "established" : 27.142857
+            },
+            {
+              "service" : "dermatology",
+              "new" : 12.90909,
+              "established" : 3.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 20.6875,
+              "established" : 3.155615
+            },
+            {
+              "service" : "womensHealth",
+              "established" : 27.142857
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 8.644444,
+              "established" : 4.832985
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    }
+  ],
+  "links" : {
+    "self" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?state=FL",
+    "first" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?page=1&per_page=10&state=FL",
+    "next" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?page=2&per_page=10&state=FL",
+    "last" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?page=15&per_page=10&state=FL"
+  },
+  "meta" : {
+    "pagination" : {
+      "currentPage" : 1,
+      "perPage" : 10,
+      "totalPages" : 15,
+      "totalEntries" : 143
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "data" : [
+    {
+      "id" : "vha_675GA",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Viera VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Health Care Center (HCC)",
+        "website" : "https://www.orlando.va.gov/locations/Viera.asp",
+        "lat" : 28.2552385700001,
+        "long" : -80.73907113,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32940-8007",
+            "city" : "Viera",
+            "state" : "FL",
+            "address1" : "2900 Veterans Way"
+          }
+        },
+        "phone" : {
+          "fax" : "321-637-3515",
+          "main" : "321-637-3788",
+          "healthConnect" : "312-122-4516",
+          "pharmacy" : "877-646-4550",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "407-631-1187",
+          "mentalHealthClinic" : "321-637-3788",
+          "enrollmentCoordinator" : "321-637-3527"
+        },
+        "hours" : {
+          "friday" : "730AM-430PM",
+          "monday" : "730AM-430PM",
+          "sunday" : "Closed",
+          "tuesday" : "730AM-430PM",
+          "saturday" : "Closed",
+          "thursday" : "730AM-430PM",
+          "wednesday" : "730AM-430PM"
+        },
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "ophthalmology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.74,
+            "primaryCareRoutine" : 0.83
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 32.047619,
+              "established" : 9.879032
+            },
+            {
+              "service" : "audiology",
+              "new" : 1.706967,
+              "established" : 2.126855
+            },
+            {
+              "service" : "optometry",
+              "new" : 76.396226,
+              "established" : 7.900787
+            },
+            {
+              "service" : "cardiology",
+              "new" : 18.657142,
+              "established" : 6.4
+            },
+            {
+              "service" : "dermatology",
+              "new" : 0.616666,
+              "established" : 0.555555
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 24.682539,
+              "established" : 4.995024
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 26.405405,
+              "established" : 1.545372
+            },
+            {
+              "service" : "ophthalmology",
+              "new" : 47.571428,
+              "established" : 3.258992
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 22.151515,
+              "established" : 4.943661
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 7.592814,
+              "established" : 3.97159
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "visn" : "8"
+      }
+    }
+  ],
+  "links" : {
+    "self" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?zip=32940",
+    "first" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?page=1&per_page=10&zip=32940",
+    "last" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?page=1&per_page=10&zip=32940"
+  },
+  "meta" : {
+    "pagination" : {
+      "currentPage" : 1,
+      "perPage" : 10,
+      "totalPages" : 1,
+      "totalEntries" : 1
+    }
+  }
+}

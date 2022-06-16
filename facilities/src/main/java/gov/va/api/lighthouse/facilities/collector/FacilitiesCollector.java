@@ -10,16 +10,20 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -194,6 +198,7 @@ public class FacilitiesCollector {
             .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
+    updateServicesFromCmsOverlay(datamartFacilities);
     return datamartFacilities;
   }
 
@@ -246,8 +251,9 @@ public class FacilitiesCollector {
     return entities;
   }
 
+  /** Updates facility based on CMS Overlay data. * */
   @SneakyThrows
-  void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+  public void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
     HashMap<String, DatamartCmsOverlay> cmsOverlays;
     try {
       cmsOverlays = cmsOverlayCollector.loadAndUpdateCmsOverlays();
@@ -259,8 +265,51 @@ public class FacilitiesCollector {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
+
+        if (cmsOverlay.healthCareSystem() != null) {
+          if (cmsOverlay.healthCareSystem().healthConnectPhone() != null) {
+            if (datamartFacility.attributes().phone() != null) {
+              datamartFacility
+                  .attributes()
+                  .phone()
+                  .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone());
+            } else {
+              datamartFacility
+                  .attributes()
+                  .phone(
+                      DatamartFacility.Phone.builder()
+                          .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone())
+                          .build());
+            }
+          }
+        }
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
+      }
+    }
+  }
+
+  private void updateServicesFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+    Map<String, DatamartFacility.HealthService> facilityCovid19Services;
+    try {
+      facilityCovid19Services = cmsOverlayCollector.getCovid19VaccineServices();
+    } catch (Exception e) {
+      throw new CollectorExceptions.CollectorException(e);
+    }
+    for (DatamartFacility datamartFacility : datamartFacilities) {
+      if (facilityCovid19Services.containsKey(datamartFacility.id())) {
+        Set<HealthService> facilityHealthServices = new HashSet<>();
+        facilityHealthServices.add(facilityCovid19Services.get(datamartFacility.id()));
+        if (datamartFacility.attributes().services() == null) {
+          datamartFacility.attributes().services(DatamartFacility.Services.builder().build());
+        }
+        if (datamartFacility.attributes().services().health() != null) {
+          facilityHealthServices.addAll(datamartFacility.attributes().services().health());
+        }
+        List<DatamartFacility.HealthService> facilityHealthServiceList =
+            new ArrayList<>(facilityHealthServices);
+        Collections.sort(facilityHealthServiceList);
+        datamartFacility.attributes().services().health(facilityHealthServiceList);
       }
     }
   }

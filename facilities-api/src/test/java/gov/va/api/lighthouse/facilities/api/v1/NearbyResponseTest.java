@@ -1,6 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
+import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -8,11 +10,109 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class NearbyResponseTest {
+  @Test
+  @SneakyThrows
+  void allFieldsEmpty() {
+    // Null out fields for response
+    String jsonEmptyResponse = getExpectedJson("v1/NearbyResponse/responseWithNullFields.json");
+    NearbyResponse emptyResponse = NearbyResponse.builder().data(null).meta(null).build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+    // Response with empty fields
+    emptyResponse = NearbyResponse.builder().data(emptyList()).meta(null).build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+    jsonEmptyResponse = getExpectedJson("v1/NearbyResponse/responseWithEmptyDataMeta.json");
+    emptyResponse =
+        NearbyResponse.builder()
+            .data(emptyList())
+            .meta(NearbyResponse.Meta.builder().build())
+            .build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+  }
+
   @SneakyThrows
   private void assertReadable(String json) {
     NearbyResponse f =
         createMapper().readValue(getClass().getResourceAsStream(json), NearbyResponse.class);
     assertThat(f).isEqualTo(sample());
+  }
+
+  @Test
+  @SneakyThrows
+  void emptyMeta() {
+    // Empty
+    assertThat(NearbyResponse.Meta.builder().build().isEmpty()).isTrue();
+    assertThat(NearbyResponse.Meta.builder().bandVersion("   ").build().isEmpty()).isTrue();
+    // Not empty
+    assertThat(NearbyResponse.Meta.builder().bandVersion("band version").build().isEmpty())
+        .isFalse();
+  }
+
+  @Test
+  @SneakyThrows
+  void emptyNearby() {
+    // Empty
+    assertThat(NearbyResponse.Nearby.builder().build().isEmpty()).isTrue();
+    assertThat(NearbyResponse.Nearby.builder().id("   ").build().isEmpty()).isTrue();
+    assertThat(
+            NearbyResponse.Nearby.builder()
+                .attributes(NearbyResponse.NearbyAttributes.builder().build())
+                .build()
+                .isEmpty())
+        .isTrue();
+    // Not empty
+    assertThat(NearbyResponse.Nearby.builder().id("test").build().isEmpty()).isFalse();
+    assertThat(
+            NearbyResponse.Nearby.builder()
+                .attributes(
+                    NearbyResponse.NearbyAttributes.builder().maxTime(Integer.MAX_VALUE).build())
+                .build()
+                .isEmpty())
+        .isFalse();
+  }
+
+  @Test
+  @SneakyThrows
+  void emptyNearbyAttributes() {
+    // Empty
+    assertThat(NearbyResponse.NearbyAttributes.builder().build().isEmpty()).isTrue();
+    // Not empty
+    assertThat(
+            NearbyResponse.NearbyAttributes.builder().minTime(Integer.MIN_VALUE).build().isEmpty())
+        .isFalse();
+    assertThat(
+            NearbyResponse.NearbyAttributes.builder().maxTime(Integer.MAX_VALUE).build().isEmpty())
+        .isFalse();
+  }
+
+  @Test
+  @SneakyThrows
+  void isEmpty() {
+    // Empty
+    assertThat(NearbyResponse.builder().build().isEmpty()).isTrue();
+    assertThat(NearbyResponse.builder().data(emptyList()).build().isEmpty()).isTrue();
+    assertThat(
+            NearbyResponse.builder().meta(NearbyResponse.Meta.builder().build()).build().isEmpty())
+        .isTrue();
+    // Not empty
+    assertThat(
+            NearbyResponse.builder()
+                .data(
+                    List.of(
+                        NearbyResponse.Nearby.builder()
+                            .type(NearbyResponse.Type.NearbyFacility)
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            NearbyResponse.builder()
+                .meta(NearbyResponse.Meta.builder().bandVersion("test").build())
+                .build()
+                .isEmpty())
+        .isFalse();
   }
 
   private NearbyResponse.Nearby nearbyFacility(
@@ -66,6 +166,6 @@ public class NearbyResponseTest {
 
   @Test
   void unmarshallSample() {
-    assertReadable("/nearby.json");
+    assertReadable("/v1/nearby.json");
   }
 }

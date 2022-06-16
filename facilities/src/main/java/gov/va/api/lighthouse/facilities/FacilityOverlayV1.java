@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Value
 @Slf4j
 public class FacilityOverlayV1 implements Function<HasFacilityPayload, Facility> {
-
   private static final ObjectMapper DATAMART_MAPPER =
       DatamartFacilitiesJacksonConfig.createMapper();
 

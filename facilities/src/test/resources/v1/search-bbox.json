@@ -1,0 +1,807 @@
+{
+  "data" : [
+    {
+      "id" : "vha_675GA",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Viera VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Health Care Center (HCC)",
+        "website" : "https://www.orlando.va.gov/locations/Viera.asp",
+        "lat" : 28.2552385700001,
+        "long" : -80.73907113,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32940-8007",
+            "city" : "Viera",
+            "state" : "FL",
+            "address1" : "2900 Veterans Way"
+          }
+        },
+        "phone" : {
+          "fax" : "321-637-3515",
+          "main" : "321-637-3788",
+          "pharmacy" : "877-646-4550",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "407-631-1187",
+          "mentalHealthClinic" : "321-637-3788",
+          "enrollmentCoordinator" : "321-637-3527"
+        },
+        "hours" : {
+          "monday" : "730AM-430PM",
+          "tuesday" : "730AM-430PM",
+          "wednesday" : "730AM-430PM",
+          "thursday" : "730AM-430PM",
+          "friday" : "730AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "ophthalmology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.74,
+            "primaryCareRoutine" : 0.83
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 32.047619,
+              "established" : 9.879032
+            },
+            {
+              "service" : "audiology",
+              "new" : 1.706967,
+              "established" : 2.126855
+            },
+            {
+              "service" : "optometry",
+              "new" : 76.396226,
+              "established" : 7.900787
+            },
+            {
+              "service" : "cardiology",
+              "new" : 18.657142,
+              "established" : 6.4
+            },
+            {
+              "service" : "dermatology",
+              "new" : 0.616666,
+              "established" : 0.555555
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 24.682539,
+              "established" : 4.995024
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 26.405405,
+              "established" : 1.545372
+            },
+            {
+              "service" : "ophthalmology",
+              "new" : 47.571428,
+              "established" : 3.258992
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 22.151515,
+              "established" : 4.943661
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 7.592814,
+              "established" : 3.97159
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vc_0332V",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Melbourne Vet Center",
+        "facilityType" : "vet_center",
+        "lat" : 28.12169212,
+        "long" : -80.65539095,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32935",
+            "city" : "Melbourne",
+            "state" : "FL",
+            "address1" : "2098 Sarno Road"
+          }
+        },
+        "phone" : {
+          "main" : "321-254-3410"
+        },
+        "hours" : {
+          "monday" : "800AM-630PM",
+          "tuesday" : "800AM-630PM",
+          "wednesday" : "800AM-630PM",
+          "thursday" : "800AM-630PM",
+          "friday" : "800AM-630PM",
+          "saturday" : "800AM-630PM",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "nca_934",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Cape Canaveral",
+        "facilityType" : "va_cemetery",
+        "classification" : "National Cemetery",
+        "website" : "https://www.cem.va.gov/cems/nchp/capecanaveral.asp",
+        "lat" : 28.7551827,
+        "long" : -80.8738888,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "mailing" : {
+            "zip" : "32754-4826",
+            "city" : "Mims",
+            "state" : "FL",
+            "address1" : "5525 U.S. Highway 1"
+          },
+          "physical" : {
+            "zip" : "32754-4826",
+            "city" : "Mims",
+            "state" : "FL",
+            "address1" : "5525 U.S. Highway 1"
+          }
+        },
+        "phone" : {
+          "fax" : "321-383-2642"
+        },
+        "hours" : {
+          "monday" : "Sunrise - Sunset",
+          "tuesday" : "Sunrise - Sunset",
+          "wednesday" : "Sunrise - Sunset",
+          "thursday" : "Sunrise - Sunset",
+          "friday" : "Sunrise - Sunset",
+          "saturday" : "Sunrise - Sunset",
+          "sunday" : "Sunrise - Sunset"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vha_675",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Orlando VA Medical Center",
+        "facilityType" : "va_health_facility",
+        "classification" : "VA Medical Center (VAMC)",
+        "website" : "https://www.orlando.va.gov/locations/directions.asp",
+        "lat" : 28.3666915700001,
+        "long" : -81.27650339,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32827-5812",
+            "city" : "Orlando",
+            "state" : "FL",
+            "address1" : "13800 Veterans Way"
+          }
+        },
+        "phone" : {
+          "fax" : "407-631-0100",
+          "main" : "407-631-1000",
+          "pharmacy" : "407-646-4500",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "407-631-1187",
+          "mentalHealthClinic" : "407-631-2050",
+          "enrollmentCoordinator" : "407-631-1060"
+        },
+        "hours" : {
+          "monday" : "24/7",
+          "tuesday" : "24/7",
+          "wednesday" : "24/7",
+          "thursday" : "24/7",
+          "friday" : "24/7",
+          "saturday" : "24/7",
+          "sunday" : "24/7"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "audiology",
+            "cardiology",
+            "dermatology",
+            "gastroenterology",
+            "gynecology",
+            "ophthalmology",
+            "optometry",
+            "orthopedics",
+            "urology",
+            "dental"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.59,
+            "primaryCareRoutine" : 0.77,
+            "specialtyCareUrgent" : 0.76,
+            "specialtyCareRoutine" : 0.83
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "urology",
+              "new" : 47.070707,
+              "established" : 12.413793
+            },
+            {
+              "service" : "audiology",
+              "new" : 5.071748,
+              "established" : 2.271653
+            },
+            {
+              "service" : "optometry",
+              "new" : 43.336956,
+              "established" : 5.958219
+            },
+            {
+              "service" : "cardiology",
+              "new" : 35.310077,
+              "established" : 8.611954
+            },
+            {
+              "service" : "gynecology",
+              "new" : 27.01923,
+              "established" : 3.189224
+            },
+            {
+              "service" : "dermatology",
+              "new" : 19.019455,
+              "established" : 2.363431
+            },
+            {
+              "service" : "orthopedics",
+              "new" : 12.795918,
+              "established" : 3.948827
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 24.316455,
+              "established" : 3.277552
+            },
+            {
+              "service" : "ophthalmology",
+              "new" : 12.04,
+              "established" : 5.528089
+            },
+            {
+              "service" : "womensHealth",
+              "new" : 25.266666,
+              "established" : 1.987108
+            },
+            {
+              "service" : "gastroenterology",
+              "new" : 51.232472,
+              "established" : 21.89198
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 10.421052,
+              "established" : 6.068493
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vba_317n",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Lake Nona Vocational Rehabilitation & Employment office",
+        "facilityType" : "va_benefits_facility",
+        "classification" : "Voc Rehab And Employment",
+        "website" : "NULL",
+        "lat" : 28.36758244,
+        "long" : -81.27709119,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32827",
+            "city" : "Orlando",
+            "state" : "FL",
+            "address1" : "13800 Veterans Way",
+            "address2" : "VBA Room #C102"
+          }
+        },
+        "phone" : {
+          "fax" : "407-631-1971",
+          "main" : "407-631-1645"
+        },
+        "hours" : {
+          "monday" : "8:00AM-4:00PM",
+          "tuesday" : "8:00AM-4:00PM",
+          "wednesday" : "8:00AM-4:00PM",
+          "thursday" : "8:00AM-4:00PM",
+          "friday" : "8:00AM-4:00PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "benefits" : [
+            "ApplyingForBenefits",
+            "BurialClaimAssistance",
+            "DisabilityClaimAssistance",
+            "eBenefitsRegistrationAssistance",
+            "EducationAndCareerCounseling",
+            "HomelessAssistance",
+            "IntegratedDisabilityEvaluationSystemAssistance",
+            "UpdatingDirectDepositInformation",
+            "VocationalRehabilitationAndEmploymentAssistance"
+          ]
+        },
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vc_0314V",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Orlando Vet Center",
+        "facilityType" : "vet_center",
+        "lat" : 28.48229037,
+        "long" : -81.30999967,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32822",
+            "city" : "Orlando",
+            "state" : "FL",
+            "address1" : "5575 South Semoran Boulevard",
+            "address2" : "Suite 30"
+          }
+        },
+        "phone" : {
+          "main" : "407-857-2800"
+        },
+        "hours" : {
+          "monday" : "800AM-630PM",
+          "tuesday" : "800AM-630PM",
+          "wednesday" : "800AM-630PM",
+          "thursday" : "800AM-630PM",
+          "friday" : "800AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        }
+      }
+    },
+    {
+      "id" : "vha_675QD",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Crossroads VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Other Outpatient Services (OOS)",
+        "website" : "https://www.orlando.va.gov/locations/Crossroads.asp",
+        "lat" : 28.5845601300001,
+        "long" : -81.3068096,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32792-5313",
+            "city" : "Winter Park",
+            "state" : "FL",
+            "address1" : "925 South Semoran Boulevard",
+            "address3" : "Suites 112, 114 and 120"
+          }
+        },
+        "phone" : {
+          "fax" : "407-621-2671",
+          "main" : "407-621-2600",
+          "pharmacy" : "877-646-4550",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "407-631-1187",
+          "enrollmentCoordinator" : "407-631-1060"
+        },
+        "hours" : {
+          "monday" : "800AM-400PM",
+          "wednesday" : "800AM-400PM",
+          "thursday" : "800AM-400PM",
+          "friday" : "800AM-400PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "mentalHealth"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "mentalHealth",
+              "new" : 25.642857,
+              "established" : 4.24969
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_548GE",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Vero Beach VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.westpalmbeach.va.gov/locations/Vero_Beach_CBOC.asp",
+        "lat" : 27.6325183800001,
+        "long" : -80.38028023,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32960-5690",
+            "city" : "Vero Beach",
+            "state" : "FL",
+            "address1" : "372 17th Street"
+          }
+        },
+        "phone" : {
+          "fax" : "772-299-4632",
+          "main" : "772-299-4623",
+          "pharmacy" : "800-317-8387",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "561-422-8600",
+          "mentalHealthClinic" : "772-299-4623",
+          "enrollmentCoordinator" : "561-422-6838"
+        },
+        "hours" : {
+          "monday" : "800AM-430PM",
+          "tuesday" : "800AM-430PM",
+          "wednesday" : "800AM-430PM",
+          "thursday" : "800AM-430PM",
+          "friday" : "800AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "dermatology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.91,
+            "primaryCareRoutine" : 0.91
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "dermatology",
+              "new" : 0.333333,
+              "established" : 0.0
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 20.51282,
+              "established" : 3.017211
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 11.545454,
+              "established" : 2.233576
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_675GC",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Kissimmee VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "Primary Care CBOC",
+        "website" : "https://www.orlando.va.gov/locations/Kissimmee.asp",
+        "lat" : 28.3128777100001,
+        "long" : -81.40857002,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "34741-2342",
+            "city" : "Kissimmee",
+            "state" : "FL",
+            "address1" : "2285 North Central Avenue"
+          }
+        },
+        "phone" : {
+          "fax" : "407-932-7012",
+          "main" : "407-518-5004",
+          "pharmacy" : "407-599-1404",
+          "afterHours" : "877-741-3400",
+          "patientAdvocate" : "407-631-1187",
+          "mentalHealthClinic" : "407-518-5004",
+          "enrollmentCoordinator" : "407-631-1060"
+        },
+        "hours" : {
+          "monday" : "730AM-430PM",
+          "tuesday" : "730AM-430PM",
+          "wednesday" : "730AM-430PM",
+          "thursday" : "730AM-430PM",
+          "friday" : "730AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "dermatology"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.83,
+            "primaryCareRoutine" : 0.89
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "dermatology",
+              "new" : 1.5
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 8.94,
+              "established" : 2.66054
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 40.117647,
+              "established" : 6.576368
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    },
+    {
+      "id" : "vha_675GG",
+      "type" : "va_facilities",
+      "attributes" : {
+        "name" : "Lake Baldwin VA Clinic",
+        "facilityType" : "va_health_facility",
+        "classification" : "VA Medical Center (VAMC)",
+        "website" : "https://www.orlando.va.gov/locations/LakeBaldwin.asp",
+        "lat" : 28.57912757,
+        "long" : -81.32166083,
+        "timeZone" : "America/New_York",
+        "address" : {
+          "physical" : {
+            "zip" : "32803-8208",
+            "city" : "Orlando",
+            "state" : "FL",
+            "address1" : "5201 Raymond Street"
+          }
+        },
+        "phone" : {
+          "fax" : "407-513-9636",
+          "main" : "407-646-5500",
+          "pharmacy" : "407-646-5500 x25990",
+          "afterHours" : "407-646-5500",
+          "patientAdvocate" : "407-646-5035",
+          "mentalHealthClinic" : "407-646-5400",
+          "enrollmentCoordinator" : "407-646-6130"
+        },
+        "hours" : {
+          "monday" : "800AM-430PM",
+          "tuesday" : "800AM-430PM",
+          "wednesday" : "800AM-430PM",
+          "thursday" : "800AM-430PM",
+          "friday" : "800AM-430PM",
+          "saturday" : "Closed",
+          "sunday" : "Closed"
+        },
+        "operationalHoursSpecialInstructions" : [
+          "Vet center 1 is available.",
+          "Vet center 2 is available.",
+          "Vet center 3 is available."
+        ],
+        "services" : {
+          "health" : [
+            "primaryCare",
+            "mentalHealth",
+            "womensHealth",
+            "audiology",
+            "gynecology",
+            "optometry"
+          ],
+          "lastUpdated" : "2020-03-02"
+        },
+        "satisfaction" : {
+          "health" : {
+            "primaryCareUrgent" : 0.79,
+            "primaryCareRoutine" : 0.81
+          },
+          "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "audiology",
+              "new" : 4.0,
+              "established" : 1.094091
+            },
+            {
+              "service" : "optometry",
+              "new" : 72.475247,
+              "established" : 11.642248
+            },
+            {
+              "service" : "gynecology",
+              "new" : 5.0,
+              "established" : 1.210355
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 14.460526,
+              "established" : 1.34292
+            },
+            {
+              "service" : "womensHealth",
+              "new" : 5.0,
+              "established" : 1.210355
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 16.468926,
+              "established" : 4.563762
+            }
+          ],
+          "effectiveDate" : "2020-03-02"
+        },
+        "mobile" : false,
+        "activeStatus" : "A",
+        "operatingStatus" : {
+          "code" : "NORMAL"
+        },
+        "visn" : "8"
+      }
+    }
+  ],
+  "links" : {
+    "self" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?bbox%5B%5D=-81.47&bbox%5B%5D=27.48&bbox%5B%5D=-79.97&bbox%5B%5D=28.98",
+    "first" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?bbox%5B%5D=-81.47&bbox%5B%5D=27.48&bbox%5B%5D=-79.97&bbox%5B%5D=28.98&page=1&per_page=10",
+    "next" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?bbox%5B%5D=-81.47&bbox%5B%5D=27.48&bbox%5B%5D=-79.97&bbox%5B%5D=28.98&page=2&per_page=10",
+    "last" : "https://dev-api.vets.gov/services/va_facilities/v0/facilities?bbox%5B%5D=-81.47&bbox%5B%5D=27.48&bbox%5B%5D=-79.97&bbox%5B%5D=28.98&page=2&per_page=10"
+  },
+  "meta" : {
+    "pagination" : {
+      "currentPage" : 1,
+      "perPage" : 10,
+      "totalPages" : 2,
+      "totalEntries" : 13
+    }
+  }
+}

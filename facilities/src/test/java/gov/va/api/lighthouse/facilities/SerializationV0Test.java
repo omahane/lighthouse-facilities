@@ -30,10 +30,10 @@ public class SerializationV0Test {
   void all() {
     GeoFacilitiesResponse actual =
         createMapper()
-            .readValue(getClass().getResourceAsStream("/all.json"), GeoFacilitiesResponse.class);
+            .readValue(getClass().getResourceAsStream("/v0/all.json"), GeoFacilitiesResponse.class);
     assertThat(actual).isExactlyInstanceOf(GeoFacilitiesResponse.class);
     ObjectNode expected =
-        (ObjectNode) createMapper().readTree(getClass().getResourceAsStream("/all.json"));
+        (ObjectNode) createMapper().readTree(getClass().getResourceAsStream("/v0/all.json"));
     ArrayNode expectedFeatures = (ArrayNode) expected.get("features");
     for (int i = 0; i < expectedFeatures.size(); i++) {
       JsonNode expectedFeature = expectedFeatures.get(i);
@@ -54,7 +54,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readBenefits() {
-    String path = "/read-benefits.json";
+    String path = "/v0/read-benefits.json";
     roundTrip(path, FacilityReadResponse.class);
   }
 
@@ -68,7 +68,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readCemetery() {
-    String path = "/read-cemetery.json";
+    String path = "/v0/read-cemetery.json";
     roundTrip(path, FacilityReadResponse.class);
   }
 
@@ -82,7 +82,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readHealth() {
-    String path = "/read-health.json";
+    String path = "/v0/read-health.json";
     roundTrip(path, FacilityReadResponse.class);
   }
 
@@ -96,7 +96,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readStateCemetery() {
-    String path = "/read-state-cemetery.json";
+    String path = "/v0/read-state-cemetery.json";
     roundTrip(path, FacilityReadResponse.class);
   }
 
@@ -110,14 +110,14 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readVetCenter() {
-    String path = "/read-vet-center.json";
+    String path = "/v0/read-vet-center.json";
     roundTrip(path, FacilityReadResponse.class);
   }
 
   @Test
   @SneakyThrows
   void readVetCenterGeoJson() {
-    String path = "/read-vet-center-geojson.json";
+    String path = "/v0/read-vet-center-geojson.json";
     roundTrip(path, GeoFacilityReadResponse.class);
   }
 
@@ -136,63 +136,63 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void searchByBbox() {
-    String path = "/search-bbox.json";
+    String path = "/v0/search-bbox.json";
     roundTrip(path, FacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByBboxGeoJson() {
-    String path = "/search-bbox-geojson.json";
+    String path = "/v0/search-bbox-geojson.json";
     roundTrip(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByIds() {
-    String path = "/search-ids.json";
+    String path = "/v0/search-ids.json";
     roundTrip(path, FacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByIdsGeoJson() {
-    String path = "/search-ids-geojson.json";
+    String path = "/v0/search-ids-geojson.json";
     roundTrip(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByLatLong() {
-    String path = "/search-lat-long.json";
+    String path = "/v0/search-lat-long.json";
     roundTrip(path, FacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByLatLongGeoJson() {
-    String path = "/search-lat-long-geojson.json";
+    String path = "/v0/search-lat-long-geojson.json";
     roundTrip(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByState() {
-    String path = "/search-state.json";
+    String path = "/v0/search-state.json";
     roundTrip(path, FacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByStateGeoJson() {
-    String path = "/search-state-geojson.json";
+    String path = "/v0/search-state-geojson.json";
     roundTrip(path, GeoFacilitiesResponse.class);
   }
 
   @Test
   @SneakyThrows
   void searchByZip() {
-    String path = "/search-zip.json";
+    String path = "/v0/search-zip.json";
     roundTrip(path, FacilitiesResponse.class);
   }
 

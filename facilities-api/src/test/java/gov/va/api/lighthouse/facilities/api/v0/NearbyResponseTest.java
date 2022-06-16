@@ -1,6 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
 import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -8,6 +10,29 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class NearbyResponseTest {
+  @Test
+  @SneakyThrows
+  void allFieldsEmpty() {
+    // Null out fields for response
+    String jsonEmptyResponse = getExpectedJson("v0/NearbyResponse/responseWithNullFields.json");
+    NearbyResponse emptyResponse = NearbyResponse.builder().data(null).meta(null).build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+    // Response with empty fields
+    jsonEmptyResponse = getExpectedJson("v0/NearbyResponse/responseWithEmptyFields.json");
+    emptyResponse = NearbyResponse.builder().data(emptyList()).meta(null).build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+    jsonEmptyResponse = getExpectedJson("v0/NearbyResponse/responseWithEmptyDataMeta.json");
+    emptyResponse =
+        NearbyResponse.builder()
+            .data(emptyList())
+            .meta(NearbyResponse.Meta.builder().build())
+            .build();
+    assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(emptyResponse))
+        .isEqualTo(jsonEmptyResponse);
+  }
+
   @SneakyThrows
   private void assertReadable(String json) {
     NearbyResponse f =

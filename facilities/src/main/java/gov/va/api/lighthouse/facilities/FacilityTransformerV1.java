@@ -1,22 +1,15 @@
 package gov.va.api.lighthouse.facilities;
 
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 /** Utility class for transforming DatamartFacility to version 1 facility object and back. */
 @UtilityClass
-public class FacilityTransformerV1 {
-  private static boolean containsValueOfName(Enum<?>[] values, String name) {
-    return !Arrays.stream(values)
-        .parallel()
-        .map(e -> e.name().equals(name))
-        .collect(Collectors.toList())
-        .isEmpty();
-  }
-
+public final class FacilityTransformerV1 extends BaseVersionedTransformer {
   /** Transform persisted DatamartFacility to version 1 facility. */
   static Facility toFacility(@NonNull DatamartFacility df) {
     return Facility.builder()
@@ -42,9 +35,9 @@ public class FacilityTransformerV1 {
                     .satisfaction(transformFacilitySatisfaction(df.attributes().satisfaction()))
                     .waitTimes(transformFacilityWaitTimes(df.attributes().waitTimes()))
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
-                    .detailedServices(df.attributes().detailedServices())
                     .operationalHoursSpecialInstructions(
-                        df.attributes().operationalHoursSpecialInstructions())
+                        transformOperationalHoursSpecialInstructions(
+                            df.attributes().operationalHoursSpecialInstructions()))
                     .build()
                 : null)
         .build();
@@ -65,8 +58,34 @@ public class FacilityTransformerV1 {
                         : null
                     : null)
             .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toFacilitySupplementalStatuses(
+                    datamartFacilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
+  }
+
+  /** Transform DatamartFacility supplemental status to version 1 facility supplemental status. */
+  public static Facility.SupplementalStatus toFacilitySupplementalStatus(
+      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+    return Facility.SupplementalStatus.builder()
+        .id(datamartFacilitySupplementalStatus.id())
+        .label(datamartFacilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of DatamartFacility supplemental statuses to version 1 facility supplemental
+   * statuses.
+   */
+  public static List<Facility.SupplementalStatus> toFacilitySupplementalStatuses(
+      List<DatamartFacility.SupplementalStatus> datamartFacilitySupplementalStatuses) {
+    if (datamartFacilitySupplementalStatuses != null) {
+      return datamartFacilitySupplementalStatuses.parallelStream()
+          .map(fss -> toFacilitySupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform version 1 facility to DatamartFacility for persistence. */
@@ -95,9 +114,9 @@ public class FacilityTransformerV1 {
                     .waitTimes(transformFacilityWaitTimes(f.attributes().waitTimes()))
                     .operatingStatus(
                         toVersionAgnosticFacilityOperatingStatus(f.attributes().operatingStatus()))
-                    .detailedServices(f.attributes().detailedServices())
                     .operationalHoursSpecialInstructions(
-                        f.attributes().operationalHoursSpecialInstructions())
+                        toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
+                            f.attributes().operationalHoursSpecialInstructions()))
                     .build()
                 : null)
         .build();
@@ -118,8 +137,47 @@ public class FacilityTransformerV1 {
                         : null
                     : null)
             .additionalInfo(facilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toVersionAgnosticSupplementalStatuses(
+                    facilityOperatingStatus.supplementalStatuses()))
             .build()
         : null;
+  }
+
+  /**
+   * Transform Facility operational hours special instructions to version agnostic operational hours
+   * special instructions.
+   */
+  public static String toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
+      List<String> instructions) {
+    if (instructions != null) {
+      return String.join(" | ", instructions);
+    } else {
+      return null;
+    }
+  }
+
+  /** Transform version 1 facility supplemental status to DatamartFacility supplemental status. */
+  public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
+      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+    return DatamartFacility.SupplementalStatus.builder()
+        .id(facilitySupplementalStatus.id())
+        .label(facilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of version 1 facility supplemental statuses to DatamartFacility supplemental
+   * statuses.
+   */
+  public static List<DatamartFacility.SupplementalStatus> toVersionAgnosticSupplementalStatuses(
+      List<Facility.SupplementalStatus> facilitySupplementalStatuses) {
+    if (facilitySupplementalStatuses != null) {
+      return facilitySupplementalStatuses.parallelStream()
+          .map(fss -> toVersionAgnosticSupplementalStatus(fss))
+          .collect(Collectors.toList());
+    }
+    return null;
   }
 
   /** Transform DatamartFacility active status to version 1 facility active status. */
@@ -285,12 +343,7 @@ public class FacilityTransformerV1 {
         .establishedPatientWaitTime(datamartFacilityPatientWaitTime.establishedPatientWaitTime())
         .service(
             (datamartFacilityPatientWaitTime.service() != null)
-                ? containsValueOfName(
-                        Facility.HealthService.values(),
-                        datamartFacilityPatientWaitTime.service().name())
-                    ? Facility.HealthService.valueOf(
-                        datamartFacilityPatientWaitTime.service().name())
-                    : null
+                ? transformFacilityHealthService(datamartFacilityPatientWaitTime.service())
                 : null)
         .build();
   }
@@ -303,12 +356,7 @@ public class FacilityTransformerV1 {
         .establishedPatientWaitTime(facilityPatientWaitTime.establishedPatientWaitTime())
         .service(
             (facilityPatientWaitTime.service() != null)
-                ? containsValueOfName(
-                        DatamartFacility.HealthService.values(),
-                        facilityPatientWaitTime.service().name())
-                    ? DatamartFacility.HealthService.valueOf(
-                        facilityPatientWaitTime.service().name())
-                    : null
+                ? transformFacilityHealthService(facilityPatientWaitTime.service())
                 : null)
         .build();
   }
@@ -320,6 +368,7 @@ public class FacilityTransformerV1 {
         ? Facility.Phone.builder()
             .fax(datamartFacilityPhone.fax())
             .main(datamartFacilityPhone.main())
+            .healthConnect(datamartFacilityPhone.healthConnect())
             .afterHours(datamartFacilityPhone.afterHours())
             .enrollmentCoordinator(datamartFacilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(datamartFacilityPhone.mentalHealthClinic())
@@ -335,6 +384,7 @@ public class FacilityTransformerV1 {
         ? DatamartFacility.Phone.builder()
             .fax(facilityPhone.fax())
             .main(facilityPhone.main())
+            .healthConnect(facilityPhone.healthConnect())
             .afterHours(facilityPhone.afterHours())
             .enrollmentCoordinator(facilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(facilityPhone.mentalHealthClinic())
@@ -394,18 +444,26 @@ public class FacilityTransformerV1 {
             .health(
                 (datamartFacilityServices.health() != null)
                     ? datamartFacilityServices.health().parallelStream()
+                        .filter(
+                            e ->
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        Facility.HealthService.values(), e.name()))
                         .map(e -> transformFacilityHealthService(e))
                         .collect(Collectors.toList())
                     : null)
             .benefits(
                 (datamartFacilityServices.benefits() != null)
                     ? datamartFacilityServices.benefits().parallelStream()
+                        .filter(
+                            e -> containsValueOfName(Facility.BenefitsService.values(), e.name()))
                         .map(e -> transformFacilityBenefitsService(e))
                         .collect(Collectors.toList())
                     : null)
             .other(
                 (datamartFacilityServices.other() != null)
                     ? datamartFacilityServices.other().parallelStream()
+                        .filter(e -> containsValueOfName(Facility.OtherService.values(), e.name()))
                         .map(e -> transformFacilityOtherService(e))
                         .collect(Collectors.toList())
                     : null)
@@ -422,18 +480,31 @@ public class FacilityTransformerV1 {
             .health(
                 (facilityServices.health() != null)
                     ? facilityServices.health().parallelStream()
+                        .filter(
+                            e ->
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        DatamartFacility.HealthService.values(), e.name()))
                         .map(e -> transformFacilityHealthService(e))
                         .collect(Collectors.toList())
                     : null)
             .benefits(
                 (facilityServices.benefits() != null)
                     ? facilityServices.benefits().parallelStream()
+                        .filter(
+                            e ->
+                                containsValueOfName(
+                                    DatamartFacility.BenefitsService.values(), e.name()))
                         .map(e -> transformFacilityBenefitsService(e))
                         .collect(Collectors.toList())
                     : null)
             .other(
                 (facilityServices.other() != null)
                     ? facilityServices.other().parallelStream()
+                        .filter(
+                            e ->
+                                containsValueOfName(
+                                    DatamartFacility.OtherService.values(), e.name()))
                         .map(e -> transformFacilityOtherService(e))
                         .collect(Collectors.toList())
                     : null)
@@ -492,6 +563,18 @@ public class FacilityTransformerV1 {
             .effectiveDate(facilityWaitTimes.effectiveDate())
             .build()
         : DatamartFacility.WaitTimes.builder().build();
+  }
+
+  /**
+   * Transform DatamartFacility operational hours special instructions to version 1 operational
+   * hours special instructions.
+   */
+  public static List<String> transformOperationalHoursSpecialInstructions(String instructions) {
+    if (instructions != null) {
+      return Stream.of(instructions.split("\\|")).map(String::trim).collect(Collectors.toList());
+    } else {
+      return null;
+    }
   }
 
   /** Transform version 1 facility type to DatamartFacility facility type. */

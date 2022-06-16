@@ -1,149 +1,141 @@
 {
-  "data" : {
-    "id" : "vha_757",
-    "type" : "va_facilities",
-    "attributes" : {
-      "name" : "Chalmers P. Wylie Veterans Outpatient Clinic",
-      "facility_type" : "va_health_facility",
-      "classification" : "Health Care Center (HCC)",
-      "website" : "https://www.columbus.va.gov/locations/directions.asp",
-      "lat" : 39.9813738,
-      "long" : -82.9118322899999,
-      "time_zone" : "America/New_York",
-      "address" : {
-        "mailing" : { },
-        "physical" : {
-          "zip" : "43219-1834",
-          "city" : "Columbus",
-          "state" : "OH",
-          "address_1" : "420 North James, Road",
-          "address_2" : null,
-          "address_3" : null
-        }
+  "id" : "vha_757",
+  "type" : "va_facilities",
+  "attributes" : {
+    "name" : "Chalmers P. Wylie Veterans Outpatient Clinic",
+    "facility_type" : "va_health_facility",
+    "classification" : "Health Care Center (HCC)",
+    "website" : "https://www.columbus.va.gov/locations/directions.asp",
+    "lat" : 39.9813738,
+    "long" : -82.9118322899999,
+    "time_zone" : "America/New_York",
+    "address" : {
+      "mailing" : { },
+      "physical" : {
+        "zip" : "43219-1834",
+        "city" : "Columbus",
+        "state" : "OH",
+        "address_1" : "420 North James, Road",
+        "address_2" : null,
+        "address_3" : null
+      }
+    },
+    "phone" : {
+      "fax" : "614-257-5460",
+      "main" : "614-257-5200",
+      "pharmacy" : "614-257-5230",
+      "after_hours" : "614-257-5512",
+      "patient_advocate" : "614-257-5290",
+      "mental_health_clinic" : "614-257-5631",
+      "enrollment_coordinator" : "614-257-5298"
+    },
+    "hours" : {
+      "monday" : "730AM-600PM",
+      "tuesday" : "730AM-600PM",
+      "wednesday" : "730AM-600PM",
+      "thursday" : "730AM-600PM",
+      "friday" : "730AM-600PM",
+      "saturday" : "800AM-400PM",
+      "sunday" : "800AM-400PM"
+    },
+    "services" : {
+      "other" : [ ],
+      "health" : [
+        "primaryCare",
+        "mentalHealth",
+        "womensHealth",
+        "audiology",
+        "cardiology",
+        "dermatology",
+        "gastroenterology",
+        "gynecology",
+        "ophthalmology",
+        "optometry",
+        "orthopedics",
+        "urology",
+        "dental"
+      ],
+      "last_updated" : "2020-03-16"
+    },
+    "satisfaction" : {
+      "health" : {
+        "primary_care_urgent" : 0.79,
+        "primary_care_routine" : 0.94,
+        "specialty_care_urgent" : 0.72,
+        "specialty_care_routine" : 0.86
       },
-      "phone" : {
-        "fax" : "614-257-5460",
-        "main" : "614-257-5200",
-        "pharmacy" : "614-257-5230",
-        "after_hours" : "614-257-5512",
-        "patient_advocate" : "614-257-5290",
-        "mental_health_clinic" : "614-257-5631",
-        "enrollment_coordinator" : "614-257-5298"
-      },
-      "hours" : {
-        "monday" : "730AM-600PM",
-        "tuesday" : "730AM-600PM",
-        "wednesday" : "730AM-600PM",
-        "thursday" : "730AM-600PM",
-        "friday" : "730AM-600PM",
-        "saturday" : "800AM-400PM",
-        "sunday" : "800AM-400PM"
-      },
-      "services" : {
-        "other" : [ ],
-        "health" : [
-          "PrimaryCare",
-          "MentalHealthCare",
-          "WomensHealth",
-          "Audiology",
-          "Cardiology",
-          "Dermatology",
-          "Gastroenterology",
-          "Gynecology",
-          "Ophthalmology",
-          "Optometry",
-          "Orthopedics",
-          "Urology",
-          "SpecialtyCare",
-          "DentalServices"
-        ],
-        "last_updated" : "2020-03-16"
-      },
-      "satisfaction" : {
-        "health" : {
-          "primary_care_urgent" : 0.79,
-          "primary_care_routine" : 0.94,
-          "specialty_care_urgent" : 0.72,
-          "specialty_care_routine" : 0.86
+      "effective_date" : "2019-06-20"
+    },
+    "wait_times" : {
+      "health" : [
+        {
+          "service" : "urology",
+          "new" : 15.979591,
+          "established" : 8.095465
         },
-        "effective_date" : "2019-06-20"
-      },
-      "wait_times" : {
-        "health" : [
-          {
-            "service" : "Urology",
-            "new" : 15.979591,
-            "established" : 8.095465
-          },
-          {
-            "service" : "Audiology",
-            "new" : 20.431174,
-            "established" : 9.695447
-          },
-          {
-            "service" : "Optometry",
-            "new" : 13.5291,
-            "established" : 5.630188
-          },
-          {
-            "service" : "Cardiology",
-            "new" : 33.644067,
-            "established" : 15.057007
-          },
-          {
-            "service" : "Gynecology",
-            "new" : 14.47619,
-            "established" : 5.406896
-          },
-          {
-            "service" : "Dermatology",
-            "new" : 8.31081,
-            "established" : 9.635044
-          },
-          {
-            "service" : "Orthopedics",
-            "new" : 20.722222,
-            "established" : 15.551829
-          },
-          {
-            "service" : "PrimaryCare",
-            "new" : 10.542288,
-            "established" : 5.08283
-          },
-          {
-            "service" : "Ophthalmology",
-            "new" : 24.0,
-            "established" : 6.96486
-          },
-          {
-            "service" : "WomensHealth",
-            "new" : 14.882352,
-            "established" : 5.212355
-          },
-          {
-            "service" : "SpecialtyCare",
-            "new" : 17.53453,
-            "established" : 9.400051
-          },
-          {
-            "service" : "Gastroenterology",
-            "new" : 14.814159,
-            "established" : 6.796
-          },
-          {
-            "service" : "MentalHealthCare",
-            "new" : 5.028089,
-            "established" : 7.345443
-          }
-        ],
-        "effective_date" : "2020-03-16"
-      },
-      "mobile" : false,
-      "active_status" : "A",
-      "operating_status" : {
-        "code" : "NORMAL"
-      },
-      "visn" : "10"
-    }
+        {
+          "service" : "audiology",
+          "new" : 20.431174,
+          "established" : 9.695447
+        },
+        {
+          "service" : "optometry",
+          "new" : 13.5291,
+          "established" : 5.630188
+        },
+        {
+          "service" : "cardiology",
+          "new" : 33.644067,
+          "established" : 15.057007
+        },
+        {
+          "service" : "gynecology",
+          "new" : 14.47619,
+          "established" : 5.406896
+        },
+        {
+          "service" : "dermatology",
+          "new" : 8.31081,
+          "established" : 9.635044
+        },
+        {
+          "service" : "orthopedics",
+          "new" : 20.722222,
+          "established" : 15.551829
+        },
+        {
+          "service" : "primaryCare",
+          "new" : 10.542288,
+          "established" : 5.08283
+        },
+        {
+          "service" : "ophthalmology",
+          "new" : 24.0,
+          "established" : 6.96486
+        },
+        {
+          "service" : "womensHealth",
+          "new" : 14.882352,
+          "established" : 5.212355
+        },
+        {
+          "service" : "gastroenterology",
+          "new" : 14.814159,
+          "established" : 6.796
+        },
+        {
+          "service" : "mentalHealth",
+          "new" : 5.028089,
+          "established" : 7.345443
+        }
+      ],
+      "effective_date" : "2020-03-16"
+    },
+    "mobile" : false,
+    "active_status" : "A",
+    "operating_status" : {
+      "code" : "NORMAL"
+    },
+    "visn" : "10"
   }
 }

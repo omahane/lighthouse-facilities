@@ -301,6 +301,9 @@ public class FacilitiesCollector {
         .filter(df -> facilityCovid19Services.containsKey(df.id()))
         .forEach(
             df -> {
+              // Covid-19 vaccines is the only CMS service that should appear in the list of ATC
+              // facility services, as well as the CMS overlay detailed services list, if present
+              // for a facility.
               Set<HealthService> facilityHealthServices = new HashSet<>();
               facilityHealthServices.add(facilityCovid19Services.get(df.id()));
               if (df.attributes().services() == null) {

@@ -137,7 +137,7 @@ public class SerializerTest {
             .build();
     assertJson(
         detailedService,
-        "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
+        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
     detailedService =
         DetailedService.builder()
             .serviceInfo(
@@ -149,7 +149,7 @@ public class SerializerTest {
             .build();
     assertJson(
         detailedService,
-        "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
+        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
     detailedService =
         DetailedService.builder()
             .serviceInfo(
@@ -265,7 +265,7 @@ public class SerializerTest {
             .build();
     assertJson(
         response,
-        "{\"data\":{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}}");
+        "{\"data\":{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}}");
     response =
         DetailedServiceResponse.builder()
             .data(

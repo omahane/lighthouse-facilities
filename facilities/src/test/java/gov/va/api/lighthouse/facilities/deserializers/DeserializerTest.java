@@ -48,38 +48,47 @@ public class DeserializerTest {
                             DatamartDetailedService.ServiceInfo.builder()
                                 .serviceId(DatamartFacility.BenefitsService.Pensions.serviceId())
                                 .name(DatamartFacility.BenefitsService.Pensions.name())
-                                .serviceType(TypeOfService.Health)
+                                .serviceType(TypeOfService.Benefits)
                                 .build())
                         .build()))
             .build();
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"health\"}}"
+            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"benefits\"}}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"health\"}}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"benefits\"}}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"}}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     // At least one service containing invalid service id and/or invalid service type
     assertExceptionThrown(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"}},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}]}\"; line: 1, column: 133] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}]}\"; line: 1, column: 135] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}"
+            + "]}",
+        DatamartCmsOverlay.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}]}\"; line: 1, column: 206] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     overlay =
         DatamartCmsOverlay.builder()
@@ -90,39 +99,48 @@ public class DeserializerTest {
                             DatamartDetailedService.ServiceInfo.builder()
                                 .serviceId(DatamartFacility.BenefitsService.Pensions.serviceId())
                                 .name(DatamartFacility.BenefitsService.Pensions.name())
-                                .serviceType(TypeOfService.Health)
+                                .serviceType(TypeOfService.Benefits)
                                 .build())
                         .phoneNumbers(emptyList())
                         .build()))
             .build();
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     // At least one service containing invalid service id and/or invalid service type
     assertExceptionThrown(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}]}\"; line: 1, column: 157] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}]}\"; line: 1, column: 159] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}"
+            + "]}",
+        DatamartCmsOverlay.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}]}\"; line: 1, column: 230] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     overlay =
         DatamartCmsOverlay.builder()
@@ -133,7 +151,7 @@ public class DeserializerTest {
                             DatamartDetailedService.ServiceInfo.builder()
                                 .serviceId(DatamartFacility.BenefitsService.Pensions.serviceId())
                                 .name(DatamartFacility.BenefitsService.Pensions.name())
-                                .serviceType(TypeOfService.Health)
+                                .serviceType(TypeOfService.Benefits)
                                 .build())
                         .phoneNumbers(emptyList())
                         .serviceLocations(emptyList())
@@ -141,32 +159,41 @@ public class DeserializerTest {
             .build();
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     assertJson(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         overlay);
     // At least one service containing invalid service id and/or invalid service type
     assertExceptionThrown(
         "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 180] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 182] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "]}",
+        DatamartCmsOverlay.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 253] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
   }
 
   @Test
@@ -195,11 +222,17 @@ public class DeserializerTest {
         detailedService);
     // Service containing invalid service id and invalid service type
     assertExceptionThrown(
-        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}",
+        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}",
         DatamartDetailedService.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}",
+        DatamartDetailedService.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}\"; line: 1, column: 89] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     detailedService =
         DatamartDetailedService.builder()
@@ -225,11 +258,17 @@ public class DeserializerTest {
         detailedService);
     // Service containing invalid service id and invalid service type
     assertExceptionThrown(
-        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}",
+        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}",
         DatamartDetailedService.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}",
+        DatamartDetailedService.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}\"; line: 1, column: 89] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     detailedService =
         DatamartDetailedService.builder()
@@ -256,11 +295,17 @@ public class DeserializerTest {
         detailedService);
     // Service containing invalid service id and invalid service type
     assertExceptionThrown(
-        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}",
+        "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}",
         DatamartDetailedService.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}\"; line: 1, column: 29] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}",
+        DatamartDetailedService.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}\"; line: 1, column: 89] (through reference chain: gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
   }
 
   @Test
@@ -301,12 +346,21 @@ public class DeserializerTest {
     assertExceptionThrown(
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}"
             + "]}",
         DatamartFacility.FacilityAttributes.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"}}]}\"; line: 1, column: 135] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}}]}\"; line: 1, column: 135] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}"
+            + "]}",
+        DatamartFacility.FacilityAttributes.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"}}]}\"; line: 1, column: 206] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     attributes =
         DatamartFacility.FacilityAttributes.builder()
@@ -344,12 +398,21 @@ public class DeserializerTest {
     assertExceptionThrown(
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartFacility.FacilityAttributes.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}]}\"; line: 1, column: 159] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]}]}\"; line: 1, column: 159] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}"
+            + "]}",
+        DatamartFacility.FacilityAttributes.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[]}]}\"; line: 1, column: 230] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
 
     attributes =
         DatamartFacility.FacilityAttributes.builder()
@@ -388,12 +451,21 @@ public class DeserializerTest {
     assertExceptionThrown(
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartFacility.FacilityAttributes.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 182] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 182] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+    assertExceptionThrown(
+        "{\"detailed_services\":["
+            + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "]}",
+        DatamartFacility.FacilityAttributes.class,
+        JsonMappingException.class,
+        "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"applyingForBenefits\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 253] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
   }
 
   @Test
@@ -507,13 +579,13 @@ public class DeserializerTest {
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},"
             + "{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"}},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"benefits\"}},"
-            + "{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"}}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}},"
+            + "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bin\"}}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"}}]}\"; line: 1, column: 215] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"}},{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bin\"}}]}\"; line: 1, column: 215] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
 
     overlay =
         DatamartCmsOverlay.builder()
@@ -564,13 +636,13 @@ public class DeserializerTest {
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
             + "{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"},\"appointment_phones\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bin\"},\"appointment_phones\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"},\"appointment_phones\":[]}]}\"; line: 1, column: 263] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[]},{\"serviceInfo\":{\"serviceId\":\"cardiology\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bin\"},\"appointment_phones\":[]}]}\"; line: 1, column: 263] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
 
     overlay =
         DatamartCmsOverlay.builder()
@@ -623,13 +695,13 @@ public class DeserializerTest {
         "{\"detailed_services\":["
             + "{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
             + "{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
-            + "{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"},\"appointment_phones\":[],\"service_locations\":[]}"
+            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},"
+            + "{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"Unrecognized Service Type\",\"serviceType\":\"bin\"},\"appointment_phones\":[],\"service_locations\":[]}"
             + "]}",
         DatamartCmsOverlay.class,
         JsonMappingException.class,
         "Unrecognized service id: foo\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"baz\",\"serviceType\":\"bin\"},\"appointment_phones\":\"[truncated 28 chars]; line: 1, column: 309] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
+            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"pensions\",\"name\":\"Pensions\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"smoking\",\"name\":\"Smoking\",\"serviceType\":\"health\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"Unrecognized Service Id\",\"serviceType\":\"benefits\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"bar\",\"name\":\"Unrecognized Service Type\",\"serviceTy\"[truncated 60 chars]; line: 1, column: 309] (through reference chain: gov.va.api.lighthouse.facilities.DatamartCmsOverlay$DatamartCmsOverlayBuilder[\"detailed_services\"]->java.util.ArrayList[2]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceId\"])");
   }
 
   @Test

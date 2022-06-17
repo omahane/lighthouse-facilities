@@ -392,9 +392,9 @@ public class CmsOverlayControllerV1Test {
     overlayWithoutServiceId.detailedServices().parallelStream()
         .forEach(
             ds -> {
-              assertThat(isNotEmpty(ds.serviceInfo().serviceId())).isFalse();
+              assertThat(isNotEmpty(ds.serviceInfo().serviceId())).isTrue();
               assertThat(isNotEmpty(ds.serviceInfo().name())).isTrue();
-              assertThat(ObjectUtils.isNotEmpty(ds.serviceInfo().serviceType())).isFalse();
+              assertThat(ObjectUtils.isNotEmpty(ds.serviceInfo().serviceType())).isTrue();
             });
     populateMethod.invoke(controller(), overlayWithoutServiceId);
     overlayWithoutServiceId.detailedServices().parallelStream()

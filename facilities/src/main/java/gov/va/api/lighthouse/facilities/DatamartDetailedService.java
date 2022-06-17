@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,7 +13,6 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
-import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Optional;
@@ -71,39 +71,48 @@ public class DatamartDetailedService {
   @JsonProperty("walk_ins_accepted")
   String walkInsAccepted;
 
-  private static boolean isRecognizedEnumOrCovidService(String serviceName) {
+  private boolean isRecognizedEnumOrCovidService(String serviceName) {
     return isNotEmpty(serviceName)
         && (HealthService.isRecognizedEnumOrCovidService(serviceName)
             || BenefitsService.isRecognizedServiceEnum(serviceName)
             || OtherService.isRecognizedServiceEnum(serviceName));
   }
 
-  /** Provide backwards compatability with version 0 detailed services. */
+  private boolean isRecognizedServiceId(String serviceId) {
+    return isNotEmpty(serviceId)
+        && (HealthService.isRecognizedServiceId(serviceId)
+            || BenefitsService.isRecognizedServiceId(serviceId)
+            || OtherService.isRecognizedServiceId(serviceId));
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
+  @JsonProperty("serviceId")
+  @JsonAlias("service_id")
+  public DatamartDetailedService serviceId(String serviceId) {
+    if (isRecognizedServiceId(serviceId)) {
+      // Update service info based on recognized service id
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().serviceId(serviceId).build()
+              : serviceInfo().serviceId(serviceId));
+    }
+    return this;
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
   @JsonProperty("name")
   public DatamartDetailedService serviceName(String serviceName) {
     if (isRecognizedEnumOrCovidService(serviceName)) {
       // Update service info based on recognized service name
       serviceInfo(
           serviceInfo() == null
-              ? ServiceInfo.builder()
-                  .serviceId(
-                      HealthService.isRecognizedEnumOrCovidService(serviceName)
-                          ? HealthService.fromString(serviceName).serviceId()
-                          : BenefitsService.isRecognizedServiceEnum(serviceName)
-                              ? BenefitsService.fromString(serviceName).serviceId()
-                              : OtherService.isRecognizedServiceEnum(serviceName)
-                                  ? OtherService.fromString(serviceName).serviceId()
-                                  : TypedService.INVALID_SVC_ID)
-                  .name(serviceName)
-                  .serviceType(
-                      HealthService.isRecognizedEnumOrCovidService(serviceName)
-                          ? TypeOfService.Health
-                          : BenefitsService.isRecognizedServiceEnum(serviceName)
-                              ? TypeOfService.Benefits
-                              : OtherService.isRecognizedServiceEnum(serviceName)
-                                  ? TypeOfService.Other
-                                  : TypeOfService.Health)
-                  .build()
+              ? ServiceInfo.builder().name(serviceName).build()
               : serviceInfo().name(serviceName));
     }
     return this;
@@ -140,14 +149,18 @@ public class DatamartDetailedService {
        */
       public ServiceInfoBuilder name(String name) {
         this.name = name;
-        if (StringUtils.isEmpty(serviceId)) {
-          if (HealthService.isRecognizedEnumOrCovidService(name)) {
-            this.serviceId = HealthService.fromString(name).serviceId();
-          } else if (BenefitsService.isRecognizedServiceEnum(name)) {
-            this.serviceId = BenefitsService.fromString(name).serviceId();
-          } else if (OtherService.isRecognizedServiceEnum(name)) {
-            this.serviceId = OtherService.fromString(name).serviceId();
-          }
+        if (HealthService.isRecognizedEnumOrCovidService(name)) {
+          final HealthService healthService = HealthService.fromString(name);
+          this.serviceId = healthService.serviceId();
+          this.serviceType = healthService.serviceType();
+        } else if (BenefitsService.isRecognizedServiceEnum(name)) {
+          final BenefitsService benefitsService = BenefitsService.fromString(name);
+          this.serviceId = benefitsService.serviceId();
+          this.serviceType = benefitsService.serviceType();
+        } else if (OtherService.isRecognizedServiceEnum(name)) {
+          final OtherService otherService = OtherService.fromString(name);
+          this.serviceId = otherService.serviceId();
+          this.serviceType = otherService.serviceType();
         }
         return this;
       }
@@ -158,29 +171,31 @@ public class DatamartDetailedService {
        */
       @SneakyThrows
       public ServiceInfoBuilder serviceId(String serviceId) {
+        this.serviceId = serviceId;
         if (HealthService.isRecognizedServiceId(serviceId)) {
-          this.serviceId = serviceId;
-          if (StringUtils.isEmpty(name)) {
-            Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
-            if (healthService.isPresent()) {
+          final Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
+          if (healthService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
               this.name = healthService.get().name();
             }
+            this.serviceType = healthService.get().serviceType();
           }
         } else if (BenefitsService.isRecognizedServiceId(serviceId)) {
-          this.serviceId = serviceId;
-          if (StringUtils.isEmpty(name)) {
-            Optional<BenefitsService> benefitsService = BenefitsService.fromServiceId(serviceId);
-            if (benefitsService.isPresent()) {
+          final Optional<BenefitsService> benefitsService =
+              BenefitsService.fromServiceId(serviceId);
+          if (benefitsService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
               this.name = benefitsService.get().name();
             }
+            this.serviceType = benefitsService.get().serviceType();
           }
         } else if (OtherService.isRecognizedServiceId(serviceId)) {
-          this.serviceId = serviceId;
-          if (StringUtils.isEmpty(name)) {
-            Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
-            if (otherService.isPresent()) {
+          final Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
+          if (otherService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
               this.name = otherService.get().name();
             }
+            this.serviceType = otherService.get().serviceType();
           }
         } else {
           throw new Exception(String.format("Unrecognized service id: %s", serviceId));

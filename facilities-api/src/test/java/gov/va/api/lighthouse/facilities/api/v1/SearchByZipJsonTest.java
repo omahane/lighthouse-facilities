@@ -17,12 +17,10 @@ public class SearchByZipJsonTest {
     assertThat(f).isEqualTo(sample());
   }
 
-  private Facility.PatientWaitTime patientWaitTime(
-      Facility.HealthService service, Double newPat, Double oldPat) {
-    Facility.PatientWaitTime.PatientWaitTimeBuilder waitTime = Facility.PatientWaitTime.builder();
-    if (service != null) {
-      waitTime.service(service);
-    }
+  private DetailedService.PatientWaitTime patientWaitTime(
+      Double newPat, Double oldPat, LocalDate effectDate) {
+    DetailedService.PatientWaitTime.PatientWaitTimeBuilder waitTime =
+        DetailedService.PatientWaitTime.builder();
     if (newPat != null) {
       waitTime.newPatientWaitTime(BigDecimal.valueOf(newPat));
     }
@@ -122,50 +120,6 @@ public class SearchByZipJsonTest {
                                             .primaryCareRoutine(BigDecimal.valueOf(0.83))
                                             .build())
                                     .effectiveDate(LocalDate.parse("2019-06-20"))
-                                    .build())
-                            .waitTimes(
-                                Facility.WaitTimes.builder()
-                                    .health(
-                                        List.of(
-                                            patientWaitTime(
-                                                Facility.HealthService.Urology,
-                                                32.047619,
-                                                9.879032),
-                                            patientWaitTime(
-                                                Facility.HealthService.Audiology,
-                                                1.706967,
-                                                2.126855),
-                                            patientWaitTime(
-                                                Facility.HealthService.Optometry,
-                                                76.396226,
-                                                7.900787),
-                                            patientWaitTime(
-                                                Facility.HealthService.Cardiology, 18.657142, 6.4),
-                                            patientWaitTime(
-                                                Facility.HealthService.Dermatology,
-                                                0.616666,
-                                                0.555555),
-                                            patientWaitTime(
-                                                Facility.HealthService.Orthopedics,
-                                                24.682539,
-                                                4.995024),
-                                            patientWaitTime(
-                                                Facility.HealthService.PrimaryCare,
-                                                26.405405,
-                                                1.545372),
-                                            patientWaitTime(
-                                                Facility.HealthService.Ophthalmology,
-                                                47.571428,
-                                                3.258992),
-                                            patientWaitTime(
-                                                Facility.HealthService.Gastroenterology,
-                                                22.151515,
-                                                4.943661),
-                                            patientWaitTime(
-                                                Facility.HealthService.MentalHealth,
-                                                7.592814,
-                                                3.97159)))
-                                    .effectiveDate(LocalDate.parse("2020-03-02"))
                                     .build())
                             .mobile(false)
                             .activeStatus(Facility.ActiveStatus.A)

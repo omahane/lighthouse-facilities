@@ -14,6 +14,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -46,6 +48,9 @@ import org.apache.commons.lang3.StringUtils;
 })
 public class DatamartDetailedService {
   @NonNull ServiceInfo serviceInfo;
+
+  @JsonProperty("wait_time")
+  PatientWaitTime waitTime;
 
   boolean active;
 
@@ -325,5 +330,19 @@ public class DatamartDetailedService {
 
     @JsonProperty("Sunday")
     String sunday;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class PatientWaitTime {
+    @JsonProperty("new")
+    BigDecimal newPatientWaitTime;
+
+    @JsonProperty("established")
+    BigDecimal establishedPatientWaitTime;
+
+    @JsonProperty("effective_date")
+    LocalDate effectiveDate;
   }
 }

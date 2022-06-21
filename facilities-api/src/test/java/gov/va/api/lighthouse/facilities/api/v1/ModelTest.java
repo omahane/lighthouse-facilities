@@ -73,7 +73,6 @@ public class ModelTest {
                             .hours(hours())
                             .services(services())
                             .satisfaction(satisfaction())
-                            .waitTimes(waitTimes())
                             .mobile(false)
                             .activeStatus(ActiveStatus.T)
                             .visn("20")
@@ -116,7 +115,6 @@ public class ModelTest {
                 .hours(hours())
                 .services(services())
                 .satisfaction(satisfaction())
-                .waitTimes(waitTimes())
                 .mobile(false)
                 .activeStatus(ActiveStatus.T)
                 .operatingStatus(operatingStatus())
@@ -225,19 +223,6 @@ public class ModelTest {
     return Facility.Services.builder()
         .benefits(List.of(Facility.BenefitsService.eBenefitsRegistrationAssistance))
         .lastUpdated(LocalDate.parse("2020-03-12"))
-        .build();
-  }
-
-  private Facility.WaitTimes waitTimes() {
-    return Facility.WaitTimes.builder()
-        .health(
-            List.of(
-                Facility.PatientWaitTime.builder()
-                    .newPatientWaitTime(BigDecimal.valueOf(25))
-                    .establishedPatientWaitTime(BigDecimal.valueOf(10))
-                    .service(Facility.HealthService.Audiology)
-                    .build()))
-        .effectiveDate(LocalDate.parse("2020-03-12"))
         .build();
   }
 }

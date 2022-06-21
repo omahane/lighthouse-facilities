@@ -43,7 +43,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .activeStatus(transformFacilityActiveStatus(df.attributes().activeStatus()))
                     .visn(df.attributes().visn())
                     .satisfaction(transformFacilitySatisfaction(df.attributes().satisfaction()))
-                    .waitTimes(transformFacilityWaitTimes(df.attributes().waitTimes()))
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
                     .operationalHoursSpecialInstructions(
                         transformOperationalHoursSpecialInstructions(
@@ -133,7 +132,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .activeStatus(transformFacilityActiveStatus(f.attributes().activeStatus()))
                     .visn(f.attributes().visn())
                     .satisfaction(transformFacilitySatisfaction(f.attributes().satisfaction()))
-                    .waitTimes(transformFacilityWaitTimes(f.attributes().waitTimes()))
                     .operatingStatus(
                         toVersionAgnosticFacilityOperatingStatus(f.attributes().operatingStatus()))
                     .operationalHoursSpecialInstructions(
@@ -333,32 +331,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
     return DatamartFacility.OtherService.fromString(facilityOtherService.name());
   }
 
-  /** Transform DatamartFacility patient wait times to version 1 facility patient wait times. */
-  private static Facility.PatientWaitTime transformFacilityPatientWaitTime(
-      @NonNull DatamartFacility.PatientWaitTime datamartFacilityPatientWaitTime) {
-    return Facility.PatientWaitTime.builder()
-        .newPatientWaitTime(datamartFacilityPatientWaitTime.newPatientWaitTime())
-        .establishedPatientWaitTime(datamartFacilityPatientWaitTime.establishedPatientWaitTime())
-        .service(
-            (datamartFacilityPatientWaitTime.service() != null)
-                ? transformFacilityHealthService(datamartFacilityPatientWaitTime.service())
-                : null)
-        .build();
-  }
-
-  /** Transform version 1 facility patient wait times to DatamartFacility patient wait times. */
-  private static DatamartFacility.PatientWaitTime transformFacilityPatientWaitTime(
-      @NonNull Facility.PatientWaitTime facilityPatientWaitTime) {
-    return DatamartFacility.PatientWaitTime.builder()
-        .newPatientWaitTime(facilityPatientWaitTime.newPatientWaitTime())
-        .establishedPatientWaitTime(facilityPatientWaitTime.establishedPatientWaitTime())
-        .service(
-            (facilityPatientWaitTime.service() != null)
-                ? transformFacilityHealthService(facilityPatientWaitTime.service())
-                : null)
-        .build();
-  }
-
   /** Transform DatamartFacility phone to version 1 facility phone. */
   private static Facility.Phone transformFacilityPhone(
       DatamartFacility.Phone datamartFacilityPhone) {
@@ -514,38 +486,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
     return (facilityType != null)
         ? DatamartFacility.FacilityType.valueOf(facilityType.name())
         : null;
-  }
-
-  /** Transform DatamartFacility wait times to version 1 facility wait times. */
-  private static Facility.WaitTimes transformFacilityWaitTimes(
-      DatamartFacility.WaitTimes datamartFacilityWaitTimes) {
-    return (datamartFacilityWaitTimes != null)
-        ? Facility.WaitTimes.builder()
-            .health(
-                (datamartFacilityWaitTimes.health() != null)
-                    ? datamartFacilityWaitTimes.health().parallelStream()
-                        .map(e -> transformFacilityPatientWaitTime(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .effectiveDate(datamartFacilityWaitTimes.effectiveDate())
-            .build()
-        : Facility.WaitTimes.builder().build();
-  }
-
-  /** Transform version 1 facility wait times to DatamartFacility wait times. */
-  private static DatamartFacility.WaitTimes transformFacilityWaitTimes(
-      Facility.WaitTimes facilityWaitTimes) {
-    return (facilityWaitTimes != null)
-        ? DatamartFacility.WaitTimes.builder()
-            .health(
-                (facilityWaitTimes.health() != null)
-                    ? facilityWaitTimes.health().parallelStream()
-                        .map(e -> transformFacilityPatientWaitTime(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .effectiveDate(facilityWaitTimes.effectiveDate())
-            .build()
-        : DatamartFacility.WaitTimes.builder().build();
   }
 
   /**

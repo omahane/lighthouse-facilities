@@ -17,22 +17,6 @@ public class ReadHealthByIdJsonTest {
     assertThat(f).isEqualTo(sample());
   }
 
-  private Facility.PatientWaitTime patientWaitTime(
-      Facility.HealthService service, Double newPat, Double oldPat) {
-    Facility.PatientWaitTime.PatientWaitTimeBuilder wait = Facility.PatientWaitTime.builder();
-    if (service != null) {
-      wait.service(service);
-    }
-    if (newPat != null) {
-      wait.newPatientWaitTime(BigDecimal.valueOf(newPat));
-    }
-    if (oldPat != null) {
-      wait.establishedPatientWaitTime(BigDecimal.valueOf(oldPat));
-    }
-
-    return wait.build();
-  }
-
   private FacilityReadResponse sample() {
     return FacilityReadResponse.builder()
         .facility(
@@ -98,20 +82,6 @@ public class ReadHealthByIdJsonTest {
                                         .primaryCareRoutine(BigDecimal.valueOf(0.91))
                                         .build())
                                 .effectiveDate(LocalDate.parse("2019-06-20"))
-                                .build())
-                        .waitTimes(
-                            Facility.WaitTimes.builder()
-                                .health(
-                                    List.of(
-                                        patientWaitTime(
-                                            Facility.HealthService.Dermatology, 3.714285, null),
-                                        patientWaitTime(
-                                            Facility.HealthService.PrimaryCare,
-                                            13.727272,
-                                            10.392441),
-                                        patientWaitTime(
-                                            Facility.HealthService.MentalHealth, 5.75, 2.634703)))
-                                .effectiveDate(LocalDate.parse("2020-02-24"))
                                 .build())
                         .mobile(false)
                         .activeStatus(Facility.ActiveStatus.A)

@@ -584,13 +584,20 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 Facility.HealthService.EmergencyCare),
             List.of(Facility.HealthService.Covid19Vaccine),
             true);
+    assertThatThrownBy(
+            () ->
+                assertThat(
+                        FacilityTransformerV1.toFacility(
+                            FacilityTransformerV0.toVersionAgnostic(facility)))
+                    .hasFieldOrProperty("attributes.waitTimes"))
+        .isInstanceOf(AssertionError.class);
     assertThat(
             FacilityTransformerV0.toFacility(
                 FacilityTransformerV1.toVersionAgnostic(
                     FacilityTransformerV1.toFacility(
                         FacilityTransformerV0.toVersionAgnostic(facility)))))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.detailedServices")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(facility);
   }
 
@@ -624,6 +631,13 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 Facility.HealthService.DentalServices,
                 Facility.HealthService.SpecialtyCare),
             true);
+    assertThatThrownBy(
+            () ->
+                assertThat(
+                        FacilityTransformerV1.toFacility(
+                            FacilityTransformerV0.toVersionAgnostic(facilityWithSpecialtyCare)))
+                    .hasFieldOrProperty("attributes.waitTimes"))
+        .isInstanceOf(AssertionError.class);
     assertThat(
             FacilityTransformerV0.toFacility(
                 FacilityTransformerV1.toVersionAgnostic(
@@ -632,6 +646,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
         .usingRecursiveComparison()
         .ignoringFields("attributes.detailedServices")
         .ignoringFields("attributes.activeStatus")
+        .ignoringFields("attributes.waitTimes")
         .isEqualTo(facilityWithoutSpecialtyCare);
     DatamartFacility facilityWithMoreThanJustCovid =
         datamartFacility(
@@ -666,7 +681,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             FacilityTransformerV1.toVersionAgnostic(
                 FacilityTransformerV1.toFacility(facilityWithMoreThanJustCovid)))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.activeStatus")
+        .ignoringFields("attributes.activeStatus", "attributes.waitTimes")
         .isEqualTo(facilityWithNoDetailedServices);
     // Facility transformers do not filter detailed services contained in V0 facility attributes
     assertThat(

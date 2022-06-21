@@ -4,6 +4,7 @@ import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMappe
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v1.CanBeEmpty;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -20,7 +21,6 @@ import gov.va.api.lighthouse.facilities.api.v1.Pagination;
 import gov.va.api.lighthouse.facilities.api.v1.ReloadResponse;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -209,6 +209,12 @@ public class SerializerTest {
             .emailAddress("georgea@va.gov")
             .build();
     assertJson(emailContact, "{\"emailAddress\":\"georgea@va.gov\"}");
+    emailContact =
+        DetailedService.DetailedServiceEmailContact.builder()
+            .emailAddress("")
+            .emailLabel("")
+            .build();
+    assertJson(emailContact, "{}");
   }
 
   @Test
@@ -330,6 +336,26 @@ public class SerializerTest {
     // Not empty
     distance = FacilitiesResponse.Distance.builder().distance(BigDecimal.TEN).build();
     assertJson(distance, "{\"distance\":10}");
+  }
+
+  @Test
+  void serializeEmptyDetailedService() {
+    DetailedService ds =
+        DetailedService.builder()
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId("cardiology")
+                    .name("Cardiology")
+                    .serviceType(TypeOfService.Health)
+                    .build())
+            .waitTime(null)
+            .changed("")
+            .appointmentLeadIn("")
+            .path("")
+            .build();
+    assertJson(
+        ds,
+        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
   }
 
   @Test
@@ -559,12 +585,14 @@ public class SerializerTest {
   @SneakyThrows
   void serializePatientWaitTimes() {
     // Empty
-    Facility.PatientWaitTime waitTimes = Facility.PatientWaitTime.builder().build();
+    DetailedService.PatientWaitTime waitTimes = DetailedService.PatientWaitTime.builder().build();
     assertJsonIsEmpty(waitTimes);
     // Not empty
     waitTimes =
-        Facility.PatientWaitTime.builder().service(Facility.HealthService.Cardiology).build();
-    assertJson(waitTimes, "{\"service\":\"cardiology\"}");
+        DetailedService.PatientWaitTime.builder()
+            .newPatientWaitTime(BigDecimal.valueOf(2.5))
+            .build();
+    assertJson(waitTimes, "{\"new\":2.5}");
   }
 
   @Test
@@ -652,16 +680,5 @@ public class SerializerTest {
     services =
         Facility.Services.builder().benefits(List.of(Facility.BenefitsService.Pensions)).build();
     assertJson(services, "{\"benefits\":[\"Pensions\"]}");
-  }
-
-  @Test
-  @SneakyThrows
-  void serializeWaitTimes() {
-    // Empty
-    Facility.WaitTimes waitTimes = Facility.WaitTimes.builder().build();
-    assertJsonIsEmpty(waitTimes);
-    // Not empty
-    waitTimes = Facility.WaitTimes.builder().effectiveDate(LocalDate.parse("2021-12-25")).build();
-    assertJson(waitTimes, "{\"effectiveDate\":\"2021-12-25\"}");
   }
 }

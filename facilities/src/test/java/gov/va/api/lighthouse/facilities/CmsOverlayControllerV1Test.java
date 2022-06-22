@@ -398,6 +398,13 @@ public class CmsOverlayControllerV1Test {
               assertThat(isNotEmpty(ds.serviceInfo().name())).isTrue();
               assertThat(ObjectUtils.isNotEmpty(ds.serviceInfo().serviceType())).isTrue();
             });
+    /*
+    Because ServiceInfoBuilder serviceId() in ServiceInfo automatically assign a valid id or an INVALID_ID
+    for each service if not specified. We have to explicitly force service id and service type to an empty value after calling the builder above to satisfy
+    the condition inpopulateServiceInfoAndFilterOutInvalid to increase code coverage
+    */
+    overlayWithoutServiceId.detailedServices().parallelStream()
+        .forEach(ds -> ds.serviceInfo().serviceId("").serviceType(null));
     populateMethod.invoke(controller(), overlayWithoutServiceId);
     overlayWithoutServiceId.detailedServices().parallelStream()
         .forEach(

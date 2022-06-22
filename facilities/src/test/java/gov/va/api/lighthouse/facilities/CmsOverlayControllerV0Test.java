@@ -461,6 +461,17 @@ public class CmsOverlayControllerV0Test {
                         .build())
                 .active(true)
                 .build());
+    // Force service id to be empty
+    detailedServices.stream()
+        .filter(
+            ds ->
+                ds.serviceInfo()
+                    .serviceId()
+                    .equalsIgnoreCase(DatamartFacility.HealthService.PrimaryCare.name()))
+        .forEach(
+            ds -> {
+              ds.serviceInfo().serviceId("");
+            });
     overlay.detailedServices(detailedServices);
     controller().saveOverlay("vha_402", CmsOverlayTransformerV0.toCmsOverlay(overlay));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
@@ -476,6 +487,17 @@ public class CmsOverlayControllerV0Test {
     ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
+    // Repopulate service id fro assertion
+    detailedServices.stream()
+        .filter(
+            ds ->
+                ds.serviceInfo()
+                    .name()
+                    .equalsIgnoreCase(DatamartFacility.HealthService.PrimaryCare.name()))
+        .forEach(
+            ds -> {
+              ds.serviceInfo().serviceId(DatamartFacility.HealthService.PrimaryCare.serviceId());
+            });
     assertThat(
             DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))

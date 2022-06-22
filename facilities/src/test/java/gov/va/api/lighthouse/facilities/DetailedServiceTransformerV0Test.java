@@ -18,7 +18,6 @@ public class DetailedServiceTransformerV0Test {
                     .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
         .isInstanceOf(Exception.class)
         .hasMessage("Unrecognized service id: emptyService");
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
@@ -36,7 +35,6 @@ public class DetailedServiceTransformerV0Test {
                     .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
         .isInstanceOf(Exception.class)
         .hasMessage("Unrecognized service id: emptyService");
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(
@@ -69,6 +67,14 @@ public class DetailedServiceTransformerV0Test {
     assertThat(DetailedServiceTransformerV0.toDetailedServiceEmailContacts(null)).isNull();
     assertThat(DetailedServiceTransformerV0.toDetailedServiceEmailContacts(new ArrayList<>()))
         .isEmpty();
+  }
+
+  @Test
+  void toDetailedServiceName() {
+    assertThat(DetailedServiceTransformerV0.toDetailedServiceName("ApplyingForBenefits"))
+        .isEqualTo("ApplyingForBenefits");
+    assertThat(DetailedServiceTransformerV0.toDetailedServiceName("OnlineScheduling"))
+        .isEqualTo("OnlineScheduling");
   }
 
   @Test

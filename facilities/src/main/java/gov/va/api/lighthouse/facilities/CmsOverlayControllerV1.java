@@ -4,7 +4,9 @@ import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.ControllersV1.page;
 import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -12,8 +14,12 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -229,5 +235,176 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
           existingFacilityEntity.get(), existingCmsOverlayEntity, id, datamartCmsOverlay);
       return ResponseEntity.ok().build();
     }
+  }
+
+  @SneakyThrows
+  void updateFacilityData(
+      @NonNull FacilityEntity facilityEntity,
+      @NonNull Optional<CmsOverlayEntity> existingCmsOverlayEntity,
+      String id,
+      @NonNull DatamartCmsOverlay overlay) {
+    // Only save active services from the overlay if they exist
+    List<DatamartDetailedService> toSaveDetailedServices;
+    if (existingCmsOverlayEntity.isEmpty()) {
+      toSaveDetailedServices = getActiveServicesFromOverlay(id, overlay.detailedServices());
+    } else {
+      toSaveDetailedServices =
+          findServicesToSave(
+              existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
+    }
+
+    final Set<DatamartFacility.BenefitsService> facilityBenefitsServices = new HashSet<>();
+    final Set<DatamartFacility.HealthService> facilityHealthServices = new HashSet<>();
+    final Set<DatamartFacility.OtherService> facilityOtherServices = new HashSet<>();
+
+    if (!toSaveDetailedServices.isEmpty()) {
+      final Set<String> detailedServiceIds = new HashSet<>();
+      toSaveDetailedServices.stream()
+          .forEach(
+              service -> {
+                // Update overlay detailed services
+                detailedServiceIds.add(capitalize(service.serviceInfo().serviceId()));
+
+                if (service.active()) {
+                  // Update facility services
+                  if (service
+                      .serviceInfo()
+                      .serviceId()
+                      .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
+                    // Update Covid-19 health facility service
+                    if (facilityEntity.services() != null) {
+                      facilityEntity
+                          .services()
+                          .add(
+                              capitalize(
+                                  DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
+                    } else {
+                      facilityEntity.services(
+                          Set.of(
+                              capitalize(
+                                  DatamartFacility.HealthService.Covid19Vaccine.serviceId())));
+                    }
+
+                    facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
+                  } else if (TypeOfService.Benefits.equals(service.serviceInfo().serviceType())) {
+                    Optional<DatamartFacility.BenefitsService> benefitsService =
+                        DatamartFacility.BenefitsService.fromServiceId(
+                            service.serviceInfo().serviceId());
+                    if (benefitsService.isPresent()) {
+                      // Update benefits facility services
+                      facilityBenefitsServices.add(benefitsService.get());
+                    }
+                  } else if (TypeOfService.Health.equals(service.serviceInfo().serviceType())) {
+                    Optional<DatamartFacility.HealthService> healthService =
+                        DatamartFacility.HealthService.fromServiceId(
+                            service.serviceInfo().serviceId());
+                    if (healthService.isPresent()) {
+                      // Update health (other than Covid-19) facility services
+                      facilityHealthServices.add(healthService.get());
+                    }
+                  } else if (TypeOfService.Other.equals(service.serviceInfo().serviceType())) {
+                    Optional<DatamartFacility.OtherService> otherService =
+                        DatamartFacility.OtherService.fromServiceId(
+                            service.serviceInfo().serviceId());
+                    if (otherService.isPresent()) {
+                      // Update other facility services
+                      facilityOtherServices.add(otherService.get());
+                    }
+                  }
+                }
+              });
+      facilityEntity.overlayServices(detailedServiceIds);
+    }
+
+    final DatamartFacility facility =
+        DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
+
+    if (facility != null) {
+      DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
+      if (operatingStatus != null) {
+        facility.attributes().operatingStatus(operatingStatus);
+        facility
+            .attributes()
+            .activeStatus(
+                operatingStatus.code() == DatamartFacility.OperatingStatusCode.CLOSED
+                    ? DatamartFacility.ActiveStatus.T
+                    : DatamartFacility.ActiveStatus.A);
+      }
+      if (overlay.detailedServices() != null) {
+        // Only add Covid-19 detailed service, if present, to facility attributes
+        facility
+            .attributes()
+            .detailedServices(
+                toSaveDetailedServices.isEmpty()
+                    ? null
+                    : toSaveDetailedServices.parallelStream()
+                        .filter(ds -> ds.active())
+                        .filter(
+                            ds ->
+                                DatamartFacility.HealthService.Covid19Vaccine.serviceId()
+                                    .equals(ds.serviceInfo().serviceId()))
+                        .collect(Collectors.toList()));
+      }
+
+      // Determine which overlay services are inactive
+      final List<String> disabledCmsServiceIds =
+          (overlay.detailedServices() != null)
+              ? overlay.detailedServices().stream()
+                  .filter(dds -> !dds.active())
+                  .map(dds -> dds.serviceInfo().serviceId())
+                  .collect(Collectors.toList())
+              : Collections.emptyList();
+
+      if (!disabledCmsServiceIds.isEmpty()) {
+        // Remove inactive service from list of facility services
+        disabledCmsServiceIds.stream()
+            .forEach(
+                disabledServiceId -> {
+                  if (facilityEntity.services().contains(capitalize(disabledServiceId))) {
+                    facilityEntity.services().remove(capitalize(disabledServiceId));
+                  }
+                });
+      }
+
+      // Update facility benefits services
+      if (facility.attributes().services().benefits() != null) {
+        facilityBenefitsServices.addAll(
+            facility.attributes().services().benefits().stream()
+                .filter(bs -> !disabledCmsServiceIds.contains(bs.serviceId()))
+                .collect(Collectors.toList()));
+      }
+      List<DatamartFacility.BenefitsService> facilityBenefitsServiceList =
+          new ArrayList<>(facilityBenefitsServices);
+      Collections.sort(facilityBenefitsServiceList);
+      facility.attributes().services().benefits(facilityBenefitsServiceList);
+
+      // Update facility health services
+      if (facility.attributes().services().health() != null) {
+        facilityHealthServices.addAll(
+            facility.attributes().services().health().stream()
+                .filter(hs -> !disabledCmsServiceIds.contains(hs.serviceId()))
+                .collect(Collectors.toList()));
+      }
+      List<DatamartFacility.HealthService> facilityHealthServiceList =
+          new ArrayList<>(facilityHealthServices);
+      Collections.sort(facilityHealthServiceList);
+      facility.attributes().services().health(facilityHealthServiceList);
+
+      // Update facility other services
+      if (facility.attributes().services().other() != null) {
+        facilityOtherServices.addAll(
+            facility.attributes().services().other().stream()
+                .filter(os -> !disabledCmsServiceIds.contains(os.serviceId()))
+                .collect(Collectors.toList()));
+      }
+      List<DatamartFacility.OtherService> facilityOtherServiceList =
+          new ArrayList<>(facilityOtherServices);
+      Collections.sort(facilityOtherServiceList);
+      facility.attributes().services().other(facilityOtherServiceList);
+
+      facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
+    }
+
+    facilityRepository.save(facilityEntity);
   }
 }

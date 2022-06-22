@@ -9,15 +9,20 @@ import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
+import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import gov.va.api.lighthouse.facilities.FacilityEntity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
@@ -70,6 +75,29 @@ public class CmsOverlayCollector {
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
     return cmsOverlayServices;
+  }
+
+  public void updateCmsServicesWithATCWaitTimes(List<DatamartFacility> datamartFacilities) {
+    Iterable<CmsOverlayEntity> cmsOverlayEntities = cmsOverlayRepository.findAll();
+    // Check if there is wait time data in facility so we can update cms overlay services
+    // with wait time data
+    Map<String, CmsOverlayEntity> overlayEntityMap =
+    Streams.stream(cmsOverlayEntities)
+        .collect(Collectors.toMap(CmsOverlayEntity::id, Function.identity()));
+
+//        .forEach(
+//            e -> {
+//              // Check if there is wait time data in facility so we can update cms overlay services
+//              // with wait time data
+//              DatamartCmsOverlay overlay =
+//                  DatamartCmsOverlay.builder()
+//                      .operatingStatus(CmsOverlayHelper.getOperatingStatus(e.cmsOperatingStatus()))
+//                      .detailedServices(CmsOverlayHelper.getDetailedServices(e.cmsServices()))
+//                      .healthCareSystem(CmsOverlayHelper.getHealthCareSystem(e.healthCareSystem()))
+//                      .build();
+//
+//              datamartFacilities.parallelStream().filter(df -> df.id().equals(e.id())).forEach();
+//            });
   }
 
   /** Load and return map of CMS overlays for each facility id. */

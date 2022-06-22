@@ -11,7 +11,7 @@ echo "Removing existing database container"
 docker rm $ID
 
 # SQL Server Docker Image (You don't have to install anything!!!)
-docker pull mcr.microsoft.com/mssql/server:2017-latest
+docker pull mcr.microsoft.com/azure-sql-edge:latest
 
 echo "Creating new database container"
 docker run \
@@ -19,7 +19,7 @@ docker run \
   -e 'ACCEPT_EULA=Y' \
   -e "SA_PASSWORD=<YourStrong!Passw0rd>" \
   -p 1533:1433 \
-  -d mcr.microsoft.com/mssql/server:2017-latest
+  -d mcr.microsoft.com/azure-sql-edge:latest
 
 #
 # Wait for the sqlservr processes

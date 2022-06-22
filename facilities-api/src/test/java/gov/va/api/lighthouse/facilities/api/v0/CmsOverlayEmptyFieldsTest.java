@@ -74,9 +74,9 @@ public class CmsOverlayEmptyFieldsTest {
 
   private List<DetailedService> getDetailedServices() {
     return List.of(
-        getDetailedService(Facility.HealthService.Cardiology.name()),
-        getDetailedService(Facility.HealthService.CaregiverSupport.name()),
-        getDetailedService(Facility.HealthService.EmergencyCare.name()));
+        getDetailedService(Facility.HealthService.Cardiology),
+        getDetailedService(Facility.HealthService.CaregiverSupport),
+        getDetailedService(Facility.HealthService.EmergencyCare));
   }
 
   private Facility.OperatingStatus getOperatingStatus() {

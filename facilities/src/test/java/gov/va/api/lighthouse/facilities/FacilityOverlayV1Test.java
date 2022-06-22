@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,28 +31,36 @@ public class FacilityOverlayV1Test {
         op(OperatingStatusCode.CLOSED, null),
         null,
         entity(
-            fromActiveStatus(ActiveStatus.T),
+            fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()),
             overlay(op(OperatingStatusCode.NORMAL, "neato"), false)));
     assertStatus(
         ActiveStatus.T,
         op(OperatingStatusCode.CLOSED, null),
         null,
         entity(
-            fromActiveStatus(ActiveStatus.T),
+            fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()),
             overlay(op(OperatingStatusCode.NOTICE, "neato"), false)));
     assertStatus(
         ActiveStatus.T,
         op(OperatingStatusCode.CLOSED, null),
         List.of(Facility.HealthService.Covid19Vaccine),
         entity(
-            fromActiveStatus(ActiveStatus.T),
+            fromActiveStatus(
+                ActiveStatus.T,
+                Facility.Services.builder()
+                    .health(List.of(Facility.HealthService.Covid19Vaccine))
+                    .build()),
             overlay(op(OperatingStatusCode.LIMITED, "neato"), true)));
     assertStatus(
         ActiveStatus.A,
         op(OperatingStatusCode.NORMAL, null),
         List.of(Facility.HealthService.Covid19Vaccine),
         entity(
-            fromActiveStatus(ActiveStatus.A),
+            fromActiveStatus(
+                ActiveStatus.A,
+                Facility.Services.builder()
+                    .health(List.of(Facility.HealthService.Covid19Vaccine))
+                    .build()),
             overlay(op(OperatingStatusCode.CLOSED, "neato"), true)));
   }
 
@@ -71,20 +81,30 @@ public class FacilityOverlayV1Test {
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         List.of(Facility.HealthService.Covid19Vaccine),
-        entity(fromActiveStatus(null), overlay(null, true)));
+        entity(
+            fromActiveStatus(
+                null,
+                Facility.Services.builder()
+                    .health(List.of(Facility.HealthService.Covid19Vaccine))
+                    .build()),
+            overlay(null, true)));
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(null), overlay(null, false)));
+        entity(fromActiveStatus(null, Facility.Services.builder().build()), overlay(null, false)));
   }
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
     return DetailedService.builder()
-        .name("Covid19Vaccine")
+        .serviceInfo(
+            DetailedService.ServiceInfo.builder()
+                .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                .build())
         .active(cmsServiceActiveValue)
         .changed("2021-02-04T22:36:49+00:00")
-        .descriptionFacility("Facility description for vaccine availability for COVID-19")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .path("\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines")
@@ -149,7 +169,7 @@ public class FacilityOverlayV1Test {
       detailedServices = new HashSet<>();
       for (DetailedService service : overlay.detailedServices()) {
         if (service.active()) {
-          detailedServices.add(service.name());
+          detailedServices.add(capitalize(service.serviceInfo().serviceId()));
         }
       }
     }
@@ -164,9 +184,9 @@ public class FacilityOverlayV1Test {
         .build();
   }
 
-  private Facility fromActiveStatus(ActiveStatus status) {
+  private Facility fromActiveStatus(ActiveStatus status, Facility.Services services) {
     return Facility.builder()
-        .attributes(FacilityAttributes.builder().activeStatus(status).build())
+        .attributes(FacilityAttributes.builder().activeStatus(status).services(services).build())
         .build();
   }
 
@@ -180,17 +200,17 @@ public class FacilityOverlayV1Test {
         ActiveStatus.A,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(ActiveStatus.A), null));
+        entity(fromActiveStatus(ActiveStatus.A, Facility.Services.builder().build()), null));
     assertStatus(
         ActiveStatus.T,
         OperatingStatus.builder().code(OperatingStatusCode.CLOSED).build(),
         null,
-        entity(fromActiveStatus(ActiveStatus.T), null));
+        entity(fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()), null));
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
         null,
-        entity(fromActiveStatus(null), null));
+        entity(fromActiveStatus(null, Facility.Services.builder().build()), null));
   }
 
   private CmsOverlay overlay(OperatingStatus neato, boolean cmsServiceActiveValue) {

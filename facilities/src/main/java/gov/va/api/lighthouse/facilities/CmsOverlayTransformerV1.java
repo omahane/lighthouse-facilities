@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV1.toDetailedServices;
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV1.toVersionAgnosticDetailedServices;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toFacilityOperatingStatus;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityOperatingStatus;
 
@@ -12,7 +14,7 @@ public class CmsOverlayTransformerV1 {
   public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(DetailedServiceTransformerV1.toDetailedServices(dc.detailedServices()))
+        .detailedServices(toDetailedServices(dc.detailedServices()))
         .healthCareSystem(transformHealthCareSystem(dc.healthCareSystem()))
         .build();
   }
@@ -21,9 +23,7 @@ public class CmsOverlayTransformerV1 {
   public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
     return DatamartCmsOverlay.builder()
         .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
-        .detailedServices(
-            DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
-                overlay.detailedServices()))
+        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
         .healthCareSystem(transformHealthCareSystem(overlay.healthCareSystem()))
         .build();
   }

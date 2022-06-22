@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,8 +22,11 @@ import org.apache.commons.lang3.ObjectUtils;
 @JsonSerialize(using = CmsOverlaySerializer.class)
 @Schema(description = "Data provided by CMS to Facilities to be applied on top of known data.")
 public class CmsOverlay implements CanBeEmpty {
-  @Valid Facility.OperatingStatus operatingStatus;
+  @JsonAlias("operating_status")
+  @Valid
+  Facility.OperatingStatus operatingStatus;
 
+  @JsonAlias("detailed_services")
   List<@Valid DetailedService> detailedServices;
 
   @JsonProperty("system")

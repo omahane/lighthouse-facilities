@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static gov.va.api.lighthouse.facilities.ControllersV1.page;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
+import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
@@ -11,6 +12,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
@@ -47,6 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/v1")
 public class FacilitiesControllerV1 {
 
+  private static final ObjectMapper MAPPER_V1 = createMapper();
+
   private static final FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
 
   private final FacilityRepository facilityRepository;
@@ -75,7 +79,7 @@ public class FacilitiesControllerV1 {
   @GetMapping(
       value = "/facilities",
       produces = {"application/json"})
-  FacilitiesResponse all(
+  String all(
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
     List<HasFacilityPayload> allFacilities = facilityRepository.findAllProjectedBy();
@@ -85,12 +89,16 @@ public class FacilitiesControllerV1 {
             .params(Parameters.builder().add("page", page).add("per_page", perPage).build())
             .totalEntries(allFacilities.size())
             .build();
-    return FacilitiesResponse.builder()
-        .data(page(allFacilities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
+    return MAPPER_V1.writeValueAsString(
+        FacilitiesResponse.builder()
+            .data(
+                page(allFacilities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
+            .links(linker.links())
+            .meta(
+                FacilitiesResponse.FacilitiesMetadata.builder()
+                    .pagination(linker.pagination())
+                    .build())
+            .build());
   }
 
   /** Get all facilities as CSV. */

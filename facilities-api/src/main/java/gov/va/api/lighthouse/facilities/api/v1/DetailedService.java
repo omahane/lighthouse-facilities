@@ -1,7 +1,9 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -10,6 +12,11 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.BenefitsService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.OtherService;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAddressSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAppointmentPhoneNumberSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailContactSerializer;
@@ -18,12 +25,15 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceLocati
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -37,8 +47,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "name",
-  "descriptionFacility",
+  "serviceInfo",
   "appointmentLeadIn",
   "appointmentPhones",
   "onlineSchedulingAvailable",
@@ -48,11 +57,10 @@ import org.apache.commons.lang3.ObjectUtils;
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService implements CanBeEmpty {
-  @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
-  String serviceId;
-
-  @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
-  String name;
+  @Schema(description = "Service information block.")
+  @JsonAlias("service_info")
+  @NonNull
+  ServiceInfo serviceInfo;
 
   @Schema(hidden = true)
   boolean active;
@@ -64,10 +72,6 @@ public class DetailedService implements CanBeEmpty {
       nullable = true)
   String changed;
 
-  @JsonIgnore
-  @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
-  String descriptionFacility;
-
   @Schema(
       description =
           "Additional appointment information. May contain html /"
@@ -77,12 +81,14 @@ public class DetailedService implements CanBeEmpty {
               + "during this time. As the supply of vaccine increases, we'll work with our care "
               + "teams to let Veterans know their options.",
       nullable = true)
+  @JsonAlias("appointment_leadin")
   String appointmentLeadIn;
 
   @Schema(
       description = "String detailing online scheduling availability.",
       example = "True",
       nullable = true)
+  @JsonAlias("online_scheduling_available")
   String onlineSchedulingAvailable;
 
   @Schema(
@@ -97,29 +103,32 @@ public class DetailedService implements CanBeEmpty {
       description = "List of phone numbers related to scheduling appointments for this service.",
       nullable = true)
   @JsonProperty("appointmentPhones")
+  @JsonAlias("appointment_phones")
   List<AppointmentPhoneNumber> phoneNumbers;
 
   @Schema(
       description = "String detailing if referrals are required for the service.",
       example = "False",
       nullable = true)
+  @JsonAlias("referral_required")
   String referralRequired;
 
   @Schema(description = "List of service locations.", nullable = true)
+  @JsonAlias("service_locations")
   List<DetailedServiceLocation> serviceLocations;
 
   @Schema(
       description = "String detailing if walk-ins are accepted for the service.",
       example = "True",
       nullable = true)
+  @JsonAlias("walk_ins_accepted")
   String walkInsAccepted;
 
   /** Empty elements will be omitted from JSON serialization. */
   @JsonIgnore
   public boolean isEmpty() {
-    return isBlank(name())
+    return (serviceInfo() == null || serviceInfo().isEmpty())
         && isBlank(changed())
-        && isBlank(descriptionFacility())
         && isBlank(appointmentLeadIn())
         && isBlank(onlineSchedulingAvailable())
         && isBlank(path())
@@ -127,6 +136,147 @@ public class DetailedService implements CanBeEmpty {
         && isBlank(referralRequired())
         && ObjectUtils.isEmpty(serviceLocations())
         && isBlank(walkInsAccepted());
+  }
+
+  private boolean isRecognizedEnumOrCovidService(String serviceName) {
+    return isNotEmpty(serviceName)
+        && (HealthService.isRecognizedEnumOrCovidService(serviceName)
+            || BenefitsService.isRecognizedServiceEnum(serviceName)
+            || OtherService.isRecognizedServiceEnum(serviceName));
+  }
+
+  private boolean isRecognizedServiceId(String serviceId) {
+    return isNotEmpty(serviceId)
+        && (HealthService.isRecognizedServiceId(serviceId)
+            || BenefitsService.isRecognizedServiceId(serviceId)
+            || OtherService.isRecognizedServiceId(serviceId));
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
+  @JsonProperty("serviceId")
+  @JsonAlias("service_id")
+  public DetailedService serviceId(String serviceId) {
+    if (isRecognizedServiceId(serviceId)) {
+      // Update service info based on recognized service id
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().serviceId(serviceId).build()
+              : serviceInfo().serviceId(serviceId));
+    }
+    return this;
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
+  @JsonProperty("name")
+  public DetailedService serviceName(String serviceName) {
+    if (isRecognizedEnumOrCovidService(serviceName)) {
+      // Update service info based on recognized service name
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().name(serviceName).build()
+              : serviceInfo().name(serviceName));
+    }
+    return this;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId", "serviceType"})
+  @Schema(description = "Service information.")
+  public static final class ServiceInfo implements CanBeEmpty {
+    @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
+    @JsonAlias("{service_id, service_api_id}")
+    @NonNull
+    String serviceId;
+
+    @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
+    String name;
+
+    @Schema(description = "Service type.", example = "Health", nullable = true)
+    @JsonAlias("service_type")
+    TypeOfService serviceType;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @JsonIgnore
+    public boolean isEmpty() {
+      return isBlank(serviceId()) && isBlank(name()) && ObjectUtils.isEmpty(serviceType());
+    }
+
+    public static class ServiceInfoBuilder {
+      private String serviceId;
+
+      private String name;
+
+      private TypeOfService serviceType;
+
+      /**
+       * Method used to set service info name and attempt to infer service id based on provided
+       * service name.
+       */
+      public ServiceInfoBuilder name(String name) {
+        this.name = name;
+        if (HealthService.isRecognizedEnumOrCovidService(name)) {
+          final HealthService healthService = HealthService.fromString(name);
+          this.serviceId = healthService.serviceId();
+          this.serviceType = healthService.serviceType();
+        } else if (BenefitsService.isRecognizedServiceEnum(name)) {
+          final BenefitsService benefitsService = BenefitsService.fromString(name);
+          this.serviceId = benefitsService.serviceId();
+          this.serviceType = benefitsService.serviceType();
+        } else if (OtherService.isRecognizedServiceEnum(name)) {
+          final OtherService otherService = OtherService.fromString(name);
+          this.serviceId = otherService.serviceId();
+          this.serviceType = otherService.serviceType();
+        }
+        return this;
+      }
+
+      /**
+       * Method used to set service id and infer service name based on provided service id given it
+       * is recognized as valid.
+       */
+      public ServiceInfoBuilder serviceId(String serviceId) {
+        this.serviceId = serviceId;
+        if (HealthService.isRecognizedServiceId(serviceId)) {
+          final Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
+          if (healthService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
+              this.name = healthService.get().name();
+            }
+            this.serviceType = healthService.get().serviceType();
+          }
+        } else if (BenefitsService.isRecognizedServiceId(serviceId)) {
+          final Optional<BenefitsService> benefitsService =
+              BenefitsService.fromServiceId(serviceId);
+          if (benefitsService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
+              this.name = benefitsService.get().name();
+            }
+            this.serviceType = benefitsService.get().serviceType();
+          }
+        } else if (OtherService.isRecognizedServiceId(serviceId)) {
+          final Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
+          if (otherService.isPresent()) {
+            if (StringUtils.isEmpty(name)) {
+              this.name = otherService.get().name();
+            }
+            this.serviceType = otherService.get().serviceType();
+          }
+        } else {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+        }
+        return this;
+      }
+    }
   }
 
   @Data
@@ -152,10 +302,12 @@ public class DetailedService implements CanBeEmpty {
         example = "50 Irving Street, Northwest",
         nullable = true)
     @JsonProperty("addressLine1")
+    @JsonAlias("address_line1")
     String address1;
 
     @Schema(description = "Building number.", example = "Bldg 2", nullable = true)
     @JsonProperty("addressLine2")
+    @JsonAlias("address_line2")
     String address2;
 
     @Schema(description = "State code.", example = "DC", nullable = true)
@@ -165,24 +317,29 @@ public class DetailedService implements CanBeEmpty {
         description = "Building name and/or number of service.",
         example = "Baxter Building",
         nullable = true)
+    @JsonAlias("building_name_number")
     String buildingNameNumber;
 
     @Schema(description = "Clinic name for service.", example = "Baxter Clinic", nullable = true)
+    @JsonAlias("clinic_name")
     String clinicName;
 
     @Schema(description = "Country code.", example = "US", nullable = true)
+    @JsonAlias("country_code")
     String countryCode;
 
     @Schema(description = "City name.", example = "Washington", nullable = true)
     String city;
 
     @Schema(description = "Postal (ZIP) code.", example = "20422-0001", nullable = true)
+    @JsonAlias("zip_code")
     String zipCode;
 
     @Schema(
         description = "Wing, floor, or room number of service.",
         example = "Wing East",
         nullable = true)
+    @JsonAlias("wing_floor_or_room_number")
     String wingFloorOrRoomNumber;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -251,22 +408,27 @@ public class DetailedService implements CanBeEmpty {
         description = "Additional information related to service location hours.",
         example = "Location hours times may vary depending on staff availability",
         nullable = true)
+    @JsonAlias("additional_hours_info")
     String additionalHoursInfo;
 
     @Schema(
         description = "List of email contact information regarding facility services.",
         nullable = true)
+    @JsonAlias("email_contacts")
     List<DetailedServiceEmailContact> emailContacts;
 
     @Schema(nullable = true)
     @Valid
+    @JsonAlias("facility_service_hours")
     DetailedServiceHours facilityServiceHours;
 
     @Schema(description = "List of appointment phone information.", nullable = true)
     @JsonProperty("appointmentPhones")
+    @JsonAlias("appointment_phones")
     List<AppointmentPhoneNumber> appointmentPhoneNumbers;
 
     @Schema(nullable = true)
+    @JsonAlias("service_location_address")
     DetailedServiceAddress serviceLocationAddress;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -291,9 +453,11 @@ public class DetailedService implements CanBeEmpty {
         description = "Email address for facility service contact.",
         example = "georgea@va.gov",
         nullable = true)
+    @JsonAlias("email_address")
     String emailAddress;
 
     @Schema(description = "Email address label.", example = "George Anderson", nullable = true)
+    @JsonAlias("email_label")
     String emailLabel;
 
     /** Empty elements will be omitted from JSON serialization. */
@@ -317,30 +481,37 @@ public class DetailedService implements CanBeEmpty {
       nullable = true)
   public static final class DetailedServiceHours implements CanBeEmpty {
     @Schema(description = "Service availability on Mondays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Monday")
     String monday;
 
     @Schema(description = "Service availability on Tuesdays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Tuesday")
     String tuesday;
 
     @Schema(
         description = "Service availability on Wednesdays.",
         example = "9AM-5PM",
         nullable = true)
+    @JsonAlias("Wednesday")
     String wednesday;
 
     @Schema(
         description = "Service availability on Thursdays.",
         example = "9AM-5PM",
         nullable = true)
+    @JsonAlias("Thursday")
     String thursday;
 
     @Schema(description = "Service availability on Fridays.", example = "9AM-5PM", nullable = true)
+    @JsonAlias("Friday")
     String friday;
 
     @Schema(description = "Service availability on Saturdays.", example = "Closed", nullable = true)
+    @JsonAlias("Saturday")
     String saturday;
 
     @Schema(description = "Service availability on Sundays.", example = "Closed", nullable = true)
+    @JsonAlias("Sunday")
     String sunday;
 
     /** Empty elements will be omitted from JSON serialization. */

@@ -1,9 +1,12 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -59,20 +62,40 @@ public abstract class BaseCmsOverlayController {
   @SneakyThrows
   protected DatamartDetailedService getOverlayDetailedService(
       @NonNull String facilityId, @NonNull String serviceId) {
+    if (!isValidService(serviceId)) {
+      throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
+    }
     List<DatamartDetailedService> detailedServices =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.name().equalsIgnoreCase(serviceId))
             .collect(Collectors.toList());
-    return detailedServices.isEmpty() ? null : detailedServices.get(0);
+    if (detailedServices.isEmpty()) {
+      throw new ExceptionsUtils.NotFound(facilityId, serviceId);
+    }
+    return detailedServices.get(0);
   }
 
   @SneakyThrows
   protected List<DatamartDetailedService> getOverlayDetailedServices(@NonNull String facilityId) {
-    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(facilityId);
+    FacilityEntity.Pk pk;
+    try {
+      pk = FacilityEntity.Pk.fromIdString(facilityId);
+    } catch (IllegalArgumentException e) {
+      throw new ExceptionsUtils.InvalidParameter("facility_id", facilityId);
+    }
     Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
     if (!existingOverlayEntity.isPresent()) {
       throw new ExceptionsUtils.NotFound(facilityId);
     }
     return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
+  }
+
+  protected boolean isValidService(String serviceId) {
+    if (serviceId.equalsIgnoreCase(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+        || serviceId.equalsIgnoreCase(CMS_OVERLAY_SERVICE_NAME_COVID_19.replace(" ", "%20"))) {
+      return true;
+    }
+    return Arrays.stream(Facility.HealthService.values())
+        .anyMatch(e -> e.name().equalsIgnoreCase(serviceId));
   }
 }

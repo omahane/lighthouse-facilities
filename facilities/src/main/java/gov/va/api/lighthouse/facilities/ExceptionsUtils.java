@@ -18,5 +18,9 @@ final class ExceptionsUtils {
     public NotFound(String id, Throwable cause) {
       super(String.format("The record identified by %s could not be found", id), cause);
     }
+
+    public NotFound(String id, String field) {
+      super(String.format("The field '%s' could not be found for record '%s'", field, id));
+    }
   }
 }

@@ -123,6 +123,7 @@ public class DetailedServiceTransformerV0Test {
   }
 
   @Test
+
   void toVersionAgnosticDetailedServiceNullArgs() {
     assertThrows(
         NullPointerException.class,
@@ -145,13 +146,13 @@ public class DetailedServiceTransformerV0Test {
   void transformDetailedServiceAddress() {
     assertThat(DetailedServiceTransformerV0.toDetailedServiceAddress(null)).isNull();
     assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceAddress(null)).isNull();
+
   }
 
   @Test
   void transformDetailedServiceEmailContact() {
     assertThat(DetailedServiceTransformerV0.toDetailedServiceEmailContact(null)).isNull();
-    assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceEmailContact(null))
-        .isNull();
+    assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceEmailContact(null)).isNull();
   }
 
   @Test
@@ -163,9 +164,6 @@ public class DetailedServiceTransformerV0Test {
   @Test
   void transfromDetailedServiceAppointmentPhoneNumber() {
     assertThat(DetailedServiceTransformerV0.toDetailedServiceAppointmentPhoneNumber(null)).isNull();
-    assertThat(
-            DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceAppointmentPhoneNumber(
-                null))
-        .isNull();
+    assertThat(DetailedServiceTransformerV0.toVersionAgnosticDetailedServiceAppointmentPhoneNumber(null)).isNull();
   }
 }

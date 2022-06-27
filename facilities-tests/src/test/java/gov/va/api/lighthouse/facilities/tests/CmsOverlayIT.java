@@ -44,7 +44,7 @@ public class CmsOverlayIT {
           + "\"health_service_api_id\":\"12435\","
           + "\"appointment_leadin\":\"Your VA health care team will contact you if you...more text\","
           + "\"online_scheduling_available\": \"Unknown\","
-          + "\"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\","
+          + "\"path\": \"https://www.va.gov\\/bay-pines-health-care\\/programs\\/covid-19-vaccines\\/\","
           + "\"appointment_phones\": [  "
           + "{"
           + "\"extension\": \"123\","
@@ -208,6 +208,7 @@ public class CmsOverlayIT {
             .name("COVID-19 vaccines")
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
+            .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
             .phoneNumbers(
                 List.of(
                     DetailedService.AppointmentPhoneNumber.builder()

@@ -818,6 +818,33 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
 
   @Test
   @SneakyThrows
+  void transformFacilityPatientWaitTime() {
+    final Method transformFacilityPatientWaitTimeMethod =
+        FacilityTransformerV1.class.getDeclaredMethod(
+            "transformFacilityPatientWaitTime", Facility.PatientWaitTime.class);
+    transformFacilityPatientWaitTimeMethod.setAccessible(true);
+    DatamartFacility.PatientWaitTime actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null,
+                Facility.PatientWaitTime.builder()
+                    .service(Facility.HealthService.Cardiology)
+                    .build());
+    DatamartFacility.PatientWaitTime expected =
+        DatamartFacility.PatientWaitTime.builder()
+            .service(DatamartFacility.HealthService.Cardiology)
+            .build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    actual =
+        (DatamartFacility.PatientWaitTime)
+            transformFacilityPatientWaitTimeMethod.invoke(
+                null, Facility.PatientWaitTime.builder().service(null).build());
+    expected = DatamartFacility.PatientWaitTime.builder().service(null).build();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  @SneakyThrows
   void transformFacilitySatisfaction() {
     final Method transformFacilitySatisfactionMethod =
         FacilityTransformerV1.class.getDeclaredMethod(

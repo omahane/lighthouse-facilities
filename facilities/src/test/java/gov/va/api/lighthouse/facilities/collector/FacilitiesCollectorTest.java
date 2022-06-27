@@ -356,6 +356,13 @@ public class FacilitiesCollectorTest {
                     .code(DatamartFacility.OperatingStatusCode.NORMAL)
                     .build())
             .detailedServices(List.of(covidService))
+            .healthCareSystem(
+                DatamartCmsOverlay.HealthCareSystem.builder()
+                    .name("Example Health Care System Name")
+                    .url("https://www.va.gov/example/locations/facility")
+                    .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+                    .healthConnectPhone("123-456-7890 x123")
+                    .build())
             .build();
     var pk = FacilityEntity.Pk.fromIdString("vha_456");
     CmsOverlayEntity overlayEntity =
@@ -367,6 +374,9 @@ public class FacilitiesCollectorTest {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
             .build();
     List<CmsOverlayEntity> mockOverlays = new ArrayList<>();
     IntStream.range(1, 5000)
@@ -377,6 +387,7 @@ public class FacilitiesCollectorTest {
                       .id(FacilityEntity.Pk.fromIdString("vha_" + Integer.toString(n)))
                       .cmsOperatingStatus(overlayEntity.cmsOperatingStatus())
                       .cmsServices(overlayEntity.cmsServices())
+                      .healthCareSystem(overlayEntity.healthCareSystem())
                       .overlayServices(
                           Set.of(
                               "Covid19Vaccine",
@@ -387,7 +398,6 @@ public class FacilitiesCollectorTest {
                       .build();
               mockOverlays.add(entity);
             });
-    mockOverlays.add(overlayEntity);
     CmsOverlayRepository mockCmsOverlayRepository = mock(CmsOverlayRepository.class);
     when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays);
 

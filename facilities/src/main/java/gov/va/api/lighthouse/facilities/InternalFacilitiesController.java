@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_benefits_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_cemetery;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
@@ -41,6 +42,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,8 +88,7 @@ public class InternalFacilitiesController {
 
   private static final Pattern ZIP_PATTERN = Pattern.compile(ZIP_REGEX);
 
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private final FacilitiesCollector collector;
 
@@ -237,10 +238,10 @@ public class InternalFacilitiesController {
       overlayEntity.cmsServices(null);
     } else if (thisNodeOnly.equalsIgnoreCase("system")) {
       if (overlayEntity.healthCareSystem() == null) {
-        log.info("CmsOverlay {} does not have system, ignoring request", sanitize(id));
+        log.info("CmsOverlay {} does not have health care system, ignoring request", sanitize(id));
         return ResponseEntity.accepted().build();
       }
-      log.info("Deleting system node from overlay for id: {}", sanitize(id));
+      log.info("Deleting health care system node from overlay for id: {}", sanitize(id));
       overlayEntity.healthCareSystem(null);
     } else {
       log.info("CmsOverlay field {} does not exist.", sanitize(thisNodeOnly));
@@ -266,13 +267,13 @@ public class InternalFacilitiesController {
       if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("detailed_services")) {
         DatamartFacility df =
             DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
-        if (df.attributes().services.health() != null) {
+        if (df.attributes().services().health() != null) {
           List<DatamartFacility.HealthService> healthServicesWithoutCovid19Vaccine =
-              df.attributes().services.health().stream()
+              df.attributes().services().health().stream()
                   .filter(hs -> !hs.equals(HealthService.Covid19Vaccine))
                   .collect(Collectors.toList());
           Collections.sort(healthServicesWithoutCovid19Vaccine);
-          df.attributes().services.health(healthServicesWithoutCovid19Vaccine);
+          df.attributes().services().health(healthServicesWithoutCovid19Vaccine);
 
           if (facilityEntity.services() != null) {
             facilityEntity.services().remove("Covid19Vaccine");
@@ -286,6 +287,7 @@ public class InternalFacilitiesController {
     return ResponseEntity.ok().build();
   }
 
+  /** Delete facility belonging to specified id. */
   @DeleteMapping(value = "/facilities/{id}")
   ResponseEntity<String> deleteFacilityById(@PathVariable("id") String id) {
     Optional<FacilityEntity> entity = facilityEntityById(id);
@@ -428,10 +430,30 @@ public class InternalFacilitiesController {
     facilityRepository.delete(entity);
   }
 
+  /** Reload all facility information. */
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
     var response = ReloadResponse.start();
-    var collectedFacilities = collector.collectFacilities();
+    var collectedFacilities =
+        collector.collectFacilities().stream()
+            .map(
+                df -> {
+                  if (ObjectUtils.isNotEmpty(df.attributes().detailedServices())) {
+                    // Filter out non-Covid services
+                    df.attributes()
+                        .detailedServices(
+                            df.attributes().detailedServices().parallelStream()
+                                .filter(
+                                    dds ->
+                                        dds.serviceInfo() != null
+                                            && dds.serviceInfo()
+                                                .serviceId()
+                                                .equals(HealthService.Covid19Vaccine.serviceId()))
+                                .collect(Collectors.toList()));
+                  }
+                  return df;
+                })
+            .collect(Collectors.toList());
     response.totalFacilities(collectedFacilities.size());
     return process(response, collectedFacilities);
   }

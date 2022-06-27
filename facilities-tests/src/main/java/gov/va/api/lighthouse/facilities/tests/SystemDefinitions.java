@@ -9,11 +9,11 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class SystemDefinitions {
-  static final String CLIENT_KEY_DEFAULT = "axolotl";
+  public static final String CLIENT_KEY_DEFAULT = "axolotl";
 
   private static Ids ids() {
     return Ids.builder()
-        .facility("vba_322c")
+        .facility("vha_516")
         .facilityIdsCsv("nca_055,nca_s1001,vba_322c,vc_0101V,vha_402GA")
         .latitude("28.112464")
         .longitude("-80.7015994")
@@ -141,14 +141,15 @@ public class SystemDefinitions {
 
   @Value
   @Builder
-  static final class Service {
+  public static final class Service {
     @NonNull String url;
 
     @NonNull Integer port;
 
     @NonNull String apiPath;
 
-    String urlWithApiPath() {
+    /** Construct base API url. */
+    public String urlWithApiPath() {
       StringBuilder builder = new StringBuilder(url());
       if (!apiPath().startsWith("/")) {
         builder.append('/');

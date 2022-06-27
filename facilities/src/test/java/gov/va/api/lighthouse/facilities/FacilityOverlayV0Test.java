@@ -55,6 +55,7 @@ public class FacilityOverlayV0Test {
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
     return DetailedService.builder()
+        .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
         .name("Covid19Vaccine")
         .active(cmsServiceActiveValue)
         .changed("2021-02-04T22:36:49+00:00")

@@ -296,21 +296,26 @@ public class FacilitiesCollector {
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
-    for (DatamartFacility datamartFacility : datamartFacilities) {
-      if (facilityCovid19Services.containsKey(datamartFacility.id())) {
-        Set<HealthService> facilityHealthServices = new HashSet<>();
-        facilityHealthServices.add(facilityCovid19Services.get(datamartFacility.id()));
-        if (datamartFacility.attributes().services() == null) {
-          datamartFacility.attributes().services(DatamartFacility.Services.builder().build());
-        }
-        if (datamartFacility.attributes().services().health() != null) {
-          facilityHealthServices.addAll(datamartFacility.attributes().services().health());
-        }
-        List<DatamartFacility.HealthService> facilityHealthServiceList =
-            new ArrayList<>(facilityHealthServices);
-        Collections.sort(facilityHealthServiceList);
-        datamartFacility.attributes().services().health(facilityHealthServiceList);
-      }
-    }
+
+    datamartFacilities.stream()
+        .filter(df -> facilityCovid19Services.containsKey(df.id()))
+        .forEach(
+            df -> {
+              // Covid-19 vaccines is the only CMS service that should appear in the list of ATC
+              // facility services, as well as the CMS overlay detailed services list, if present
+              // for a facility.
+              Set<HealthService> facilityHealthServices = new HashSet<>();
+              facilityHealthServices.add(facilityCovid19Services.get(df.id()));
+              if (df.attributes().services() == null) {
+                df.attributes().services(DatamartFacility.Services.builder().build());
+              }
+              if (df.attributes().services().health() != null) {
+                facilityHealthServices.addAll(df.attributes().services().health());
+              }
+              List<HealthService> facilityHealthServiceList =
+                  new ArrayList<>(facilityHealthServices);
+              Collections.sort(facilityHealthServiceList);
+              df.attributes().services().health(facilityHealthServiceList);
+            });
   }
 }

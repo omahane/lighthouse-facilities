@@ -44,7 +44,12 @@ public class CmsOverlayCollectorTest {
   void loadCovidOverlay() {
     DatamartDetailedService covidService =
         DatamartDetailedService.builder()
-            .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             .active(true)
             .path("replace_this_path")
             .build();
@@ -91,7 +96,12 @@ public class CmsOverlayCollectorTest {
     assertThat(cmsOverlays.isEmpty()).isFalse();
     DatamartDetailedService updatedCovidService =
         DatamartDetailedService.builder()
-            .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             // .path("https://www.va.gov/durham-health-care/programs/covid-19-vaccines/")
             .path("replace_this_path")
             .build();
@@ -176,10 +186,35 @@ public class CmsOverlayCollectorTest {
                 .containsCovidService(
                     List.of(
                         DatamartDetailedService.builder()
-                            .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                                    .build())
                             .build(),
-                        DatamartDetailedService.builder().name("Cardiology").build(),
-                        DatamartDetailedService.builder().name("Dermatology").build())))
+                        DatamartDetailedService.builder()
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Cardiology.serviceId())
+                                    .name(DatamartFacility.HealthService.Cardiology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Cardiology.serviceType())
+                                    .build())
+                            .build(),
+                        DatamartDetailedService.builder()
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Dermatology.serviceId())
+                                    .name(DatamartFacility.HealthService.Dermatology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Dermatology.serviceType())
+                                    .build())
+                            .build())))
         .isTrue();
   }
 
@@ -189,9 +224,35 @@ public class CmsOverlayCollectorTest {
             new CmsOverlayCollector(mockCmsOverlayRepository)
                 .containsCovidService(
                     List.of(
-                        DatamartDetailedService.builder().name("Optometry").build(),
-                        DatamartDetailedService.builder().name("Cardiology").build(),
-                        DatamartDetailedService.builder().name("Dermatology").build())))
+                        DatamartDetailedService.builder()
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(DatamartFacility.HealthService.Optometry.serviceId())
+                                    .name(DatamartFacility.HealthService.Optometry.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Optometry.serviceType())
+                                    .build())
+                            .build(),
+                        DatamartDetailedService.builder()
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Cardiology.serviceId())
+                                    .name(DatamartFacility.HealthService.Cardiology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Cardiology.serviceType())
+                                    .build())
+                            .build(),
+                        DatamartDetailedService.builder()
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Dermatology.serviceId())
+                                    .name(DatamartFacility.HealthService.Dermatology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Dermatology.serviceType())
+                                    .build())
+                            .build())))
         .isFalse();
     assertThat(new CmsOverlayCollector(mockCmsOverlayRepository).containsCovidService(null))
         .isFalse();

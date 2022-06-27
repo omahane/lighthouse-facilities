@@ -1,5 +1,10 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toDetailedServices;
+import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toVersionAgnosticDetailedServices;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toFacilityOperatingStatus;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus;
+
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import lombok.experimental.UtilityClass;
 
@@ -8,8 +13,8 @@ public final class CmsOverlayTransformerV0 {
   /** Transform version agnostic CMS overlay to V0 CMS overlay. */
   public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
-        .operatingStatus(FacilityTransformerV0.toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(DetailedServiceTransformerV0.toDetailedServices(dc.detailedServices()))
+        .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
+        .detailedServices(toDetailedServices(dc.detailedServices()))
         .healthCareSystem(transformHeatlhCareSystem(dc.healthCareSystem()))
         .build();
   }
@@ -17,12 +22,8 @@ public final class CmsOverlayTransformerV0 {
   /** Transform V0 CMS overlay to version agnostic CMS overlay. */
   public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
     return DatamartCmsOverlay.builder()
-        .operatingStatus(
-            FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus(
-                overlay.operatingStatus()))
-        .detailedServices(
-            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
-                overlay.detailedServices()))
+        .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
+        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
         .healthCareSystem(transformHeatlhCareSystem(overlay.healthCareSystem()))
         .build();
   }

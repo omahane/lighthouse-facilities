@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static gov.va.api.lighthouse.facilities.ControllersV0.page;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateServices;
+import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV0.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
@@ -50,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class FacilitiesControllerV0 {
-  private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
+  private static final ObjectMapper MAPPER_V0 = createMapper();
 
   private static final FacilityOverlayV0 FACILITY_OVERLAY = FacilityOverlayV0.builder().build();
 

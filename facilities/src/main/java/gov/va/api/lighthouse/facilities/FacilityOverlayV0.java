@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.FacilityOverlayHelper.filterOutInvalidDetailedServices;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
@@ -14,15 +17,16 @@ import lombok.Value;
 @Value
 public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility> {
 
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private static OperatingStatus determineOperatingStatusFromActiveStatus(
       ActiveStatus activeStatus) {
-    if (activeStatus == ActiveStatus.T) {
-      return OperatingStatus.builder().code(OperatingStatusCode.CLOSED).build();
-    }
-    return OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build();
+    return OperatingStatus.builder()
+        .code(
+            activeStatus == ActiveStatus.T
+                ? OperatingStatusCode.CLOSED
+                : OperatingStatusCode.NORMAL)
+        .build();
   }
 
   @Override
@@ -30,7 +34,8 @@ public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility>
   public Facility apply(HasFacilityPayload entity) {
     Facility facility =
         FacilityTransformerV0.toFacility(
-            DATAMART_MAPPER.readValue(entity.facility(), DatamartFacility.class));
+            filterOutInvalidDetailedServices(
+                DATAMART_MAPPER.readValue(entity.facility(), DatamartFacility.class)));
 
     if (facility.attributes().operatingStatus() == null) {
       facility

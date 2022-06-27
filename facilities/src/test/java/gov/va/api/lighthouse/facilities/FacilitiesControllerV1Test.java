@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
@@ -29,6 +31,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 public class FacilitiesControllerV1Test {
+  private static final ObjectMapper MAPPER_V1 = createMapper();
+
   FacilityRepository fr = mock(FacilityRepository.class);
 
   @Test
@@ -43,33 +47,46 @@ public class FacilitiesControllerV1Test {
                 samples.facilityEntity("vha_757")));
     assertThat(controller().all(1, 3))
         .isEqualTo(
-            FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        samples.facilityV1("vha_691GB"),
-                        samples.facilityV1("vha_740GA"),
-                        samples.facilityV1("vha_757")))
-                .links(
-                    PageLinks.builder()
-                        .self("http://foo/bp/v1/facilities?page=1&per_page=3")
-                        .first("http://foo/bp/v1/facilities?page=1&per_page=3")
-                        .prev(null)
-                        .next(null)
-                        .last("http://foo/bp/v1/facilities?page=1&per_page=3")
-                        .build())
-                .meta(
-                    FacilitiesResponse.FacilitiesMetadata.builder()
-                        .pagination(
-                            Pagination.builder()
-                                .currentPage(1)
-                                .entriesPerPage(3)
-                                .totalPages(1)
-                                .totalEntries(3)
-                                .build())
-                        .build())
-                .build());
+            MAPPER_V1.writeValueAsString(
+                FacilitiesResponse.builder()
+                    .data(
+                        List.of(
+                            samples.facilityV1("vha_691GB"),
+                            samples.facilityV1("vha_740GA"),
+                            samples.facilityV1("vha_757")))
+                    .links(
+                        PageLinks.builder()
+                            .self("http://foo/bp/v1/facilities?page=1&per_page=3")
+                            .first("http://foo/bp/v1/facilities?page=1&per_page=3")
+                            .prev(null)
+                            .next(null)
+                            .last("http://foo/bp/v1/facilities?page=1&per_page=3")
+                            .build())
+                    .meta(
+                        FacilitiesResponse.FacilitiesMetadata.builder()
+                            .pagination(
+                                Pagination.builder()
+                                    .currentPage(1)
+                                    .entriesPerPage(3)
+                                    .totalPages(1)
+                                    .totalEntries(3)
+                                    .build())
+                            .build())
+                    .build()));
     // Test empty list if from index is larger than size of data.
-    assertThat(controller().all(3, 3).data()).isEmpty();
+    assertThat(controller().all(3, 3))
+        .isEqualTo(
+            "{\"links\":{"
+                + "\"self\":\"http://foo/bp/v1/facilities?page=3&per_page=3\","
+                + "\"first\":\"http://foo/bp/v1/facilities?page=1&per_page=3\","
+                + "\"last\":\"http://foo/bp/v1/facilities?page=1&per_page=3\""
+                + "},\"meta\":{"
+                + "\"pagination\":{"
+                + "\"currentPage\":3,"
+                + "\"perPage\":3,"
+                + "\"totalPages\":1,"
+                + "\"totalEntries\":3"
+                + "}}}");
   }
 
   @Test

@@ -2,12 +2,21 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.lighthouse.facilities.*;
+import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
+import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
+import gov.va.api.lighthouse.facilities.DatamartDetailedService;
+import gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig;
+import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.FacilityEntity;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -331,7 +340,12 @@ public class FacilitiesCollectorTest {
 
     DatamartDetailedService covidService =
         DatamartDetailedService.builder()
-            .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .build())
             .active(true)
             .path("replace_this_path")
             .build();

@@ -6,7 +6,6 @@ import static gov.va.api.lighthouse.facilities.api.v0.DetailedServiceUtils.getDe
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -28,9 +27,9 @@ public class CmsOverlayResponseEmptyFieldsTest {
 
   private List<DetailedService> getDetailedServices() {
     return List.of(
-        getDetailedService(Facility.HealthService.Cardiology.name()),
-        getDetailedService(Facility.HealthService.CaregiverSupport.name()),
-        getDetailedService(Facility.HealthService.EmergencyCare.name()));
+        getDetailedService(Facility.HealthService.Cardiology),
+        getDetailedService(Facility.HealthService.CaregiverSupport),
+        getDetailedService(Facility.HealthService.EmergencyCare));
   }
 
   @Test

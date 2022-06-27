@@ -1,31 +1,38 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartCmsOverlay.HealthCareSystem;
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 /** Helper class for CMS overlay operating status and detailed services. */
 @UtilityClass
 public final class CmsOverlayHelper {
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   /** Obtain list of detailed services from JSON string. */
   @SneakyThrows
   public static List<DatamartDetailedService> getDetailedServices(String detailedServices) {
     return (detailedServices == null)
         ? List.of()
-        : List.of(DATAMART_MAPPER.readValue(detailedServices, DatamartDetailedService[].class));
+        : List.of(DATAMART_MAPPER.readValue(detailedServices, DatamartDetailedService[].class))
+            .parallelStream()
+            .filter(ds -> ds.serviceInfo() != null)
+            .collect(Collectors.toList());
   }
 
   /** Obtain DatamartFacility health care system from JSON string. */
   @SneakyThrows
-  public static DatamartCmsOverlay.HealthCareSystem getHealthCareSystem(String healthCareSystem) {
+  public static HealthCareSystem getHealthCareSystem(String healthCareSystem) {
     return (healthCareSystem == null)
         ? null
-        : DATAMART_MAPPER.readValue(healthCareSystem, DatamartCmsOverlay.HealthCareSystem.class);
+        : DATAMART_MAPPER.readValue(healthCareSystem, HealthCareSystem.class);
   }
 
   /** Obtain DatamartFacility operating status from JSON string. */
@@ -46,8 +53,7 @@ public final class CmsOverlayHelper {
 
   /** Obtain JSON string representation of DatamartFacility health care system. */
   @SneakyThrows
-  public static String serializeHealthCareSystem(
-      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
+  public static String serializeHealthCareSystem(HealthCareSystem healthCareSystem) {
     return (healthCareSystem == null) ? null : DATAMART_MAPPER.writeValueAsString(healthCareSystem);
   }
 

@@ -1,14 +1,11 @@
 package gov.va.api.lighthouse.facilities;
 
-import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -132,14 +129,14 @@ public abstract class BaseCmsOverlayController {
     return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
   }
 
-  protected boolean isValidService(String serviceId) {
-    return DatamartFacility.HealthService.isRecognizedEnumOrCovidService(serviceId) ||
-            DatamartFacility.BenefitsService.isRecognizedServiceEnum(serviceId) ||
-            DatamartFacility.OtherService.isRecognizedServiceEnum(serviceId);
-  }
-
   /** Determine whether specified service id matches that for service. */
   protected abstract boolean isRecognizedServiceId(String serviceId);
+
+  protected boolean isValidService(String serviceId) {
+    return DatamartFacility.HealthService.isRecognizedEnumOrCovidService(serviceId)
+        || DatamartFacility.BenefitsService.isRecognizedServiceEnum(serviceId)
+        || DatamartFacility.OtherService.isRecognizedServiceEnum(serviceId);
+  }
 
   @SneakyThrows
   protected void updateCmsOverlayData(

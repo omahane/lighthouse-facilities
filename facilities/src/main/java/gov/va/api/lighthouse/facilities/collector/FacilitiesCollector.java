@@ -3,21 +3,18 @@ package gov.va.api.lighthouse.facilities.collector;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import gov.va.api.lighthouse.facilities.*;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
+import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
-import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,8 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -204,7 +199,7 @@ public class FacilitiesCollector {
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
     updateServicesFromCmsOverlay(datamartFacilities);
-    cmsOverlayCollector.updateCmsServicesWithATCWaitTimes(datamartFacilities);
+    cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     return datamartFacilities;
   }
 
@@ -269,35 +264,6 @@ public class FacilitiesCollector {
     for (DatamartFacility datamartFacility : datamartFacilities) {
       if (cmsOverlays.containsKey(datamartFacility.id())) {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
-        // Apply ATC wait times data to CMS detailed services
-        WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
-        if (atcWaitTimes != null && atcWaitTimes.health() != null) {
-          List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
-          LocalDate effectiveDate = atcWaitTimes.effectiveDate();
-          Map<String, PatientWaitTime> waitTimeMap =
-              patientWaitTimes.stream()
-                  .collect(
-                      Collectors.toMap(s -> uncapitalize(s.service().name()), Function.identity()));
-
-          if (cmsOverlay.detailedServices() != null) {
-            cmsOverlay.detailedServices().stream()
-                .forEach(
-                    ds -> {
-                      String serviceId = ds.serviceInfo().serviceId();
-                      PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
-                      if (patientWaitTime != null) {
-                        ds.waitTime(
-                            DatamartDetailedService.PatientWaitTime.builder()
-                                .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
-                                .establishedPatientWaitTime(
-                                    patientWaitTime.establishedPatientWaitTime())
-                                .effectiveDate(effectiveDate)
-                                .build());
-                      }
-                    });
-          }
-        }
-
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
 

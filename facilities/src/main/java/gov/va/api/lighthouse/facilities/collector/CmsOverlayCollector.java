@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
@@ -12,7 +13,11 @@ import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
+import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
+import java.time.LocalDate;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +26,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import gov.va.api.lighthouse.facilities.FacilityEntity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
@@ -75,29 +78,6 @@ public class CmsOverlayCollector {
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
     return cmsOverlayServices;
-  }
-
-  public void updateCmsServicesWithATCWaitTimes(List<DatamartFacility> datamartFacilities) {
-    Iterable<CmsOverlayEntity> cmsOverlayEntities = cmsOverlayRepository.findAll();
-    // Check if there is wait time data in facility so we can update cms overlay services
-    // with wait time data
-    Map<String, CmsOverlayEntity> overlayEntityMap =
-    Streams.stream(cmsOverlayEntities)
-        .collect(Collectors.toMap(CmsOverlayEntity::id, Function.identity()));
-
-//        .forEach(
-//            e -> {
-//              // Check if there is wait time data in facility so we can update cms overlay services
-//              // with wait time data
-//              DatamartCmsOverlay overlay =
-//                  DatamartCmsOverlay.builder()
-//                      .operatingStatus(CmsOverlayHelper.getOperatingStatus(e.cmsOperatingStatus()))
-//                      .detailedServices(CmsOverlayHelper.getDetailedServices(e.cmsServices()))
-//                      .healthCareSystem(CmsOverlayHelper.getHealthCareSystem(e.healthCareSystem()))
-//                      .build();
-//
-//              datamartFacilities.parallelStream().filter(df -> df.id().equals(e.id())).forEach();
-//            });
   }
 
   /** Load and return map of CMS overlays for each facility id. */
@@ -153,5 +133,54 @@ public class CmsOverlayCollector {
       return null;
     }
     return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), overlay);
+  }
+
+  /** Update CMS Detailed Service with wait times data from ATC during reload. */
+  public void updateCmsServicesWithAtcWaitTimes(List<DatamartFacility> datamartFacilities) {
+    Iterable<CmsOverlayEntity> existingOverlayEntities = cmsOverlayRepository.findAll();
+    Map<String, CmsOverlayEntity> overlayEntityMap =
+        Streams.stream(existingOverlayEntities)
+            .collect(
+                Collectors.toMap(
+                    cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
+    List<CmsOverlayEntity> updatedOverlayEntities = new ArrayList<>();
+    datamartFacilities.stream()
+        .forEach(
+            datamartFacility -> {
+              if (overlayEntityMap.containsKey(datamartFacility.id())) {
+                WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
+                if (atcWaitTimes != null && atcWaitTimes.health() != null) {
+                  List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
+                  LocalDate effectiveDate = atcWaitTimes.effectiveDate();
+                  Map<String, PatientWaitTime> waitTimeMap =
+                      patientWaitTimes.stream()
+                          .collect(
+                              Collectors.toMap(
+                                  s -> uncapitalize(s.service().name()), Function.identity()));
+                  CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
+                  List<DatamartDetailedService> cmsDatamartDetailedServices =
+                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices());
+                  cmsDatamartDetailedServices.stream()
+                      .forEach(
+                          cmsService -> {
+                            String serviceId = cmsService.serviceInfo().serviceId();
+                            PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
+                            if (patientWaitTime != null) {
+                              cmsService.waitTime(
+                                  DatamartDetailedService.PatientWaitTime.builder()
+                                      .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
+                                      .establishedPatientWaitTime(
+                                          patientWaitTime.establishedPatientWaitTime())
+                                      .effectiveDate(effectiveDate)
+                                      .build());
+                            }
+                          });
+                  cmsOverlayEntity.cmsServices(
+                      CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
+                  updatedOverlayEntities.add(cmsOverlayEntity);
+                }
+              }
+            });
+    cmsOverlayRepository.saveAll(updatedOverlayEntities);
   }
 }

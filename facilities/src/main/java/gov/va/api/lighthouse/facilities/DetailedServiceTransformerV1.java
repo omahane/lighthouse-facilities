@@ -410,8 +410,8 @@ public class DetailedServiceTransformerV1 {
   }
 
   /**
-   * Transform version 1 DetailedService.AppointmentPhoneNumber to version agnostic
-   * DatamartDetailedService.AppointmentPhoneNumber
+   * Transform version 1 DetailedService.PatientWaitTime to version agnostic
+   * DatamartDetailedService.PatientWaitTime
    */
   private DatamartDetailedService.PatientWaitTime toVersionAgnosticPatientWaitTime(
       DetailedService.PatientWaitTime w) {

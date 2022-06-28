@@ -157,7 +157,9 @@ public class CmsOverlayCollector {
                                   s -> uncapitalize(s.service().name()), Function.identity()));
                   CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
                   List<DatamartDetailedService> cmsDatamartDetailedServices =
-                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices());
+                      Optional.ofNullable(
+                              CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
+                          .orElse(List.of());
                   cmsDatamartDetailedServices.stream()
                       .forEach(
                           cmsService -> {

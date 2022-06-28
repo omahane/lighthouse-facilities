@@ -54,6 +54,9 @@ public abstract class BaseCmsOverlayController {
   @SneakyThrows
   private void applyAtcWaitTimeToCmsServices(
       List<DatamartDetailedService> cmsDatamartDetailedServices, String facilityId) {
+    if (cmsDatamartDetailedServices == null || cmsDatamartDetailedServices.isEmpty()) {
+      return;
+    }
     FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(facilityId);
     Optional<FacilityEntity> opt = facilityRepository.findById(pk);
     if (opt.isEmpty()) {

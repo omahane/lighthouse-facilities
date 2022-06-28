@@ -286,24 +286,6 @@ public class SerializerTest {
             .build();
     assertJson(
         response,
-            .build();
-    assertJson(
-        response,
-        "{\"data\":{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}}");
-    response =
-        DetailedServiceResponse.builder()
-            .data(
-                DetailedService.builder()
-                    .serviceInfo(
-                        DetailedService.ServiceInfo.builder()
-                            .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-                            .name("COVID-19 vaccines")
-                            .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
-                            .build())
-                    .build())
-            .build();
-    assertJson(
-        response,
         "{\"data\":{\"serviceInfo\":{\"name\":\"COVID-19 vaccines\",\"serviceId\":\"covid19Vaccine\",\"serviceType\":\"health\"}}}");
   }
 

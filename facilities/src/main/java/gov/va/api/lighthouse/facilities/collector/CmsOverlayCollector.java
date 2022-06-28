@@ -17,7 +17,6 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.time.LocalDate;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +142,6 @@ public class CmsOverlayCollector {
             .collect(
                 Collectors.toMap(
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
-    List<CmsOverlayEntity> updatedOverlayEntities = new ArrayList<>();
     datamartFacilities.stream()
         .forEach(
             datamartFacility -> {
@@ -177,10 +175,9 @@ public class CmsOverlayCollector {
                           });
                   cmsOverlayEntity.cmsServices(
                       CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
-                  updatedOverlayEntities.add(cmsOverlayEntity);
                 }
               }
             });
-    cmsOverlayRepository.saveAll(updatedOverlayEntities);
+    cmsOverlayRepository.saveAll(overlayEntityMap.values());
   }
 }

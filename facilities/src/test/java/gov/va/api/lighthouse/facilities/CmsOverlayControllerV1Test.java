@@ -768,7 +768,6 @@ public class CmsOverlayControllerV1Test {
                 assertThat(ds.waitTime().effectiveDate()).isEqualTo(LocalDate.parse("2020-03-09"));
               }
             });
-    System.out.println(datamartDetailedServiceList);
   }
 
   @Test

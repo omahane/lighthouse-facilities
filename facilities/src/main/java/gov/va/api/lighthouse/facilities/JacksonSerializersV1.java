@@ -21,6 +21,7 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility.Addresses;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Hours;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.Parent;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.PatientSatisfaction;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Phone;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Satisfaction;
@@ -62,6 +63,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.NearbySerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.OperatingStatusSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PageLinksSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PaginationSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.ParentSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientSatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PhoneSerializer;
@@ -117,6 +119,7 @@ final class JacksonSerializersV1 {
     mod.addSerializer(Timing.class, new ReloadResponseTimingSerializer());
     mod.addSerializer(CmsOverlay.class, new CmsOverlaySerializer());
     mod.addSerializer(CmsOverlayResponse.class, new CmsOverlayResponseSerializer());
+    mod.addSerializer(Parent.class, new ParentSerializer());
     return mod;
   }
 }

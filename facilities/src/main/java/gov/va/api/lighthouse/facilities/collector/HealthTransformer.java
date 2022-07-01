@@ -183,7 +183,8 @@ final class HealthTransformer {
         waitTimes(),
         vast.mobile(),
         activeStatus(),
-        vast.visn())) {
+        vast.visn(),
+        vast.parentStationNumber())) {
       return null;
     }
     return FacilityAttributes.builder()
@@ -204,6 +205,7 @@ final class HealthTransformer {
         .mobile(vast.mobile())
         .activeStatus(activeStatus())
         .visn(vast.visn())
+        .parentId(parentId())
         .build();
   }
 
@@ -262,6 +264,10 @@ final class HealthTransformer {
       return null;
     }
     return "vha_" + vast.stationNumber();
+  }
+
+  private String parentId() {
+    return allBlank(vast.parentStationNumber()) ? null : "vha_" + vast.parentStationNumber();
   }
 
   private Phone phone() {

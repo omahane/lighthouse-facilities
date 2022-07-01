@@ -347,6 +347,10 @@
         "name" : "Heartland Street VA Clinic",
         "facilityType" : "va_health_facility",
         "classification" : "Primary Care CBOC",
+        "parent" : {
+          "id" : "vha_657",
+          "link" : "http://localhost:8085/v1/facilities/vha_657"
+        },
         "website" : "https://www.va.gov/marion-health-care/locations/heartland-street-va-clinic/",
         "lat" : 37.74305443,
         "long" : -88.99432982,
@@ -408,6 +412,10 @@
         "name" : "Scott Air Force Base VA Clinic",
         "facilityType" : "va_health_facility",
         "classification" : "Other Outpatient Services (OOS)",
+        "parent" : {
+          "id" : "vha_657",
+          "link" : "http://localhost:8085/v1/facilities/vha_657"
+        },
         "website" : "https://www.va.gov/st-louis-health-care/locations/scott-air-force-base-va-clinic/",
         "lat" : 38.54265307,
         "long" : -89.86923039,

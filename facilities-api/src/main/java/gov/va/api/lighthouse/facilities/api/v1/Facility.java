@@ -20,6 +20,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.FacilityAttributesSer
 import gov.va.api.lighthouse.facilities.api.v1.serializers.FacilitySerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.HoursSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.OperatingStatusSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.ParentSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientSatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PhoneSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.SatisfactionSerializer;
@@ -539,26 +540,6 @@ public final class Facility implements CanBeEmpty {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = FacilityAttributesSerializer.class)
-  @JsonPropertyOrder({
-    "name",
-    "facilityType",
-    "classification",
-    "website",
-    "lat",
-    "long",
-    "timeZone",
-    "address",
-    "phone",
-    "hours",
-    "operationalHoursSpecialInstructions",
-    "services",
-    "satisfaction",
-    "mobile",
-    "activeStatus",
-    "operatingStatus",
-    "detailedServices",
-    "visn"
-  })
   @Schema(description = "Details describing a facility.", nullable = true)
   public static final class FacilityAttributes implements CanBeEmpty {
     @NotNull
@@ -580,6 +561,13 @@ public final class Facility implements CanBeEmpty {
         example = "VA Medical Center (VAMC)",
         nullable = true)
     String classification;
+
+    @Schema(
+        description = "Reference to facility's parent",
+        example = "VA Medical Center (VAMC)",
+        nullable = true)
+    @Valid
+    Parent parent;
 
     @Schema(
         description = "Web address of facility.",
@@ -1000,6 +988,22 @@ public final class Facility implements CanBeEmpty {
           && ObjectUtils.isEmpty(health())
           && ObjectUtils.isEmpty(benefits())
           && ObjectUtils.isEmpty(lastUpdated());
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonSerialize(using = ParentSerializer.class)
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class Parent implements CanBeEmpty {
+    String id;
+
+    String link;
+
+    @JsonIgnore
+    public boolean isEmpty() {
+      return isBlank(id()) && isBlank(link());
     }
   }
 }

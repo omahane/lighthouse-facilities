@@ -86,6 +86,17 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : null;
   }
 
+  /** Transform DatamartFacility parentId to version 1 facility parent. */
+  public static Facility.Parent toFacilityParent(String datamartParentId, String linkerUrl) {
+    if (datamartParentId == null) {
+      return null;
+    }
+    return Facility.Parent.builder()
+        .id(datamartParentId)
+        .link(linkerUrl + "facilities/" + datamartParentId)
+        .build();
+  }
+
   /** Transform DatamartFacility supplemental status to version 1 facility supplemental status. */
   public static Facility.SupplementalStatus toFacilitySupplementalStatus(
       @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
@@ -131,6 +142,7 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .services(transformFacilityServices(f.attributes().services()))
                     .activeStatus(transformFacilityActiveStatus(f.attributes().activeStatus()))
                     .visn(f.attributes().visn())
+                    .parentId(toVersionAgnosticFacilityParent(f.attributes().parent()))
                     .satisfaction(transformFacilitySatisfaction(f.attributes().satisfaction()))
                     .operatingStatus(
                         toVersionAgnosticFacilityOperatingStatus(f.attributes().operatingStatus()))
@@ -171,6 +183,11 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
     } else {
       return null;
     }
+  }
+
+  /** Transform v1 facility parent to datamartFacility parentId. */
+  public static String toVersionAgnosticFacilityParent(Facility.Parent parent) {
+    return parent != null ? parent.id() : null;
   }
 
   /** Transform version 1 facility supplemental status to DatamartFacility supplemental status. */

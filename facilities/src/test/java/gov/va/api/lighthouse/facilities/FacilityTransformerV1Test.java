@@ -112,6 +112,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                                 .build())
                         .effectiveDate(LocalDate.parse("2018-02-01"))
                         .build())
+                .parentId("vha_123")
                 .waitTimes(
                     DatamartFacility.WaitTimes.builder()
                         .health(
@@ -154,6 +155,14 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void datamartFacilityRoundtrip() {
     DatamartFacility datamartFacility = datamartFacility();
     Facility facility = FacilityTransformerV1.toFacility(datamartFacility);
+    facility
+        .attributes()
+        .parent(
+            FacilityTransformerV1.toFacilityParent(
+                datamartFacility.attributes().parentId(),
+                SystemDefinition.systemDefinition().url()
+                    + SystemDefinition.systemDefinition().apiPath()
+                    + "v1/"));
     assertThat(datamartFacility).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
@@ -253,6 +262,14 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                                 .build())
                         .effectiveDate(LocalDate.parse("2018-02-01"))
                         .build())
+                .parent(
+                    Facility.Parent.builder()
+                        .id("vha_123")
+                        .link(
+                            SystemDefinition.systemDefinition().url()
+                                + SystemDefinition.systemDefinition().apiPath()
+                                + "v1/facilities/vha_123")
+                        .build())
                 .operatingStatus(
                     Facility.OperatingStatus.builder()
                         .code(Facility.OperatingStatusCode.NORMAL)
@@ -283,9 +300,19 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   @Test
   public void facilityRoundtrip() {
     Facility facility = facility();
-    assertThat(FacilityTransformerV1.toFacility(FacilityTransformerV1.toVersionAgnostic(facility)))
-        .usingRecursiveComparison()
-        .isEqualTo(facility);
+    Facility actual =
+        FacilityTransformerV1.toFacility(FacilityTransformerV1.toVersionAgnostic(facility));
+    actual
+        .attributes()
+        .parent(
+            Facility.Parent.builder()
+                .id("vha_123")
+                .link(
+                    SystemDefinition.systemDefinition().url()
+                        + SystemDefinition.systemDefinition().apiPath()
+                        + "v1/facilities/vha_123")
+                .build());
+    assertThat(actual).usingRecursiveComparison().isEqualTo(facility);
   }
 
   private DatamartDetailedService getHealthDetailedService(
@@ -481,12 +508,21 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   @Test
   public void losslessFacilityVisitorRoundtrip() {
     Facility facility = facility();
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facility);
+    assertThat(df).hasFieldOrProperty("attributes.parentId");
+    // Assert that there is no parent for V0 Facility when it is transformed from datamartFacility
+    assertThatThrownBy(
+            () ->
+                assertThat(FacilityTransformerV0.toFacility(df))
+                    .hasFieldOrProperty("attributes.parent"))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("\"attributes.parent\"");
+
     assertThat(
             FacilityTransformerV1.toFacility(
-                FacilityTransformerV0.toVersionAgnostic(
-                    FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facility)))))
+                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df))))
         .usingRecursiveComparison()
+        .ignoringFields("attributes.parent")
         .isEqualTo(facility);
   }
 
@@ -513,12 +549,21 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 Facility.HealthService.MentalHealth,
                 Facility.HealthService.Dental),
             emptyList());
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth);
+    assertThat(df).hasFieldOrProperty("attributes.parentId");
+    // Assert that there is no parent for V0 Facility when it is transformed from datamartFacility
+    assertThatThrownBy(
+            () ->
+                assertThat(FacilityTransformerV0.toFacility(df))
+                    .hasFieldOrProperty("attributes.parent"))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("\"attributes.parent\"");
+
     assertThat(
             FacilityTransformerV1.toFacility(
-                FacilityTransformerV0.toVersionAgnostic(
-                    FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth)))))
+                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df))))
         .usingRecursiveComparison()
+        .ignoringFields("attributes.parent")
         .isEqualTo(facilityWithoutWholeHealth);
   }
 
@@ -695,9 +740,16 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void transformDatamartFacility() {
     Facility expected = facility();
     DatamartFacility datamartFacility = datamartFacility();
-    assertThat(FacilityTransformerV1.toFacility(datamartFacility))
-        .usingRecursiveComparison()
-        .isEqualTo(expected);
+    Facility actual = FacilityTransformerV1.toFacility(datamartFacility);
+    actual
+        .attributes()
+        .parent(
+            FacilityTransformerV1.toFacilityParent(
+                datamartFacility.attributes().parentId(),
+                SystemDefinition.systemDefinition().url()
+                    + SystemDefinition.systemDefinition().apiPath()
+                    + "v1/"));
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test

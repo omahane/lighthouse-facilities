@@ -87,6 +87,7 @@
     "operating_status" : {
       "code" : "NORMAL"
     },
-    "visn" : "17"
+    "visn" : "17",
+    "parentId" : "vha_740"
   }
 }

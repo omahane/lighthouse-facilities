@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatusCode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,75 +21,23 @@ public class FacilityOverlayV1Test {
   private static final ObjectMapper DATAMART_MAPPER =
       DatamartFacilitiesJacksonConfig.createMapper();
 
-  @Test
-  void activeStatusIsNotPopulatedByAvailableOperatingStatus() {
-    assertStatus(
-        ActiveStatus.T,
-        op(OperatingStatusCode.CLOSED, null),
-        null,
-        entity(
-            fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()),
-            overlay(op(OperatingStatusCode.NORMAL, "neato"), false)));
-    assertStatus(
-        ActiveStatus.T,
-        op(OperatingStatusCode.CLOSED, null),
-        null,
-        entity(
-            fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()),
-            overlay(op(OperatingStatusCode.NOTICE, "neato"), false)));
-    assertStatus(
-        ActiveStatus.T,
-        op(OperatingStatusCode.CLOSED, null),
-        List.of(Facility.HealthService.Covid19Vaccine),
-        entity(
-            fromActiveStatus(
-                ActiveStatus.T,
-                Facility.Services.builder()
-                    .health(List.of(Facility.HealthService.Covid19Vaccine))
-                    .build()),
-            overlay(op(OperatingStatusCode.LIMITED, "neato"), true)));
-    assertStatus(
-        ActiveStatus.A,
-        op(OperatingStatusCode.NORMAL, null),
-        List.of(Facility.HealthService.Covid19Vaccine),
-        entity(
-            fromActiveStatus(
-                ActiveStatus.A,
-                Facility.Services.builder()
-                    .health(List.of(Facility.HealthService.Covid19Vaccine))
-                    .build()),
-            overlay(op(OperatingStatusCode.CLOSED, "neato"), true)));
-  }
-
-  private void assertStatus(
-      ActiveStatus expectedActiveStatus,
-      OperatingStatus expectedOperatingStatus,
-      List<Facility.HealthService> expectedHealthServices,
-      FacilityEntity entity) {
+  private void assertAttributes(
+      List<Facility.HealthService> expectedHealthServices, FacilityEntity entity) {
     Facility facility = FacilityOverlayV1.builder().build().apply(entity);
-    assertThat(facility.attributes().activeStatus()).isEqualTo(expectedActiveStatus);
-    assertThat(facility.attributes().operatingStatus()).isEqualTo(expectedOperatingStatus);
     assertThat(facility.attributes().services().health()).isEqualTo(expectedHealthServices);
   }
 
   @Test
   void covid19VaccineIsPopulatedWhenAvailable() {
-    assertStatus(
-        null,
-        OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
+    assertAttributes(
         List.of(Facility.HealthService.Covid19Vaccine),
         entity(
-            fromActiveStatus(
-                null,
+            facility(
                 Facility.Services.builder()
                     .health(List.of(Facility.HealthService.Covid19Vaccine))
                     .build()),
-            overlay(null, true)));
-    assertStatus(
-        null,
-        OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        null,
-        entity(fromActiveStatus(null, Facility.Services.builder().build()), overlay(null, false)));
+            overlay(true)));
+    assertAttributes(null, entity(facility(Facility.Services.builder().build()), overlay(false)));
   }
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
@@ -184,38 +129,14 @@ public class FacilityOverlayV1Test {
         .build();
   }
 
-  private Facility fromActiveStatus(ActiveStatus status, Facility.Services services) {
+  private Facility facility(Facility.Services services) {
     return Facility.builder()
-        .attributes(FacilityAttributes.builder().activeStatus(status).services(services).build())
+        .attributes(FacilityAttributes.builder().services(services).build())
         .build();
   }
 
-  private OperatingStatus op(OperatingStatusCode code, String info) {
-    return OperatingStatus.builder().code(code).additionalInfo(info).build();
-  }
-
-  @Test
-  void operatingStatusIsPopulatedByActiveStatusWhenNotAvailable() {
-    assertStatus(
-        ActiveStatus.A,
-        OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        null,
-        entity(fromActiveStatus(ActiveStatus.A, Facility.Services.builder().build()), null));
-    assertStatus(
-        ActiveStatus.T,
-        OperatingStatus.builder().code(OperatingStatusCode.CLOSED).build(),
-        null,
-        entity(fromActiveStatus(ActiveStatus.T, Facility.Services.builder().build()), null));
-    assertStatus(
-        null,
-        OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        null,
-        entity(fromActiveStatus(null, Facility.Services.builder().build()), null));
-  }
-
-  private CmsOverlay overlay(OperatingStatus neato, boolean cmsServiceActiveValue) {
+  private CmsOverlay overlay(boolean cmsServiceActiveValue) {
     return CmsOverlay.builder()
-        .operatingStatus(neato)
         .detailedServices(List.of(createDetailedService(cmsServiceActiveValue)))
         .build();
   }

@@ -284,7 +284,7 @@ public class CmsOverlayIT {
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
     // Note: Performing a GET request to /v1/facilities/%/services/%/ through Postman produces an
-    //       HTTP 400 error as expected.
+    // HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services/%/"))
@@ -318,7 +318,7 @@ public class CmsOverlayIT {
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
     // Note: Performing a GET request to /v1/facilities/%/services through Postman produces an
-    //       HTTP 400 error as expected.
+    // HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services"))
@@ -539,6 +539,75 @@ public class CmsOverlayIT {
             .expect(200)
             .expectValid(CmsOverlayResponse.class);
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
+  }
+
+  @Test
+  @SneakyThrows
+  void updateFacilityOperatingStatus() {
+    OperatingStatus ops =
+        OperatingStatus.builder()
+            .code(OperatingStatusCode.CLOSED)
+            .additionalInfo("Update1")
+            .build();
+    var id = systemDefinition().ids().facility();
+    SystemDefinitions.Service svc = systemDefinition().facilities();
+    SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
+    // Clean up overlay before test
+    ExpectedResponse.of(
+        requestSpecificationInternal()
+            .request(
+                Method.DELETE,
+                svcInternal.urlWithApiPath()
+                    + "internal/management/facilities/"
+                    + id
+                    + "/cms-overlay"));
+    // POST overlay to populate the operating status on the facility
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .body(MAPPER.writeValueAsString(CmsOverlay.builder().operatingStatus(ops).build()))
+                .request(
+                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+        .expect(200);
+    // Delete the overlay
+    ExpectedResponse.of(
+        requestSpecificationInternal()
+            .request(
+                Method.DELETE,
+                svcInternal.urlWithApiPath()
+                    + "internal/management/facilities/"
+                    + id
+                    + "/cms-overlay/operating_status"));
+    // GET facility and check to make sure that the operating status was populate from the overlay
+    // correctly, should be
+    // set to CLOSED
+    var facility =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
+            .expect(200)
+            .expectValid(FacilityReadResponse.class)
+            .facility();
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(OperatingStatusCode.CLOSED);
+    // Reload
+    ExpectedResponse.of(
+            requestSpecificationInternal()
+                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
+        .expect(200);
+    // After reload, ensure that the operating status was updated from CLOSED to NORMAL. Since we
+    // are testing with a facility that has a pod (VAST's ActiveStatus equivalent) of A, the
+    // operating status should
+    // be updated to NORMAL
+    facility =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
+            .expect(200)
+            .expectValid(FacilityReadResponse.class)
+            .facility();
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(OperatingStatusCode.NORMAL);
   }
 
   @Test

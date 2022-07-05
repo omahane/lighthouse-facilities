@@ -496,6 +496,7 @@ public class DatamartFacility {
 
     String classification;
 
+    @JsonProperty("parent_id")
     String parentId;
 
     String website;

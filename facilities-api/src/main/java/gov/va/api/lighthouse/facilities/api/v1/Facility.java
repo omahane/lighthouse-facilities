@@ -562,10 +562,7 @@ public final class Facility implements CanBeEmpty {
         nullable = true)
     String classification;
 
-    @Schema(
-        description = "Reference to facility's parent",
-        example = "VA Medical Center (VAMC)",
-        nullable = true)
+    @Schema(description = "Reference to facility's parent", nullable = true)
     @Valid
     Parent parent;
 
@@ -996,9 +993,15 @@ public final class Facility implements CanBeEmpty {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = ParentSerializer.class)
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @Schema(description = "Reference to facility's parent")
   public static final class Parent implements CanBeEmpty {
+    @Schema(description = "Parent facility id", example = "vha_402", nullable = true)
     String id;
 
+    @Schema(
+        description = "Parent facility website",
+        example = "https://www.va.gov/maine-health-care/locations/togus-va-medical-center/",
+        nullable = true)
     String link;
 
     @JsonIgnore

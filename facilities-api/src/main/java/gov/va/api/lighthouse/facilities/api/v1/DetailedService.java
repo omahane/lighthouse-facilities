@@ -201,6 +201,7 @@ public class DetailedService implements CanBeEmpty {
   public static final class ServiceInfo implements CanBeEmpty {
     @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
     @JsonAlias("{service_id, service_api_id}")
+    @NonNull
     String serviceId;
 
     @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)

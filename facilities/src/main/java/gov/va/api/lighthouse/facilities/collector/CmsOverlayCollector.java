@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
@@ -143,41 +142,39 @@ public class CmsOverlayCollector {
                 Collectors.toMap(
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
     datamartFacilities.stream()
+        .filter(df -> overlayEntityMap.containsKey(df.id()))
         .forEach(
             datamartFacility -> {
-              if (overlayEntityMap.containsKey(datamartFacility.id())) {
-                WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
-                if (atcWaitTimes != null && atcWaitTimes.health() != null) {
-                  List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
-                  LocalDate effectiveDate = atcWaitTimes.effectiveDate();
-                  Map<String, PatientWaitTime> waitTimeMap =
-                      patientWaitTimes.stream()
-                          .collect(
-                              Collectors.toMap(
-                                  s -> uncapitalize(s.service().name()), Function.identity()));
-                  CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
-                  List<DatamartDetailedService> cmsDatamartDetailedServices =
-                      Optional.ofNullable(
-                              CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
-                          .orElse(List.of());
-                  cmsDatamartDetailedServices.stream()
-                      .forEach(
-                          cmsService -> {
-                            String serviceId = cmsService.serviceInfo().serviceId();
-                            PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
-                            if (patientWaitTime != null) {
-                              cmsService.waitTime(
-                                  DatamartDetailedService.PatientWaitTime.builder()
-                                      .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
-                                      .establishedPatientWaitTime(
-                                          patientWaitTime.establishedPatientWaitTime())
-                                      .effectiveDate(effectiveDate)
-                                      .build());
-                            }
-                          });
-                  cmsOverlayEntity.cmsServices(
-                      CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
-                }
+              WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
+              if (atcWaitTimes != null && atcWaitTimes.health() != null) {
+                List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
+                LocalDate effectiveDate = atcWaitTimes.effectiveDate();
+                Map<String, PatientWaitTime> waitTimeMap =
+                    patientWaitTimes.stream()
+                        .collect(
+                            Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
+                CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
+                List<DatamartDetailedService> cmsDatamartDetailedServices =
+                    Optional.ofNullable(
+                            CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
+                        .orElse(List.of());
+                cmsDatamartDetailedServices.stream()
+                    .forEach(
+                        cmsService -> {
+                          String serviceId = cmsService.serviceInfo().serviceId();
+                          PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
+                          if (patientWaitTime != null) {
+                            cmsService.waitTime(
+                                DatamartDetailedService.PatientWaitTime.builder()
+                                    .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
+                                    .establishedPatientWaitTime(
+                                        patientWaitTime.establishedPatientWaitTime())
+                                    .effectiveDate(effectiveDate)
+                                    .build());
+                          }
+                        });
+                cmsOverlayEntity.cmsServices(
+                    CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
               }
             });
     cmsOverlayRepository.saveAll(overlayEntityMap.values());

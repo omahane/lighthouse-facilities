@@ -467,7 +467,7 @@ public class CmsOverlayControllerV0Test {
             ds ->
                 ds.serviceInfo()
                     .serviceId()
-                    .equalsIgnoreCase(DatamartFacility.HealthService.PrimaryCare.name()))
+                    .equals(DatamartFacility.HealthService.PrimaryCare.serviceId()))
         .forEach(
             ds -> {
               ds.serviceInfo().serviceId("");
@@ -487,7 +487,7 @@ public class CmsOverlayControllerV0Test {
     ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
-    // Repopulate service id fro assertion
+    // Repopulate service id for assertion
     detailedServices.stream()
         .filter(
             ds ->

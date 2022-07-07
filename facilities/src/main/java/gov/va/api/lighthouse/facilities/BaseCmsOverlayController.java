@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
@@ -73,7 +72,7 @@ public abstract class BaseCmsOverlayController {
     LocalDate effectiveDate = atcWaitTimes.effectiveDate();
     Map<String, PatientWaitTime> waitTimeMap =
         patientWaitTimes.stream()
-            .collect(Collectors.toMap(s -> uncapitalize(s.service().name()), Function.identity()));
+            .collect(Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
     cmsDatamartDetailedServices.stream()
         .forEach(
             cmsService -> applyAtcWaitTimeToCmsService(cmsService, waitTimeMap, effectiveDate));

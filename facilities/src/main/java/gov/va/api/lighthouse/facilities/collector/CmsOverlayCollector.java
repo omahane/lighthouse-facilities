@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
@@ -153,8 +152,7 @@ public class CmsOverlayCollector {
                   Map<String, PatientWaitTime> waitTimeMap =
                       patientWaitTimes.stream()
                           .collect(
-                              Collectors.toMap(
-                                  s -> uncapitalize(s.service().name()), Function.identity()));
+                              Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
                   CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
                   List<DatamartDetailedService> cmsDatamartDetailedServices =
                       Optional.ofNullable(

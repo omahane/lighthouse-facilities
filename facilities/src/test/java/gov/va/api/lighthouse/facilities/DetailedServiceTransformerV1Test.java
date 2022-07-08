@@ -5,8 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 class DetailedServiceTransformerV1Test {
@@ -18,7 +24,6 @@ class DetailedServiceTransformerV1Test {
                     .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
         .isInstanceOf(Exception.class)
         .hasMessage("Unrecognized service id: emptyService");
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
@@ -36,7 +41,6 @@ class DetailedServiceTransformerV1Test {
                     .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
         .isInstanceOf(Exception.class)
         .hasMessage("Unrecognized service id: emptyService");
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(
@@ -69,6 +73,14 @@ class DetailedServiceTransformerV1Test {
     assertThat(DetailedServiceTransformerV1.toDetailedServiceEmailContacts(null)).isNull();
     assertThat(DetailedServiceTransformerV1.toDetailedServiceEmailContacts(new ArrayList<>()))
         .isEmpty();
+  }
+
+  @Test
+  void toDetailedServiceName() {
+    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("ApplyingForBenefits"))
+        .isEqualTo("ApplyingForBenefits");
+    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("OnlineScheduling"))
+        .isEqualTo("OnlineScheduling");
   }
 
   @Test
@@ -106,6 +118,17 @@ class DetailedServiceTransformerV1Test {
   }
 
   @Test
+  void toVersionAgnosticDetailedServiceName() {
+    assertThat(
+            DetailedServiceTransformerV1.toVersionAgnosticDetailedServiceName(
+                "ApplyingForBenefits"))
+        .isEqualTo("ApplyingForBenefits");
+    assertThat(
+            DetailedServiceTransformerV1.toVersionAgnosticDetailedServiceName("OnlineScheduling"))
+        .isEqualTo("OnlineScheduling");
+  }
+
+  @Test
   void toVersionAgnosticDetailedServiceNullArgs() {
     assertThrows(
         NullPointerException.class,
@@ -122,6 +145,35 @@ class DetailedServiceTransformerV1Test {
   void toVersionAgnosticDetailedServicesNullArgs() {
     assertThat(DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(null))
         .isEqualTo(null);
+  }
+
+  @Test
+  @SneakyThrows
+  void toVersionAgnosticPatientWaitTime() {
+    DetailedService detailedService =
+        DetailedService.builder()
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId(HealthService.Cardiology.serviceId())
+                    .build())
+            .waitTime(
+                PatientWaitTime.builder()
+                    .newPatientWaitTime(BigDecimal.valueOf(34.4))
+                    .establishedPatientWaitTime(BigDecimal.valueOf(3.25))
+                    .effectiveDate(LocalDate.parse("2022-03-03"))
+                    .build())
+            .build();
+    Method toVersionAgnosticPatientWaitTime =
+        DetailedServiceTransformerV1.class.getDeclaredMethod(
+            "toVersionAgnosticPatientWaitTime", DetailedService.PatientWaitTime.class);
+    toVersionAgnosticPatientWaitTime.setAccessible(true);
+    DatamartDetailedService.PatientWaitTime patientWaitTime =
+        (DatamartDetailedService.PatientWaitTime)
+            toVersionAgnosticPatientWaitTime.invoke(null, detailedService.waitTime());
+    assertThat(patientWaitTime.newPatientWaitTime()).isEqualTo(BigDecimal.valueOf(34.4));
+    assertThat(patientWaitTime.establishedPatientWaitTime()).isEqualTo(BigDecimal.valueOf(3.25));
+    assertThat(patientWaitTime.effectiveDate()).isEqualTo(LocalDate.parse("2022-03-03"));
+    System.out.println("test");
   }
 
   @Test

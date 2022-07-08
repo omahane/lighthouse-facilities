@@ -5,11 +5,16 @@ import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.upd
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -27,6 +32,50 @@ public abstract class BaseCmsOverlayController {
       @NonNull CmsOverlayRepository cmsOverlayRepository) {
     this.facilityRepository = facilityRepository;
     this.cmsOverlayRepository = cmsOverlayRepository;
+  }
+
+  private void applyAtcWaitTimeToCmsService(
+      DatamartDetailedService cmsService,
+      Map<String, DatamartFacility.PatientWaitTime> waitTimeMap,
+      LocalDate effectiveDate) {
+    String serviceId = cmsService.serviceInfo().serviceId();
+    PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
+    if (patientWaitTime != null) {
+      cmsService.waitTime(
+          DatamartDetailedService.PatientWaitTime.builder()
+              .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
+              .establishedPatientWaitTime(patientWaitTime.establishedPatientWaitTime())
+              .effectiveDate(effectiveDate)
+              .build());
+    }
+  }
+
+  @SneakyThrows
+  private void applyAtcWaitTimeToCmsServices(
+      List<DatamartDetailedService> cmsDatamartDetailedServices, String facilityId) {
+    if (cmsDatamartDetailedServices == null || cmsDatamartDetailedServices.isEmpty()) {
+      return;
+    }
+    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(facilityId);
+    Optional<FacilityEntity> opt = facilityRepository.findById(pk);
+    if (opt.isEmpty()) {
+      // No ATC wait times to process if facility doesn't exist
+      return;
+    }
+    DatamartFacility datamartFacility =
+        DATAMART_MAPPER.readValue(opt.get().facility(), DatamartFacility.class);
+    WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
+    if (atcWaitTimes == null || atcWaitTimes.health() == null) {
+      return;
+    }
+    List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
+    LocalDate effectiveDate = atcWaitTimes.effectiveDate();
+    Map<String, PatientWaitTime> waitTimeMap =
+        patientWaitTimes.stream()
+            .collect(Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
+    cmsDatamartDetailedServices.stream()
+        .forEach(
+            cmsService -> applyAtcWaitTimeToCmsService(cmsService, waitTimeMap, effectiveDate));
   }
 
   /** Filter out unrecognized datamart detailed services from overlay. */
@@ -126,6 +175,8 @@ public abstract class BaseCmsOverlayController {
       @NonNull Optional<CmsOverlayEntity> existingCmsOverlayEntity,
       String id,
       @NonNull DatamartCmsOverlay overlay) {
+    List<DatamartDetailedService> cmsServices = overlay.detailedServices();
+    applyAtcWaitTimeToCmsServices(cmsServices, id);
     CmsOverlayEntity cmsOverlayEntity;
     if (existingCmsOverlayEntity.isEmpty()) {
       List<DatamartDetailedService> activeServices =

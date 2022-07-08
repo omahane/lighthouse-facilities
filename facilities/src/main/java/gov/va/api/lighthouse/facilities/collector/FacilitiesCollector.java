@@ -199,6 +199,7 @@ public class FacilitiesCollector {
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
     updateServicesFromCmsOverlay(datamartFacilities);
+    cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     return datamartFacilities;
   }
 

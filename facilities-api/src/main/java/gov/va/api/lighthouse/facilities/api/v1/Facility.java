@@ -21,11 +21,9 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.FacilitySerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.HoursSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.OperatingStatusSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientSatisfactionSerializer;
-import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PhoneSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.SatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.ServicesSerializer;
-import gov.va.api.lighthouse.facilities.api.v1.serializers.WaitTimesSerializer;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
@@ -555,7 +553,6 @@ public final class Facility implements CanBeEmpty {
     "operationalHoursSpecialInstructions",
     "services",
     "satisfaction",
-    "waitTimes",
     "mobile",
     "activeStatus",
     "operatingStatus",
@@ -638,10 +635,6 @@ public final class Facility implements CanBeEmpty {
     @Valid
     Satisfaction satisfaction;
 
-    @Valid
-    @Schema(example = "10", nullable = true)
-    WaitTimes waitTimes;
-
     @Schema(example = "false", nullable = true)
     Boolean mobile;
 
@@ -675,7 +668,6 @@ public final class Facility implements CanBeEmpty {
           && ObjectUtils.isEmpty(operationalHoursSpecialInstructions())
           && (services() == null || services().isEmpty())
           && (satisfaction() == null || satisfaction().isEmpty())
-          && (waitTimes() == null || waitTimes().isEmpty())
           && ObjectUtils.isEmpty(mobile())
           && ObjectUtils.isEmpty(activeStatus())
           && ObjectUtils.isEmpty(operatingStatus())
@@ -873,47 +865,6 @@ public final class Facility implements CanBeEmpty {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
-  @JsonSerialize(using = PatientWaitTimeSerializer.class)
-  @Schema(
-      description =
-          "Expected wait times for new and established patients for a given health care service.",
-      nullable = true)
-  public static final class PatientWaitTime implements CanBeEmpty {
-    @Schema(description = "Service being offered by facility.")
-    @NotNull
-    HealthService service;
-
-    @Schema(
-        example = "10",
-        description =
-            "Average number of days a Veteran who hasn't been to this location has to wait "
-                + "for a non-urgent appointment.",
-        nullable = true)
-    @JsonProperty("new")
-    BigDecimal newPatientWaitTime;
-
-    @Schema(
-        example = "5",
-        description =
-            "Average number of days a patient who has already been to this location has to wait "
-                + "for a non-urgent appointment.",
-        nullable = true)
-    @JsonProperty("established")
-    BigDecimal establishedPatientWaitTime;
-
-    /** Empty elements will be omitted from JSON serialization. */
-    @JsonIgnore
-    public boolean isEmpty() {
-      return ObjectUtils.isEmpty(service())
-          && ObjectUtils.isEmpty(newPatientWaitTime())
-          && ObjectUtils.isEmpty(establishedPatientWaitTime());
-    }
-  }
-
-  @Data
-  @Builder
-  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = PhoneSerializer.class)
   @Schema(
       description = "Collection of all telephone contact numbers for given facility. ",
@@ -1049,34 +1000,6 @@ public final class Facility implements CanBeEmpty {
           && ObjectUtils.isEmpty(health())
           && ObjectUtils.isEmpty(benefits())
           && ObjectUtils.isEmpty(lastUpdated());
-    }
-  }
-
-  @Data
-  @Builder
-  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
-  @JsonSerialize(using = WaitTimesSerializer.class)
-  @Schema(
-      description =
-          "Collection of wait times reported for various services based on access to care survey.",
-      nullable = true)
-  public static final class WaitTimes implements CanBeEmpty {
-    @Schema(
-        description = "List of expected patient wait times for given health service.",
-        nullable = true)
-    List<@Valid PatientWaitTime> health;
-
-    @Schema(
-        description = "The effective date of when the access to care survey was carried out.",
-        example = "2018-01-01",
-        nullable = true)
-    LocalDate effectiveDate;
-
-    /** Empty elements will be omitted from JSON serialization. */
-    @JsonIgnore
-    public boolean isEmpty() {
-      return ObjectUtils.isEmpty(health()) && ObjectUtils.isEmpty(effectiveDate());
     }
   }
 }

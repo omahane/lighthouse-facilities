@@ -134,12 +134,6 @@ public class FacilitiesEmptyFieldsTest {
                 .build()
                 .isEmpty())
         .isTrue();
-    assertThat(
-            Facility.FacilityAttributes.builder()
-                .waitTimes(Facility.WaitTimes.builder().build())
-                .build()
-                .isEmpty())
-        .isTrue();
     assertThat(Facility.FacilityAttributes.builder().instructions(emptyList()).build().isEmpty())
         .isTrue();
     // Not empty
@@ -212,19 +206,6 @@ public class FacilitiesEmptyFieldsTest {
                             Facility.PatientSatisfaction.builder()
                                 .primaryCareUrgent(BigDecimal.ZERO)
                                 .build())
-                        .build())
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(
-            Facility.FacilityAttributes.builder()
-                .waitTimes(
-                    Facility.WaitTimes.builder()
-                        .health(
-                            List.of(
-                                Facility.PatientWaitTime.builder()
-                                    .service(Facility.HealthService.Cardiology)
-                                    .build()))
                         .build())
                 .build()
                 .isEmpty())
@@ -330,23 +311,23 @@ public class FacilitiesEmptyFieldsTest {
   @SneakyThrows
   void emptyPatientWaitTimes() {
     // Empty
-    assertThat(Facility.PatientWaitTime.builder().build().isEmpty()).isTrue();
+    assertThat(DetailedService.PatientWaitTime.builder().build().isEmpty()).isTrue();
     // Not empty
     assertThat(
-            Facility.PatientWaitTime.builder()
+            DetailedService.PatientWaitTime.builder()
                 .newPatientWaitTime(BigDecimal.ZERO)
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
-            Facility.PatientWaitTime.builder()
+            DetailedService.PatientWaitTime.builder()
                 .establishedPatientWaitTime(BigDecimal.ZERO)
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
-            Facility.PatientWaitTime.builder()
-                .service(Facility.HealthService.Cardiology)
+            DetailedService.PatientWaitTime.builder()
+                .effectiveDate(LocalDate.parse("2020-03-09"))
                 .build()
                 .isEmpty())
         .isFalse();
@@ -439,27 +420,6 @@ public class FacilitiesEmptyFieldsTest {
 
   @Test
   @SneakyThrows
-  void emptyWaitTimes() {
-    // Empty
-    assertThat(Facility.WaitTimes.builder().build().isEmpty()).isTrue();
-    assertThat(Facility.WaitTimes.builder().health(emptyList()).build().isEmpty()).isTrue();
-    // Not empty
-    assertThat(
-            Facility.WaitTimes.builder()
-                .health(
-                    List.of(
-                        Facility.PatientWaitTime.builder()
-                            .service(Facility.HealthService.Cardiology)
-                            .build()))
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(Facility.WaitTimes.builder().effectiveDate(LocalDate.now()).build().isEmpty())
-        .isFalse();
-  }
-
-  @Test
-  @SneakyThrows
   void facilityAttributesInstructions() {
     assertThat(
             Facility.FacilityAttributes.builder().instructions(List.of("new instructions")).build())
@@ -525,15 +485,6 @@ public class FacilitiesEmptyFieldsTest {
                                     .build())
                             .effectiveDate(LocalDate.parse("2022-01-13"))
                             .build())
-                    .waitTimes(
-                        Facility.WaitTimes.builder()
-                            .health(
-                                List.of(
-                                    Facility.PatientWaitTime.builder()
-                                        .newPatientWaitTime(BigDecimal.ONE)
-                                        .build()))
-                            .effectiveDate(LocalDate.parse("2022-01-13"))
-                            .build())
                     .build())
             .build();
     assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(facility))
@@ -558,15 +509,6 @@ public class FacilitiesEmptyFieldsTest {
                                 Facility.PatientSatisfaction.builder()
                                     .primaryCareUrgent(BigDecimal.TEN)
                                     .build())
-                            .effectiveDate(LocalDate.parse("2022-01-13"))
-                            .build())
-                    .waitTimes(
-                        Facility.WaitTimes.builder()
-                            .health(
-                                List.of(
-                                    Facility.PatientWaitTime.builder()
-                                        .newPatientWaitTime(BigDecimal.ONE)
-                                        .build()))
                             .effectiveDate(LocalDate.parse("2022-01-13"))
                             .build())
                     .build())

@@ -157,9 +157,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(datamartFacility).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
+    assertThat(datamartFacility).hasFieldOrProperty("attributes.waitTimes");
+    assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.waitTimes"))
+        .isInstanceOf(AssertionError.class);
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.detailedServices")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(datamartFacility);
   }
 
@@ -249,22 +252,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                                 .specialtyCareUrgent(BigDecimal.valueOf(0.88))
                                 .build())
                         .effectiveDate(LocalDate.parse("2018-02-01"))
-                        .build())
-                .waitTimes(
-                    Facility.WaitTimes.builder()
-                        .health(
-                            List.of(
-                                Facility.PatientWaitTime.builder()
-                                    .service(Facility.HealthService.Cardiology)
-                                    .establishedPatientWaitTime(BigDecimal.valueOf(5))
-                                    .newPatientWaitTime(BigDecimal.valueOf(10))
-                                    .build(),
-                                Facility.PatientWaitTime.builder()
-                                    .service(Facility.HealthService.Covid19Vaccine)
-                                    .establishedPatientWaitTime(BigDecimal.valueOf(4))
-                                    .newPatientWaitTime(BigDecimal.valueOf(9))
-                                    .build()))
-                        .effectiveDate(LocalDate.parse("2018-03-05"))
                         .build())
                 .operatingStatus(
                     Facility.OperatingStatus.builder()
@@ -674,22 +661,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(transformFacilityAddressesMethod.invoke(null, nullAddressesV1))
         .usingRecursiveComparison()
         .isEqualTo(DatamartFacility.Addresses.builder().build());
-    final Method transformDatmartFacilityWaitTimesMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityWaitTimes", DatamartFacility.WaitTimes.class);
-    transformDatmartFacilityWaitTimesMethod.setAccessible(true);
-    DatamartFacility.WaitTimes nullWaitTimes = null;
-    assertThat(transformDatmartFacilityWaitTimesMethod.invoke(null, nullWaitTimes))
-        .usingRecursiveComparison()
-        .isEqualTo(Facility.WaitTimes.builder().build());
-    final Method transformFacilityWaitTimesMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityWaitTimes", Facility.WaitTimes.class);
-    transformFacilityWaitTimesMethod.setAccessible(true);
-    Facility.WaitTimes nullWaitTimesV1 = null;
-    assertThat(transformFacilityWaitTimesMethod.invoke(null, nullWaitTimesV1))
-        .usingRecursiveComparison()
-        .isEqualTo(DatamartFacility.WaitTimes.builder().build());
   }
 
   @Test
@@ -727,26 +698,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
-  }
-
-  @Test
-  @SneakyThrows
-  void transformDatamartFacilityPatientWaitTime() {
-    final Method transformFacilityPatientWaitTimeMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityPatientWaitTime", DatamartFacility.PatientWaitTime.class);
-    transformFacilityPatientWaitTimeMethod.setAccessible(true);
-    assertThat(
-            transformFacilityPatientWaitTimeMethod.invoke(
-                null,
-                DatamartFacility.PatientWaitTime.builder()
-                    .service(DatamartFacility.HealthService.Cardiology)
-                    .build()))
-        .isNotNull();
-    assertThat(
-            transformFacilityPatientWaitTimeMethod.invoke(
-                null, DatamartFacility.PatientWaitTime.builder().service(null).build()))
-        .isNotNull();
   }
 
   @Test
@@ -803,19 +754,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   }
 
   @Test
-  @SneakyThrows
-  void transformDatamartFacilityWaitTimes() {
-    final Method transformFacilityWaitTimesMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityWaitTimes", DatamartFacility.WaitTimes.class);
-    transformFacilityWaitTimesMethod.setAccessible(true);
-    DatamartFacility.WaitTimes dw = DatamartFacility.WaitTimes.builder().health(null).build();
-    Facility.WaitTimes actual =
-        (Facility.WaitTimes) transformFacilityWaitTimesMethod.invoke(null, dw);
-    assertThat(actual.health()).isNull();
-  }
-
-  @Test
   public void transformEmptyFacility() {
     Facility facility = Facility.builder().build();
     DatamartFacility datamartFacility = DatamartFacility.builder().build();
@@ -834,9 +772,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(expected).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
+    assertThat(expected).hasFieldOrProperty("attributes.waitTimes");
+    assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.waitTimes"))
+        .isInstanceOf(AssertionError.class);
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.detailedServices")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(expected);
   }
 
@@ -873,33 +814,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .usingRecursiveComparison()
         .isEqualTo(
             Facility.OperatingStatus.builder().code(Facility.OperatingStatusCode.NORMAL).build());
-  }
-
-  @Test
-  @SneakyThrows
-  void transformFacilityPatientWaitTime() {
-    final Method transformFacilityPatientWaitTimeMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityPatientWaitTime", Facility.PatientWaitTime.class);
-    transformFacilityPatientWaitTimeMethod.setAccessible(true);
-    DatamartFacility.PatientWaitTime actual =
-        (DatamartFacility.PatientWaitTime)
-            transformFacilityPatientWaitTimeMethod.invoke(
-                null,
-                Facility.PatientWaitTime.builder()
-                    .service(Facility.HealthService.Cardiology)
-                    .build());
-    DatamartFacility.PatientWaitTime expected =
-        DatamartFacility.PatientWaitTime.builder()
-            .service(DatamartFacility.HealthService.Cardiology)
-            .build();
-    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
-    actual =
-        (DatamartFacility.PatientWaitTime)
-            transformFacilityPatientWaitTimeMethod.invoke(
-                null, Facility.PatientWaitTime.builder().service(null).build());
-    expected = DatamartFacility.PatientWaitTime.builder().service(null).build();
-    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -955,19 +869,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(actual.health()).isNull();
     assertThat(actual.benefits()).isNull();
     assertThat(actual.other()).isNull();
-  }
-
-  @Test
-  @SneakyThrows
-  void transformFacilityWaitTimes() {
-    final Method transformFacilityWaitTimesMethod =
-        FacilityTransformerV1.class.getDeclaredMethod(
-            "transformFacilityWaitTimes", Facility.WaitTimes.class);
-    transformFacilityWaitTimesMethod.setAccessible(true);
-    Facility.WaitTimes dw = Facility.WaitTimes.builder().health(null).build();
-    DatamartFacility.WaitTimes actual =
-        (DatamartFacility.WaitTimes) transformFacilityWaitTimesMethod.invoke(null, dw);
-    assertThat(actual.health()).isNull();
   }
 
   @Test

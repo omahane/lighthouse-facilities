@@ -61,61 +61,6 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 32.047619,
-              "established" : 9.879032
-            },
-            {
-              "service" : "audiology",
-              "new" : 1.706967,
-              "established" : 2.126855
-            },
-            {
-              "service" : "optometry",
-              "new" : 76.396226,
-              "established" : 7.900787
-            },
-            {
-              "service" : "cardiology",
-              "new" : 18.657142,
-              "established" : 6.4
-            },
-            {
-              "service" : "dermatology",
-              "new" : 0.616666,
-              "established" : 0.555555
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 24.682539,
-              "established" : 4.995024
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 26.405405,
-              "established" : 1.545372
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 47.571428,
-              "established" : 3.258992
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 22.151515,
-              "established" : 4.943661
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 7.592814,
-              "established" : 3.97159
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
         "activeStatus" : "A",
         "visn" : "8"

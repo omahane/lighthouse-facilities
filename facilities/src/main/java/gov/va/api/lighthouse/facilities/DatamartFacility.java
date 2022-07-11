@@ -5,6 +5,8 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
@@ -26,6 +28,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DatamartFacility {
@@ -436,6 +439,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Address {
     @JsonProperty("address_1")
     String address1;
@@ -456,6 +460,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Addresses {
     @Valid Address mailing;
 
@@ -465,6 +470,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "name",
     "facility_type",
@@ -555,6 +561,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Hours {
     String sunday;
 
@@ -611,6 +618,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class OperatingStatus {
     @NotNull
     @JsonProperty(required = true)
@@ -627,6 +635,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class SupplementalStatus {
     @Valid
     @NotNull
@@ -642,6 +651,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class PatientSatisfaction {
     @JsonProperty("primary_care_urgent")
     BigDecimal primaryCareUrgent;
@@ -659,6 +669,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class PatientWaitTime {
     @NotNull HealthService service;
 
@@ -672,6 +683,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Phone {
     String fax;
 
@@ -698,6 +710,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Satisfaction {
     @Valid PatientSatisfaction health;
 
@@ -708,6 +721,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Services {
     List<OtherService> other;
 
@@ -722,6 +736,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class WaitTimes {
     @Valid List<PatientWaitTime> health;
 

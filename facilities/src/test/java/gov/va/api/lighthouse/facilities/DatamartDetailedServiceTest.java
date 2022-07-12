@@ -99,7 +99,6 @@ public class DatamartDetailedServiceTest {
         DatamartDetailedService.class.getDeclaredMethod(
             "isRecognizedEnumOrCovidService", String.class);
     isRecognizedEnumOrCovidServiceMethod.setAccessible(true);
-
     assertThatThrownBy(
             () ->
                 DatamartDetailedService.builder()
@@ -112,7 +111,6 @@ public class DatamartDetailedServiceTest {
                     .build())
         .isInstanceOf(Exception.class)
         .hasMessage("Unrecognized service id: empty");
-
     DatamartDetailedService emptyNameDetailedService =
         DatamartDetailedService.builder()
             .serviceInfo(
@@ -299,6 +297,84 @@ public class DatamartDetailedServiceTest {
     // Blank service name
     assertThat(isRecognizedEnumOrCovidServiceMethod.invoke(emptyNameDetailedService, "   "))
         .isEqualTo(Boolean.FALSE);
+  }
+
+  @Test
+  @SneakyThrows
+  void isRecognizedServiceId() {
+    String detailedServicesJson =
+        "[\n"
+            + "    {\n"
+            + "      \"name\":\"ApplyingForBenefits\",\n"
+            + "\t  \"serviceId\": \"applyingForBenefits\",\n"
+            + "      \"active\":true,\n"
+            + "      \"description_facility\":\"This is not null\",\n"
+            + "      \"health_service_api_id\":null,\n"
+            + "      \"appointment_leadin\":\"Your VA health care team will contact you if you...more text\",\n"
+            + "      \"online_scheduling_available\": \"True\",\n"
+            + "      \"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\",\n"
+            + "      \"appointment_phones\": [\n"
+            + "        {\n"
+            + "          \"type\": \"tel\",\n"
+            + "          \"label\": \"Main phone\",\n"
+            + "          \"number\": \"555-555-1212\",\n"
+            + "          \"extension\": \"123\" \n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"referral_required\": \"False\",\n"
+            + "      \"service_locations\": null,\n"
+            + "      \"walk_ins_accepted\": \"True\"\n"
+            + "    }, \n"
+            + "\t {\n"
+            + "      \"name\":\"Audiology\",\n"
+            + "\t  \"serviceId\": \"audiology\",\n"
+            + "      \"active\":true,\n"
+            + "      \"description_facility\":\"This is not null\",\n"
+            + "      \"health_service_api_id\":null,\n"
+            + "      \"appointment_leadin\":\"Your VA health care team will contact you if you...more text\",\n"
+            + "      \"online_scheduling_available\": \"True\",\n"
+            + "      \"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\",\n"
+            + "      \"appointment_phones\": [\n"
+            + "        {\n"
+            + "          \"type\": \"tel\",\n"
+            + "          \"label\": \"Main phone\",\n"
+            + "          \"number\": \"555-555-1212\",\n"
+            + "          \"extension\": \"123\" \n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"referral_required\": \"False\",\n"
+            + "      \"service_locations\": null,\n"
+            + "      \"walk_ins_accepted\": \"True\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"name\":\"OnlineScheduling\",\n"
+            + "\t  \"serviceId\": \"onlineScheduling\",\n"
+            + "      \"active\":true,\n"
+            + "      \"description_facility\":\"This is not null\",\n"
+            + "      \"health_service_api_id\":null,\n"
+            + "      \"appointment_leadin\":\"Your VA health care team will contact you if you...more text\",\n"
+            + "      \"online_scheduling_available\": \"True\",\n"
+            + "      \"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\",\n"
+            + "      \"appointment_phones\": [\n"
+            + "        {\n"
+            + "          \"type\": \"tel\",\n"
+            + "          \"label\": \"Main phone\",\n"
+            + "          \"number\": \"555-555-1212\",\n"
+            + "          \"extension\": \"123\" \n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"referral_required\": \"False\",\n"
+            + "      \"service_locations\": null,\n"
+            + "      \"walk_ins_accepted\": \"True\"\n"
+            + "    }\n"
+            + "  ]";
+    List<DatamartDetailedService> datamartDetailedServices =
+        CmsOverlayHelper.getDetailedServices(detailedServicesJson);
+    datamartDetailedServices.stream()
+        .forEach(
+            dds -> {
+              assertThat(dds.serviceInfo()).isNotNull();
+            });
   }
 
   @Test

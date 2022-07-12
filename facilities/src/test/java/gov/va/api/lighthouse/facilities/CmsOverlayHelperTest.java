@@ -16,8 +16,15 @@ public class CmsOverlayHelperTest {
     String ds = "[;]";
     assertThatThrownBy(() -> CmsOverlayHelper.getDetailedServices(ds))
         .isInstanceOf(JsonMappingException.class);
-
     assertThat(CmsOverlayHelper.getDetailedServices(null)).isEmpty();
+  }
+
+  @Test
+  void getHealthcareSystem() {
+    String system =
+        "{\"name\";\"VA Maine health care\",\"url\":\"https://www.va.gov/maine-health-care\",\"covid_url\":\"https://www.va.gov/maine-health-care/programs/covid-19-vaccines\"}}";
+    assertThatThrownBy(() -> CmsOverlayHelper.getHealthCareSystem(system))
+        .isInstanceOf(JsonParseException.class);
   }
 
   @Test

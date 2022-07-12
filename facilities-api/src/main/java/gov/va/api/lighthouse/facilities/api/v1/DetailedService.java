@@ -23,7 +23,10 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailC
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceHoursSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceLocationSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -61,6 +64,10 @@ public class DetailedService implements CanBeEmpty {
   @JsonAlias("service_info")
   @NonNull
   ServiceInfo serviceInfo;
+
+  @Valid
+  @Schema(description = "Patient wait time.", example = "10", nullable = true)
+  PatientWaitTime waitTime;
 
   @Schema(hidden = true)
   boolean active;
@@ -135,7 +142,8 @@ public class DetailedService implements CanBeEmpty {
         && ObjectUtils.isEmpty(phoneNumbers())
         && isBlank(referralRequired())
         && ObjectUtils.isEmpty(serviceLocations())
-        && isBlank(walkInsAccepted());
+        && isBlank(walkInsAccepted())
+        && (waitTime() == null || waitTime().isEmpty());
   }
 
   private boolean isRecognizedEnumOrCovidService(String serviceName) {
@@ -276,6 +284,46 @@ public class DetailedService implements CanBeEmpty {
         }
         return this;
       }
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonSerialize(using = PatientWaitTimeSerializer.class)
+  @Schema(
+      description =
+          "Expected wait times for new and established patients for a given health care service",
+      nullable = true)
+  public static final class PatientWaitTime implements CanBeEmpty {
+    @Schema(
+        example = "28.175438",
+        description =
+            "Average number of days a Veteran who hasn't been to this location has to wait "
+                + "for a non-urgent appointment.",
+        nullable = true)
+    @JsonProperty("new")
+    BigDecimal newPatientWaitTime;
+
+    @Schema(
+        example = "4.359409",
+        description =
+            "Average number of days a patient who has already been to this location has to wait "
+                + "for a non-urgent appointment.",
+        nullable = true)
+    @JsonProperty("established")
+    BigDecimal establishedPatientWaitTime;
+
+    @Schema(example = "2018-01-01", nullable = true)
+    LocalDate effectiveDate;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @JsonIgnore
+    public boolean isEmpty() {
+      return ObjectUtils.isEmpty(newPatientWaitTime())
+          && ObjectUtils.isEmpty(establishedPatientWaitTime())
+          && ObjectUtils.isEmpty(effectiveDate());
     }
   }
 

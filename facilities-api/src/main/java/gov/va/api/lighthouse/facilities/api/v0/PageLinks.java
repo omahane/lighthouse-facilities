@@ -16,7 +16,7 @@ import lombok.Value;
 public final class PageLinks {
   @Schema(
       description = "Link to related pages of response.",
-      example = "https://api.va.gov/services/va_facilities/v1/facilities?id=vha_688",
+      example = "https://api.va.gov/services/va_facilities/v0/facilities?id=vha_688",
       nullable = true)
   String related;
 

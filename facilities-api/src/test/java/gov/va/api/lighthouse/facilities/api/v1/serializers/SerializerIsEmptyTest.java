@@ -23,7 +23,6 @@ import gov.va.api.lighthouse.facilities.api.v1.Pagination;
 import gov.va.api.lighthouse.facilities.api.v1.ReloadResponse;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -725,16 +724,22 @@ public class SerializerIsEmptyTest {
     assertIsEmptyUsingObjectSerializer(
         null, new PatientWaitTimeSerializer(), mock(SerializerProvider.class));
     assertIsEmptyUsingObjectSerializer(
-        Facility.PatientWaitTime.builder().build(),
+        DetailedService.PatientWaitTime.builder().build(),
         new PatientWaitTimeSerializer(),
         mock(SerializerProvider.class));
     assertIsEmptyUsingObjectSerializer(
-        Facility.PatientWaitTime.builder().newPatientWaitTime(null).build(),
+        DetailedService.PatientWaitTime.builder()
+            .newPatientWaitTime(null)
+            .establishedPatientWaitTime(null)
+            .effectiveDate(null)
+            .build(),
         new PatientWaitTimeSerializer(),
         mock(SerializerProvider.class));
     // Not empty
     assertIsNotEmptyUsingObjectSerializer(
-        Facility.PatientWaitTime.builder().service(Facility.HealthService.Cardiology).build(),
+        DetailedService.PatientWaitTime.builder()
+            .newPatientWaitTime(BigDecimal.valueOf(3.5))
+            .build(),
         new PatientWaitTimeSerializer(),
         mock(SerializerProvider.class));
   }
@@ -866,27 +871,6 @@ public class SerializerIsEmptyTest {
     assertIsNotEmptyUsingObjectSerializer(
         Facility.Services.builder().health(List.of(Facility.HealthService.PrimaryCare)).build(),
         new ServicesSerializer(),
-        mock(SerializerProvider.class));
-  }
-
-  @Test
-  @SneakyThrows
-  void waitTimesIsEmpty() {
-    // Empty
-    assertIsEmptyUsingObjectSerializer(
-        null, new WaitTimesSerializer(), mock(SerializerProvider.class));
-    assertIsEmptyUsingObjectSerializer(
-        Facility.WaitTimes.builder().build(),
-        new WaitTimesSerializer(),
-        mock(SerializerProvider.class));
-    assertIsEmptyUsingObjectSerializer(
-        Facility.WaitTimes.builder().health(emptyList()).build(),
-        new WaitTimesSerializer(),
-        mock(SerializerProvider.class));
-    // Not empty
-    assertIsNotEmptyUsingObjectSerializer(
-        Facility.WaitTimes.builder().effectiveDate(LocalDate.now()).build(),
-        new WaitTimesSerializer(),
         mock(SerializerProvider.class));
   }
 }

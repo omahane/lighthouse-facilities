@@ -67,6 +67,8 @@ public class InternalFacilitiesControllerTest {
 
   FacilitiesCollector collector = mock(FacilitiesCollector.class);
 
+  CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+
   private static DatamartFacility _facility(
       String id,
       String state,
@@ -230,6 +232,16 @@ public class InternalFacilitiesControllerTest {
         .build();
   }
 
+  private FacilitiesCollector _facilitiesCollector() {
+    return new FacilitiesCollector(
+        mock(InsecureRestTemplateProvider.class),
+        mock(JdbcTemplate.class),
+        mockCmsOverlayCollector,
+        "atcBaseUrl",
+        "atpBaseUrl",
+        "cemeteriesBaseUrl");
+  }
+
   private FacilityEntity _facilityEntity(DatamartFacility fac) {
     return _facilityEntity(fac, null);
   }
@@ -265,6 +277,11 @@ public class InternalFacilitiesControllerTest {
             .lastUpdated(Instant.now())
             .build(),
         fac);
+  }
+
+  private DatamartFacility.OperatingStatus _operatingStatus(
+      DatamartFacility.OperatingStatusCode code) {
+    return DatamartFacility.OperatingStatus.builder().code(code).build();
   }
 
   @SneakyThrows
@@ -313,22 +330,38 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
+  void collect_doNotInferOperatingStatus() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus().code(DatamartFacility.OperatingStatusCode.CLOSED);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is not null, and the overlay operating status matches the
+    // facility operating status,
+    // then active status should not be used and facility operating status should not change
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+  }
+
+  @Test
+  @SneakyThrows
   void collect_healthConnectNullHealthCareSystem() {
     DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     DatamartCmsOverlay overlay = _overlay();
     overlay.healthCareSystem(null);
-    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
     HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
     overlays.put(facility.id(), overlay);
     when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
-    FacilitiesCollector facilitiesCollector =
-        new FacilitiesCollector(
-            mock(InsecureRestTemplateProvider.class),
-            mock(JdbcTemplate.class),
-            mockCmsOverlayCollector,
-            "atcBaseUrl",
-            "atpBaseUrl",
-            "cemeteriesBaseUrl");
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone().healthConnect()).isNull();
     assertDoesNotThrow(
         () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
@@ -342,18 +375,10 @@ public class InternalFacilitiesControllerTest {
     DatamartCmsOverlay overlay = _overlay();
     overlay.healthCareSystem(null);
     facility.attributes().phone(null);
-    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
     HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
     overlays.put(facility.id(), overlay);
     when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
-    FacilitiesCollector facilitiesCollector =
-        new FacilitiesCollector(
-            mock(InsecureRestTemplateProvider.class),
-            mock(JdbcTemplate.class),
-            mockCmsOverlayCollector,
-            "atcBaseUrl",
-            "atpBaseUrl",
-            "cemeteriesBaseUrl");
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone()).isNull();
     assertDoesNotThrow(
         () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
@@ -365,18 +390,10 @@ public class InternalFacilitiesControllerTest {
   void collect_healthConnectNullPhone() {
     DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     facility.attributes().phone(null);
-    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
     HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
     overlays.put(facility.id(), _overlay());
     when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
-    FacilitiesCollector facilitiesCollector =
-        new FacilitiesCollector(
-            mock(InsecureRestTemplateProvider.class),
-            mock(JdbcTemplate.class),
-            mockCmsOverlayCollector,
-            "atcBaseUrl",
-            "atpBaseUrl",
-            "cemeteriesBaseUrl");
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone()).isNull();
     assertDoesNotThrow(
         () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
@@ -544,6 +561,49 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
+  void collect_operatingStatusWithOverlay() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility.attributes().operatingStatus(null);
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus().code(DatamartFacility.OperatingStatusCode.CLOSED);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is null, but overlay operating status is not null, then active
+    // status should not be
+    // used, instead overlay operating status should be used
+    assertThat(facility.attributes().operatingStatus()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(overlay.operatingStatus().code());
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_populateOperatingStatusFromNull() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility.attributes().operatingStatus(null);
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is null, and overlay operating status is null and therefore
+    // cannot be used to
+    // populate facility operating status, then active status should be used to infer facility
+    // operating status
+    assertThat(facility.attributes().operatingStatus()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+  }
+
+  @Test
+  @SneakyThrows
   void collect_setHealthConnectPhoneNumber() {
     DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
@@ -562,6 +622,56 @@ public class InternalFacilitiesControllerTest {
     facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
     assertThat(facility.attributes().phone().healthConnect())
         .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateOperatingStatusToClosed() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(null);
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.NORMAL));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.T);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility's operating status is NORMAL, the overlay's operating status is null, and the
+    // facility's ActiveStatus
+    // is T, then the ActiveStatus should be used to change the operating status to CLOSED
+    assertThat(facility.attributes().operatingStatus().code)
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateOperatingStatusToNormal() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(null);
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility's operating status is NORMAL, the overlay's operating status is null, and the
+    // facility's ActiveStatus
+    // is T, then the ActiveStatus should be used to change the operating status to CLOSED
+    assertThat(facility.attributes().operatingStatus().code)
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
   }
 
   @Test

@@ -199,6 +199,7 @@ public class FacilitiesCollector {
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
     updateServicesFromCmsOverlay(datamartFacilities);
+    cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     return datamartFacilities;
   }
 
@@ -285,6 +286,20 @@ public class FacilitiesCollector {
         }
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
+      }
+      if (datamartFacility.attributes() != null) {
+        if (datamartFacility.attributes().operatingStatus() == null) {
+          datamartFacility
+              .attributes()
+              .operatingStatus(
+                  datamartFacility.attributes().activeStatus() == DatamartFacility.ActiveStatus.T
+                      ? DatamartFacility.OperatingStatus.builder()
+                          .code(DatamartFacility.OperatingStatusCode.CLOSED)
+                          .build()
+                      : DatamartFacility.OperatingStatus.builder()
+                          .code(DatamartFacility.OperatingStatusCode.NORMAL)
+                          .build());
+        }
       }
     }
   }

@@ -14,6 +14,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -24,6 +26,8 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v1.Pagination;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -195,7 +199,6 @@ public class CmsOverlayControllerV1Test {
                             getDatamartDetailedService(
                                 DatamartFacility.HealthService.Covid19Vaccine, false)))
                     .build()));
-
     assertThatThrownBy(() -> controller().getDetailedService("vha_000", "cardiology"))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
         .hasMessage("The record identified by vha_000 could not be found");
@@ -394,6 +397,13 @@ public class CmsOverlayControllerV1Test {
               assertThat(isNotEmpty(ds.serviceInfo().name())).isTrue();
               assertThat(ObjectUtils.isNotEmpty(ds.serviceInfo().serviceType())).isTrue();
             });
+    /*
+    Because ServiceInfoBuilder serviceId() in ServiceInfo automatically assign a valid id or an INVALID_ID
+    for each service if not specified. We have to explicitly force service id and service type to an empty value after calling the builder above to satisfy
+    the condition inpopulateServiceInfoAndFilterOutInvalid to increase code coverage
+    */
+    overlayWithoutServiceId.detailedServices().parallelStream()
+        .forEach(ds -> ds.serviceInfo().serviceId("").serviceType(null));
     populateMethod.invoke(controller(), overlayWithoutServiceId);
     overlayWithoutServiceId.detailedServices().parallelStream()
         .forEach(
@@ -670,6 +680,93 @@ public class CmsOverlayControllerV1Test {
         controller().saveOverlay("vha_666", CmsOverlayTransformerV1.toCmsOverlay(overlay()));
     verifyNoMoreInteractions(mockFacilityRepository);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+  }
+
+  @Test
+  @SneakyThrows
+  void updateOverlayServicesWithWaittimesFromATC() {
+    DatamartCmsOverlay overlay = overlay();
+    overlay.operatingStatus(
+        DatamartFacility.OperatingStatus.builder()
+            .code(DatamartFacility.OperatingStatusCode.CLOSED)
+            .additionalInfo("i need attention")
+            .build());
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    List<PatientWaitTime> patientWaitTimes =
+        List.of(
+            PatientWaitTime.builder()
+                .service(DatamartFacility.HealthService.Cardiology)
+                .newPatientWaitTime(BigDecimal.valueOf(34.4))
+                .establishedPatientWaitTime(BigDecimal.valueOf(3.25))
+                .build(),
+            PatientWaitTime.builder()
+                .service(DatamartFacility.HealthService.Urology)
+                .newPatientWaitTime(BigDecimal.valueOf(23.6))
+                .establishedPatientWaitTime(BigDecimal.valueOf(20.0))
+                .build());
+    DatamartFacility df =
+        DatamartFacility.builder()
+            .id("vha_402")
+            .attributes(
+                DatamartFacility.FacilityAttributes.builder()
+                    .website("va.gov")
+                    .waitTimes(
+                        DatamartFacility.WaitTimes.builder()
+                            .health(patientWaitTimes)
+                            .effectiveDate(LocalDate.parse("2020-03-09"))
+                            .build())
+                    .build())
+            .build();
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(pk)
+            .services(new HashSet<>())
+            .facility(DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString(df))
+            .build();
+    when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(facilityEntity));
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
+    List<DatamartDetailedService> datamartDetailedServices =
+        updatedCovidPathOverlay.detailedServices();
+    updateServiceUrlPaths("vha_402", datamartDetailedServices);
+    updatedCovidPathOverlay.detailedServices(datamartDetailedServices);
+    // active will ALWAYS be false when retrieving from the database, the fact the overlay
+    // exists means that active was true at the time of insertion
+    for (DatamartDetailedService d : datamartDetailedServices) {
+      d.active(false);
+    }
+    // Verify that overlay detailed services were updated with ATC wait_times data
+    CmsOverlayEntity savedCmsOverlayEntity = mockCmsOverlayRepository.findById(pk).get();
+    List<DatamartDetailedService> datamartDetailedServiceList =
+        CmsOverlayHelper.getDetailedServices(savedCmsOverlayEntity.cmsServices());
+    datamartDetailedServiceList.stream()
+        .filter(ds -> !ds.serviceInfo().serviceId.equals(HealthService.Covid19Vaccine.name()))
+        .forEach(
+            ds -> {
+              if (ds.serviceInfo().serviceId().equals(HealthService.Cardiology.name())) {
+                assertThat(ds.waitTime().newPatientWaitTime()).isEqualTo(BigDecimal.valueOf(34.4));
+                assertThat(ds.waitTime().establishedPatientWaitTime())
+                    .isEqualTo(BigDecimal.valueOf(3.25));
+                assertThat(ds.waitTime().effectiveDate()).isEqualTo(LocalDate.parse("2020-03-09"));
+              }
+              if (ds.serviceInfo().serviceId().equals(HealthService.Urology.name())) {
+                assertThat(ds.waitTime().newPatientWaitTime()).isEqualTo(BigDecimal.valueOf(23.6));
+                assertThat(ds.waitTime().establishedPatientWaitTime())
+                    .isEqualTo(BigDecimal.valueOf(20.0));
+                assertThat(ds.waitTime().effectiveDate()).isEqualTo(LocalDate.parse("2020-03-09"));
+              }
+            });
   }
 
   @Test

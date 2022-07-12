@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
@@ -14,6 +15,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -27,12 +30,12 @@ import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
-@JsonInclude()
 @JsonIgnoreProperties(
     ignoreUnknown = true,
     value = {"active"},
     allowSetters = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
@@ -46,6 +49,9 @@ import org.apache.commons.lang3.StringUtils;
 })
 public class DatamartDetailedService {
   @NonNull ServiceInfo serviceInfo;
+
+  @JsonProperty("wait_time")
+  PatientWaitTime waitTime;
 
   boolean active;
 
@@ -207,8 +213,8 @@ public class DatamartDetailedService {
 
   @Data
   @Builder
-  @JsonInclude()
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "building_name_number",
     "clinic_name",
@@ -249,8 +255,8 @@ public class DatamartDetailedService {
 
   @Data
   @Builder
-  @JsonInclude()
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class AppointmentPhoneNumber {
     String extension;
 
@@ -264,6 +270,7 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "service_location_address",
     "appointment_phones",
@@ -292,6 +299,7 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class DetailedServiceEmailContact {
     @JsonProperty("email_address")
     String emailAddress;
@@ -303,6 +311,7 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"})
   public static final class DetailedServiceHours {
     @JsonProperty("Monday")
@@ -325,5 +334,19 @@ public class DatamartDetailedService {
 
     @JsonProperty("Sunday")
     String sunday;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class PatientWaitTime {
+    @JsonProperty("new")
+    BigDecimal newPatientWaitTime;
+
+    @JsonProperty("established")
+    BigDecimal establishedPatientWaitTime;
+
+    @JsonProperty("effective_date")
+    LocalDate effectiveDate;
   }
 }

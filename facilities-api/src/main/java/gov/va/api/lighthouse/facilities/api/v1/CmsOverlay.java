@@ -42,7 +42,7 @@ public class CmsOverlay implements CanBeEmpty {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @Schema(description = "Describes the Health Care System for a facility.", nullable = true)
   public static final class HealthCareSystem {
 

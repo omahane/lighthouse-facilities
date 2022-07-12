@@ -143,39 +143,39 @@ public class CmsOverlayCollector {
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
     datamartFacilities.stream()
         .filter(df -> overlayEntityMap.containsKey(df.id()))
+        .filter(
+            df ->
+                df.attributes().waitTimes() != null && df.attributes().waitTimes().health() != null)
         .forEach(
             datamartFacility -> {
               WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
-              if (atcWaitTimes != null && atcWaitTimes.health() != null) {
-                List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
-                LocalDate effectiveDate = atcWaitTimes.effectiveDate();
-                Map<String, PatientWaitTime> waitTimeMap =
-                    patientWaitTimes.stream()
-                        .collect(
-                            Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
-                CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
-                List<DatamartDetailedService> cmsDatamartDetailedServices =
-                    Optional.ofNullable(
-                            CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
-                        .orElse(List.of());
-                cmsDatamartDetailedServices.stream()
-                    .forEach(
-                        cmsService -> {
-                          String serviceId = cmsService.serviceInfo().serviceId();
-                          PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
-                          if (patientWaitTime != null) {
-                            cmsService.waitTime(
-                                DatamartDetailedService.PatientWaitTime.builder()
-                                    .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
-                                    .establishedPatientWaitTime(
-                                        patientWaitTime.establishedPatientWaitTime())
-                                    .effectiveDate(effectiveDate)
-                                    .build());
-                          }
-                        });
-                cmsOverlayEntity.cmsServices(
-                    CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
-              }
+              List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
+              LocalDate effectiveDate = atcWaitTimes.effectiveDate();
+              Map<String, PatientWaitTime> waitTimeMap =
+                  patientWaitTimes.stream()
+                      .collect(Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
+              CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
+              List<DatamartDetailedService> cmsDatamartDetailedServices =
+                  Optional.ofNullable(
+                          CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
+                      .orElse(List.of());
+              cmsDatamartDetailedServices.stream()
+                  .forEach(
+                      cmsService -> {
+                        String serviceId = cmsService.serviceInfo().serviceId();
+                        PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
+                        if (patientWaitTime != null) {
+                          cmsService.waitTime(
+                              DatamartDetailedService.PatientWaitTime.builder()
+                                  .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
+                                  .establishedPatientWaitTime(
+                                      patientWaitTime.establishedPatientWaitTime())
+                                  .effectiveDate(effectiveDate)
+                                  .build());
+                        }
+                      });
+              cmsOverlayEntity.cmsServices(
+                  CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
             });
     cmsOverlayRepository.saveAll(overlayEntityMap.values());
   }

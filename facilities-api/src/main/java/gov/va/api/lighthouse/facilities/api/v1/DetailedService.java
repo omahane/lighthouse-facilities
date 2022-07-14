@@ -23,6 +23,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailC
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceHoursSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceLocationSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -290,6 +291,7 @@ public class DetailedService implements CanBeEmpty {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonSerialize(using = PatientWaitTimeSerializer.class)
   @Schema(
       description =
           "Expected wait times for new and established patients for a given health care service",

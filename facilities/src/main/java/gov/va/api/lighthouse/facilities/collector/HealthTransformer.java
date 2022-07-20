@@ -85,17 +85,17 @@ final class HealthTransformer {
     Map<String, HealthService> map = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     map.put("AUDIOLOGY", Audiology);
     map.put("CARDIOLOGY", Cardiology);
-    map.put("COMP WOMEN'S HLTH", WomensHealth);
+    map.put("WOMEN'S HEALTH", WomensHealth);
     map.put("DERMATOLOGY", Dermatology);
     map.put("GASTROENTEROLOGY", Gastroenterology);
-    map.put("GYNECOLOGY", Gynecology);
-    map.put("MENTAL HEALTH", MentalHealth);
+    map.put("OB/GYN", Gynecology);
+    map.put("MENTAL HEALTH INDIVIDUAL", MentalHealth);
     map.put("OPHTHALMOLOGY", Ophthalmology);
     map.put("OPTOMETRY", Optometry);
     map.put("ORTHOPEDICS", Orthopedics);
     map.put("PRIMARY CARE", PrimaryCare);
     map.put("SPECIALTY CARE", SpecialtyCare);
-    map.put("UROLOGY CLINIC", Urology);
+    map.put("UROLOGY", Urology);
     return map;
   }
 

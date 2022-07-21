@@ -170,7 +170,13 @@ final class HealthsCollector {
         log.warn("AccessToCare entry has null facility ID");
         continue;
       }
-      map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+      if (entry.facilityId().equals("531")
+          && entry.apptTypeName().equalsIgnoreCase("PRIMARY CARE")
+          && entry.sliceEndDate().equalsIgnoreCase("2022-07-18T00:00:00")) {
+        // Get it outta here
+      } else {
+        map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+      }
     }
     log.info(
         "Loading patient wait times took {} millis for {} entries",

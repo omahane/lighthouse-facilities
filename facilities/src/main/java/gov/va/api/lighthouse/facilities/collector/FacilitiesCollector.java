@@ -42,6 +42,8 @@ public class FacilitiesCollector {
 
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
 
+  private static final String ORTHO_STATIONS_RESOURCE_NAME = "ortho_stations.txt";
+
   protected final InsecureRestTemplateProvider insecureRestTemplateProvider;
 
   protected final JdbcTemplate jdbcTemplate;
@@ -70,26 +72,26 @@ public class FacilitiesCollector {
     this.cmsOverlayCollector = cmsOverlayCollector;
   }
 
-  /** Caregiver support facilities given a resource name. */
+  /** Returns list of vha facilities contained in a file. */
   @SneakyThrows
-  public static ArrayList<String> loadCaregiverSupport(String resourceName) {
+  public static ArrayList<String> loadFacilitiesFromResource(String resourceName) {
     final Stopwatch totalWatch = Stopwatch.createStarted();
-    ArrayList<String> cscFacilities = new ArrayList<>();
+    ArrayList<String> facilities = new ArrayList<>();
     try (BufferedReader reader =
         new BufferedReader(
             new InputStreamReader(
                 new ClassPathResource(resourceName).getInputStream(), StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null) {
-        cscFacilities.add("vha_" + line);
+        facilities.add("vha_" + line);
       }
     }
     log.info(
         "Loading caregiver support facilities took {} millis for {} entries",
         totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-        cscFacilities.size());
-    checkState(!cscFacilities.isEmpty(), "No caregiver support entries");
-    return cscFacilities;
+        facilities.size());
+    checkState(!facilities.isEmpty(), "No caregiver support entries");
+    return facilities;
   }
 
   @SneakyThrows
@@ -144,10 +146,12 @@ public class FacilitiesCollector {
     Map<String, String> websites;
     Collection<VastEntity> vastEntities;
     ArrayList<String> cscFacilities;
+    ArrayList<String> orthoFacilities;
     try {
       websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
       vastEntities = loadVast();
-      cscFacilities = loadCaregiverSupport(CSC_STATIONS_RESOURCE_NAME);
+      cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
+      orthoFacilities = loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME);
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
@@ -156,6 +160,7 @@ public class FacilitiesCollector {
             .atcBaseUrl(atcBaseUrl)
             .atpBaseUrl(atpBaseUrl)
             .cscFacilities(cscFacilities)
+            .orthoFacilities(orthoFacilities)
             .jdbcTemplate(jdbcTemplate)
             .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
             .vastEntities(vastEntities)

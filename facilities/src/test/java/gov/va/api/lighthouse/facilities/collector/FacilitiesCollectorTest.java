@@ -252,7 +252,7 @@ public class FacilitiesCollectorTest {
     assertThrows(NullPointerException.class, () -> FacilitiesCollector.withTrailingSlash(null));
 
     assertThrows(
-        IllegalArgumentException.class, () -> FacilitiesCollector.loadCaregiverSupport(null));
+        IllegalArgumentException.class, () -> FacilitiesCollector.loadFacilitiesFromResource(null));
   }
 
   @Test

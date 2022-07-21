@@ -179,6 +179,7 @@ class HealthsCollectorJpaTest {
                 .atcBaseUrl("http://atc/")
                 .atpBaseUrl("http://atp/")
                 .cscFacilities(new ArrayList<>())
+                .orthoFacilities(new ArrayList<>())
                 .jdbcTemplate(jdbcTemplate)
                 .insecureRestTemplate(insecureRestTemplate)
                 .vastEntities(List.of(entity))

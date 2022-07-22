@@ -171,8 +171,7 @@ final class HealthsCollector {
         continue;
       }
       if (entry.facilityId().equals("531")
-          && entry.apptTypeName().equalsIgnoreCase("PRIMARY CARE")
-          && entry.sliceEndDate().equalsIgnoreCase("2022-07-18T00:00:00")) {
+          && entry.apptTypeName().equalsIgnoreCase("PRIMARY CARE")) {
         // Get it outta here
       } else {
         map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);

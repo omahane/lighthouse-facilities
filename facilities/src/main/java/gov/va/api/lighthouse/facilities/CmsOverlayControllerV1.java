@@ -75,18 +75,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                 : INVALID_SVC_ID;
   }
 
-  /** Obtain typed service for specified service id. */
-  private static Optional<? extends TypedService> getTypedServiceForServiceId(
-      @NonNull String serviceId) {
-    return Facility.HealthService.isRecognizedServiceId(serviceId)
-        ? Facility.HealthService.fromServiceId(serviceId)
-        : Facility.BenefitsService.isRecognizedServiceId(serviceId)
-            ? Facility.BenefitsService.fromServiceId(serviceId)
-            : Facility.OtherService.isRecognizedServiceId(serviceId)
-                ? Facility.OtherService.fromServiceId(serviceId)
-                : Optional.empty();
-  }
-
   @GetMapping(
       value = {"/facilities/{facility_id}/services/{service_id}"},
       produces = "application/json")
@@ -166,13 +154,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   @InitBinder
   void initDirectFieldAccess(DataBinder dataBinder) {
     dataBinder.initDirectFieldAccess();
-  }
-
-  /** Determine whether specified service id matches that for V1 service. */
-  protected boolean isRecognizedServiceId(String serviceId) {
-    return Facility.HealthService.isRecognizedServiceId(serviceId)
-        || Facility.BenefitsService.isRecognizedServiceId(serviceId)
-        || Facility.OtherService.isRecognizedServiceId(serviceId);
   }
 
   /**

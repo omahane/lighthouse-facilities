@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities;
 
 import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
@@ -99,18 +98,25 @@ public class DatamartDetailedServiceTest {
         DatamartDetailedService.class.getDeclaredMethod(
             "isRecognizedEnumOrCovidService", String.class);
     isRecognizedEnumOrCovidServiceMethod.setAccessible(true);
-    assertThatThrownBy(
-            () ->
-                DatamartDetailedService.builder()
-                    .serviceInfo(
-                        DatamartDetailedService.ServiceInfo.builder()
-                            .serviceId("empty")
-                            .name("empty")
-                            .serviceType(TypeOfService.Health)
-                            .build())
-                    .build())
-        .isInstanceOf(Exception.class)
-        .hasMessage("Unrecognized service id: empty");
+
+    assertThat(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceType(TypeOfService.Health)
+                        .serviceId("empty")
+                        .name("empty")
+                        .build())
+                .build())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(TypedService.INVALID_SVC_ID)
+                        .name("empty")
+                        .build()));
+
     DatamartDetailedService emptyNameDetailedService =
         DatamartDetailedService.builder()
             .serviceInfo(

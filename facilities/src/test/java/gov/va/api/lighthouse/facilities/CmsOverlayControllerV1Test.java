@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
@@ -202,7 +203,6 @@ public class CmsOverlayControllerV1Test {
     assertThatThrownBy(() -> controller().getDetailedService("vha_000", "cardiology"))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
         .hasMessage("The record identified by vha_000 could not be found");
-    ;
   }
 
   @Test
@@ -496,51 +496,46 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void typedServiceForServiceId() {
-    Method typedServiceForServiceIdMethod =
-        CmsOverlayControllerV1.class.getDeclaredMethod("getTypedServiceForServiceId", String.class);
-    typedServiceForServiceIdMethod.setAccessible(true);
     // Valid service ids
-    Arrays.stream(Facility.BenefitsService.values())
+    Arrays.stream(DatamartFacility.BenefitsService.values())
         .parallel()
         .forEach(
             bs -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), bs.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(bs.serviceId()))
                     .isEqualTo(Optional.of(bs));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
-    Arrays.stream(Facility.HealthService.values())
+    Arrays.stream(DatamartFacility.HealthService.values())
         .parallel()
         .forEach(
             hs -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), hs.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(hs.serviceId()))
                     .isEqualTo(Optional.of(hs));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
-    Arrays.stream(Facility.OtherService.values())
+    Arrays.stream(DatamartFacility.OtherService.values())
         .parallel()
         .forEach(
             os -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), os.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(os.serviceId()))
                     .isEqualTo(Optional.of(os));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
     // Invalid service ids
-    assertThat(typedServiceForServiceIdMethod.invoke(controller(), "noSuchId"))
-        .isEqualTo(Optional.empty());
-    assertThat(typedServiceForServiceIdMethod.invoke(controller(), "   "))
-        .isEqualTo(Optional.empty());
-    assertThatIllegalArgumentException()
+    assertThat(controller().getTypedServiceForServiceId("noSuchId")).isEqualTo(Optional.empty());
+    assertThat(controller().getTypedServiceForServiceId("   ")).isEqualTo(Optional.empty());
+    assertThatNullPointerException()
         .describedAs("serviceId is marked non-null but is null")
-        .isThrownBy(() -> typedServiceForServiceIdMethod.invoke(controller(), null));
+        .isThrownBy(() -> controller().getTypedServiceForServiceId(null));
   }
 
   @Test

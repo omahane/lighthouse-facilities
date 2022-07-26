@@ -14,6 +14,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -139,7 +140,6 @@ public class DatamartDetailedService {
     String name;
 
     @Schema(description = "Service type.", example = "Health")
-    @NonNull
     TypeOfService serviceType;
 
     public static class ServiceInfoBuilder {
@@ -154,19 +154,24 @@ public class DatamartDetailedService {
        * service name.
        */
       public ServiceInfoBuilder name(String name) {
+        // Update service name
         this.name = name;
-        if (HealthService.isRecognizedEnumOrCovidService(name)) {
-          final HealthService healthService = HealthService.fromString(name);
-          this.serviceId = healthService.serviceId();
-          this.serviceType = healthService.serviceType();
-        } else if (BenefitsService.isRecognizedServiceEnum(name)) {
-          final BenefitsService benefitsService = BenefitsService.fromString(name);
-          this.serviceId = benefitsService.serviceId();
-          this.serviceType = benefitsService.serviceType();
-        } else if (OtherService.isRecognizedServiceEnum(name)) {
-          final OtherService otherService = OtherService.fromString(name);
-          this.serviceId = otherService.serviceId();
-          this.serviceType = otherService.serviceType();
+        // Update service id and type
+        final TypedService typedService =
+            HealthService.isRecognizedEnumOrCovidService(name)
+                ? HealthService.fromString(name)
+                : BenefitsService.isRecognizedServiceEnum(name)
+                    ? BenefitsService.fromString(name)
+                    : OtherService.isRecognizedServiceEnum(name)
+                        ? OtherService.fromString(name)
+                        : null;
+        if (typedService != null) {
+          this.serviceId = typedService.serviceId();
+          this.serviceType = typedService.serviceType();
+        } else if (StringUtils.isEmpty(serviceId)) {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
         }
         return this;
       }
@@ -177,34 +182,25 @@ public class DatamartDetailedService {
        */
       @SneakyThrows
       public ServiceInfoBuilder serviceId(String serviceId) {
-        this.serviceId = serviceId;
-        if (HealthService.isRecognizedServiceId(serviceId)) {
-          final Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
-          if (healthService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = healthService.get().name();
-            }
-            this.serviceType = healthService.get().serviceType();
+        // Determine whether service id is recognized
+        final Optional<? extends TypedService> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            this.name = typedService.get().name();
           }
-        } else if (BenefitsService.isRecognizedServiceId(serviceId)) {
-          final Optional<BenefitsService> benefitsService =
-              BenefitsService.fromServiceId(serviceId);
-          if (benefitsService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = benefitsService.get().name();
-            }
-            this.serviceType = benefitsService.get().serviceType();
-          }
-        } else if (OtherService.isRecognizedServiceId(serviceId)) {
-          final Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
-          if (otherService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = otherService.get().name();
-            }
-            this.serviceType = otherService.get().serviceType();
-          }
+          this.serviceType = typedService.get().serviceType();
         } else {
-          throw new Exception(String.format("Unrecognized service id: %s", serviceId));
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
         }
         return this;
       }

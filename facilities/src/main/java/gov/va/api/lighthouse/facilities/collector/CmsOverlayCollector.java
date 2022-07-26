@@ -143,9 +143,8 @@ public class CmsOverlayCollector {
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
     datamartFacilities.stream()
         .filter(df -> overlayEntityMap.containsKey(df.id()))
-        .filter(
-            df ->
-                df.attributes().waitTimes() != null && df.attributes().waitTimes().health() != null)
+        .filter(df -> df.attributes().waitTimes() != null)
+        .filter(df -> df.attributes().waitTimes().health() != null)
         .forEach(
             datamartFacility -> {
               WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();

@@ -60,6 +60,7 @@ public final class Facility implements CanBeEmpty {
   @Valid @NotNull FacilityAttributes attributes;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return isBlank(id())
@@ -500,6 +501,7 @@ public final class Facility implements CanBeEmpty {
     String state;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(address1())
@@ -527,6 +529,7 @@ public final class Facility implements CanBeEmpty {
     Address physical;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (mailing() == null || mailing().isEmpty())
@@ -653,6 +656,7 @@ public final class Facility implements CanBeEmpty {
     String visn;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(name())
@@ -716,6 +720,7 @@ public final class Facility implements CanBeEmpty {
     String sunday;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(monday())
@@ -767,10 +772,12 @@ public final class Facility implements CanBeEmpty {
     String additionalInfo;
 
     @JsonProperty(value = "supplementalStatus", required = false)
+    @JsonAlias("supplemental_status")
     @Schema(description = "List of supplemental statuses for VA facility.", nullable = true)
     List<@Valid SupplementalStatus> supplementalStatuses;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(code())
@@ -800,6 +807,7 @@ public final class Facility implements CanBeEmpty {
     String label;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(id()) && isBlank(label());
@@ -852,6 +860,7 @@ public final class Facility implements CanBeEmpty {
     BigDecimal specialtyCareRoutine;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(primaryCareUrgent())
@@ -920,6 +929,7 @@ public final class Facility implements CanBeEmpty {
     String enrollmentCoordinator;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(fax())
@@ -950,6 +960,7 @@ public final class Facility implements CanBeEmpty {
     LocalDate effectiveDate;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (health() == null || health().isEmpty()) && ObjectUtils.isEmpty(effectiveDate());
@@ -994,6 +1005,7 @@ public final class Facility implements CanBeEmpty {
     LocalDate lastUpdated;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(other())

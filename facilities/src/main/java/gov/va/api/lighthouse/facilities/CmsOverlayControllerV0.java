@@ -4,7 +4,7 @@ import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
-import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.util.ArrayList;
@@ -94,27 +94,43 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
     dataBinder.initDirectFieldAccess();
   }
 
-  /** Determine whether specified service id matches that for V0 service. */
+  /** Determine whether specified service id matches that for V0 or V1 service. */
   protected boolean isRecognizedServiceId(@NonNull String serviceId) {
     return Facility.HealthService.isRecognizedServiceId(serviceId)
         || Facility.BenefitsService.isRecognizedServiceId(serviceId)
-        || Facility.OtherService.isRecognizedServiceId(serviceId);
+        || Facility.OtherService.isRecognizedServiceId(serviceId)
+        || super.isRecognizedServiceId(serviceId);
   }
 
   /**
    * Populate service id based on service name and filter out services with unrecognized service
    * ids.
    */
-  private void populateServiceIdAndFilterOutInvalid(@NonNull CmsOverlay overlay) {
+  private void populateServiceIdAndFilterOutInvalid(@NonNull DatamartCmsOverlay overlay) {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
+              // Filter out services with invalid service info blocks
+              .filter(dds -> dds.serviceInfo() != null)
               .map(
-                  ds ->
-                      StringUtils.isNotEmpty(ds.serviceId())
-                          ? ds
-                          : ds.serviceId(getServiceIdFromServiceName(ds.name())))
-              .filter(ds -> isRecognizedServiceId(ds.serviceId()))
+                  dds -> {
+                    if (StringUtils.isEmpty(dds.serviceInfo().serviceId())) {
+                      dds.serviceInfo()
+                          .serviceId(getServiceIdFromServiceName(dds.serviceInfo().name()));
+                    }
+                    if (dds.serviceInfo().serviceType() == null) {
+                      final Optional<? extends TypedService> typedService =
+                          getTypedServiceForServiceId(dds.serviceInfo().serviceId());
+                      dds.serviceInfo()
+                          .serviceType(
+                              typedService.isPresent() ? typedService.get().serviceType() : null);
+                    }
+                    return dds;
+                  })
+              // Filter out services with invalid service ids
+              .filter(dds -> isRecognizedServiceId(dds.serviceInfo().serviceId()))
+              // Filter out services with invalid service types
+              .filter(dds -> dds.serviceInfo().serviceType() != null)
               .collect(Collectors.toList()));
     }
   }
@@ -126,24 +142,18 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
       consumes = "application/json")
   @SneakyThrows
   ResponseEntity<Void> saveOverlay(
-      @PathVariable("id") String id, @Valid @RequestBody CmsOverlay overlay) {
+      @PathVariable("id") String id, @Valid @RequestBody DatamartCmsOverlay overlay) {
     populateServiceIdAndFilterOutInvalid(overlay);
-    DatamartCmsOverlay datamartCmsOverlay =
-        filterOutUnrecognizedServicesFromOverlay(
-            CmsOverlayTransformerV0.toVersionAgnostic(overlay));
     Optional<CmsOverlayEntity> existingCmsOverlayEntity =
         getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
-    updateCmsOverlayData(existingCmsOverlayEntity, id, datamartCmsOverlay);
-    overlay.detailedServices(
-        DetailedServiceTransformerV0.toDetailedServices(datamartCmsOverlay.detailedServices()));
+    updateCmsOverlayData(existingCmsOverlayEntity, id, overlay);
     Optional<FacilityEntity> existingFacilityEntity =
         facilityRepository.findById(FacilityEntity.Pk.fromIdString(id));
     if (existingFacilityEntity.isEmpty()) {
       log.info("Received Unknown Facility ID ({}) for CMS Overlay", sanitize(id));
       return ResponseEntity.accepted().build();
     } else {
-      updateFacilityData(
-          existingFacilityEntity.get(), existingCmsOverlayEntity, id, datamartCmsOverlay);
+      updateFacilityData(existingFacilityEntity.get(), existingCmsOverlayEntity, id, overlay);
       return ResponseEntity.ok().build();
     }
   }

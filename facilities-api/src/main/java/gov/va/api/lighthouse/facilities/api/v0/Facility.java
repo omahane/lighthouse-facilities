@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -72,6 +73,14 @@ public final class Facility {
 
     BenefitsService(@NotNull String serviceId) {
       this.serviceId = serviceId;
+    }
+
+    /** Obtain service for unique service id. */
+    public static Optional<BenefitsService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(bs -> bs.serviceId().equals(serviceId))
+          .findFirst();
     }
 
     /** Ensure that Jackson can create BenefitsService enum regardless of capitalization. */
@@ -132,6 +141,14 @@ public final class Facility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain service for unique service id. */
+    public static Optional<HealthService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(hs -> hs.serviceId().equals(serviceId))
+          .findFirst();
+    }
+
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
     @JsonCreator
     public static HealthService fromString(String name) {
@@ -182,6 +199,14 @@ public final class Facility {
 
     OtherService(@NotNull String serviceId) {
       this.serviceId = serviceId;
+    }
+
+    /** Obtain service for unique service id. */
+    public static Optional<OtherService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(os -> os.serviceId().equals(serviceId))
+          .findFirst();
     }
 
     /** Ensure that Jackson can create OtherService enum regardless of capitalization. */

@@ -496,12 +496,12 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             "\"cardiology\"",
             "\"caregiverSupport\"",
             "\"covid19Vaccine\"",
-            "\"dental\"",
+            "\"dentalServices\"",
             "\"dermatology\"",
             "\"emergencyCare\"",
             "\"gastroenterology\"",
             "\"gynecology\"",
-            "\"mentalHealth\"",
+            "\"mentalHealthCare\"",
             "\"ophthalmology\"",
             "\"optometry\"",
             "\"orthopedics\"",
@@ -698,7 +698,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toVersionAgnostic(null));
     final Method transformDatmartFacilityBenefitsServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
-            "transformFacilityBenefitsService", DatamartFacility.BenefitsService.class);
+            "toFacilityBenefitsService", DatamartFacility.BenefitsService.class);
     transformDatmartFacilityBenefitsServiceMethod.setAccessible(true);
     DatamartFacility.BenefitsService nullBenefits = null;
     assertThatThrownBy(
@@ -709,7 +709,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 "datamartFacilityBenefitsService is marked non-null but is null"));
     final Method transformFacilityBenefitsServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
-            "transformFacilityBenefitsService", Facility.BenefitsService.class);
+            "toVersionAgnosticFacilityBenefitsService", Facility.BenefitsService.class);
     transformFacilityBenefitsServiceMethod.setAccessible(true);
     Facility.BenefitsService nullBenefitsV0 = null;
     assertThatThrownBy(() -> transformFacilityBenefitsServiceMethod.invoke(null, nullBenefitsV0))
@@ -718,7 +718,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             new NullPointerException("facilityBenefitsService is marked non-null but is null"));
     final Method transformDatmartFacilityHealthServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
-            "transformFacilityHealthService", DatamartFacility.HealthService.class);
+            "toFacilityHealthService", DatamartFacility.HealthService.class);
     transformDatmartFacilityHealthServiceMethod.setAccessible(true);
     DatamartFacility.HealthService nullHealth = null;
     assertThatThrownBy(() -> transformDatmartFacilityHealthServiceMethod.invoke(null, nullHealth))
@@ -728,7 +728,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 "datamartFacilityHealthService is marked non-null but is null"));
     final Method transformFacilityHealthServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
-            "transformFacilityHealthService", Facility.HealthService.class);
+            "toVersionAgnosticFacilityHealthService", Facility.HealthService.class);
     transformFacilityHealthServiceMethod.setAccessible(true);
     Facility.HealthService nullHealthV0 = null;
     assertThatThrownBy(() -> transformFacilityHealthServiceMethod.invoke(null, nullHealthV0))

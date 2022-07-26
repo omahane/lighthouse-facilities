@@ -229,9 +229,9 @@ public class FacilitiesControllerV1Test {
                 .services(
                     ImmutableSet.copyOf(
                         List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
                 .mobile(Boolean.FALSE)
                 .build()))
         .thenReturn(
@@ -364,9 +364,9 @@ public class FacilitiesControllerV1Test {
                 .services(
                     ImmutableSet.copyOf(
                         List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
                 .mobile(Boolean.FALSE)
                 .build()))
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
@@ -520,9 +520,9 @@ public class FacilitiesControllerV1Test {
                 .services(
                     ImmutableSet.copyOf(
                         List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
                 .mobile(Boolean.FALSE)
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
@@ -608,9 +608,9 @@ public class FacilitiesControllerV1Test {
                 .services(
                     ImmutableSet.copyOf(
                         List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
                 .mobile(Boolean.FALSE)
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))

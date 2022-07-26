@@ -160,7 +160,7 @@ public class DatamartFacility {
     @JsonProperty("criticalCare")
     CriticalCare("criticalCare"),
     @JsonProperty("dental")
-    Dental("dentalServices"),
+    Dental("dental"),
     @JsonProperty("dermatology")
     Dermatology("dermatology"),
     @JsonProperty("diabetic")
@@ -200,7 +200,7 @@ public class DatamartFacility {
     @JsonProperty("medicalRecords")
     MedicalRecords("medicalRecords"),
     @JsonProperty("mentalHealth")
-    MentalHealth("mentalHealthCare"),
+    MentalHealth("mentalHealth"),
     @JsonProperty("militarySexualTrauma")
     MilitarySexualTrauma("militarySexualTrauma"),
     @JsonProperty("minorityCare")
@@ -326,10 +326,14 @@ public class DatamartFacility {
 
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
-      return Arrays.stream(values())
-          .parallel()
-          .filter(hs -> hs.serviceId().equals(serviceId))
-          .findFirst();
+      return "dentalServices".equalsIgnoreCase(serviceId)
+          ? Optional.of(Dental)
+          : "mentalHealthCare".equalsIgnoreCase(serviceId)
+              ? Optional.of(MentalHealth)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
     }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
@@ -367,7 +371,9 @@ public class DatamartFacility {
 
     /** Determine whether specified service id represents health service. */
     public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+      return "dentalServices".equalsIgnoreCase(serviceId)
+          || "mentalHealthCare".equalsIgnoreCase(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
     }
 
     @Override

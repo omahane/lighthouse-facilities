@@ -190,7 +190,7 @@ public final class Facility implements CanBeEmpty {
     @JsonProperty("criticalCare")
     CriticalCare("criticalCare"),
     @JsonProperty("dental")
-    Dental("dentalServices"),
+    Dental("dental"),
     @JsonProperty("dermatology")
     Dermatology("dermatology"),
     @JsonProperty("diabetic")
@@ -230,7 +230,7 @@ public final class Facility implements CanBeEmpty {
     @JsonProperty("medicalRecords")
     MedicalRecords("medicalRecords"),
     @JsonProperty("mentalHealth")
-    MentalHealth("mentalHealthCare"),
+    MentalHealth("mentalHealth"),
     @JsonProperty("militarySexualTrauma")
     MilitarySexualTrauma("militarySexualTrauma"),
     @JsonProperty("minorityCare")

@@ -293,13 +293,14 @@ vc_0227V,https://www.va.gov/dubois-vet-center/
 vc_0228V,https://www.va.gov/alexandria-va-vet-center/
 vc_0229V,https://www.va.gov/scranton-vet-center/
 vc_0230V,https://www.va.gov/south-jersey-vet-center/
-vc_0231V,https://www.beckley.va.gov/locations/beckley_vet_center.asp
+vc_0231V,https://www.va.gov/beckley-vet-center/
 vc_0232V,https://www.va.gov/princeton-vet-center/
 vc_0233V,https://www.va.gov/wheeling-vet-center/
 vc_0235V,https://www.va.gov/annapolis-vet-center/
 vc_0236V,https://www.va.gov/dundalk-vet-center/
 vc_0239V,https://www.va.gov/norristown-vet-center/
 vc_0240V,https://www.va.gov/virginia-beach-vet-center/
+vc_0242V,https://www.va.gov/lancaster-vet-center/
 vc_0243V,https://www.va.gov/sussex-county-vet-center/
 vc_0314V,https://www.va.gov/orlando-vet-center/
 vc_0315V,https://www.va.gov/fayetteville-nc-vet-center/
@@ -310,8 +311,9 @@ vc_0326V,https://www.westpalmbeach.va.gov/locations/Palm_Beach_Vet_Center.asp
 vc_0327V,https://www.va.gov/greensboro-vet-center/
 vc_0328V,https://www.va.gov/raleigh-vet-center/
 vc_0333V,https://www.va.gov/macon-vet-center/
+vc_0334V,https://www.va.gov/montgomery-vet-center/
 vc_0337V,https://www.westpalmbeach.va.gov/locations/Jupiter_Vet_Center.asp
-vc_0343V,https://www.fayettevillenc.va.gov/locations/JacksonvilleVetCenter.asp
+vc_0343V,https://www.va.gov/jacksonville-nc-vet-center/
 vc_0345V,https://www.va.gov/clermont-vet-center/
 vc_0346V,https://www.va.gov/augusta-vet-center/
 vc_0349V,https://www.va.gov/columbus-ga-vet-center/
@@ -433,6 +435,7 @@ vc_0805MVC,https://www.va.gov/watertown-vet-center/
 vc_0808MVC,https://www.va.gov/richmond-vet-center/
 vc_0809MVC,https://www.va.gov/erie-vet-center/
 vc_0811MVC,https://www.va.gov/scranton-vet-center/
+vc_0812MVC,https://www.va.gov/beckley-vet-center/
 vc_0814MVC,https://www.va.gov/greenville-nc-vet-center/
 vc_0818MVC,https://www.va.gov/macon-vet-center/
 vc_0826MVC,https://www.va.gov/escanaba-vet-center/

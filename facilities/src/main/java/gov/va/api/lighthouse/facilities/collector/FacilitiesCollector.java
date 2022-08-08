@@ -1,6 +1,8 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static com.google.common.base.Preconditions.checkState;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
 
@@ -10,7 +12,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -310,7 +311,7 @@ public class FacilitiesCollector {
   }
 
   private void updateServicesFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
-    Map<String, DatamartFacility.HealthService> facilityCovid19Services;
+    Map<String, Service<HealthService>> facilityCovid19Services;
     try {
       facilityCovid19Services = cmsOverlayCollector.getCovid19VaccineServices();
     } catch (Exception e) {
@@ -324,7 +325,7 @@ public class FacilitiesCollector {
               // Covid-19 vaccines is the only CMS service that should appear in the list of ATC
               // facility services, as well as the CMS overlay detailed services list, if present
               // for a facility.
-              Set<HealthService> facilityHealthServices = new HashSet<>();
+              Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
               facilityHealthServices.add(facilityCovid19Services.get(df.id()));
               if (df.attributes().services() == null) {
                 df.attributes().services(DatamartFacility.Services.builder().build());
@@ -332,7 +333,7 @@ public class FacilitiesCollector {
               if (df.attributes().services().health() != null) {
                 facilityHealthServices.addAll(df.attributes().services().health());
               }
-              List<HealthService> facilityHealthServiceList =
+              List<Service<HealthService>> facilityHealthServiceList =
                   new ArrayList<>(facilityHealthServices);
               Collections.sort(facilityHealthServiceList);
               df.attributes().services().health(facilityHealthServiceList);

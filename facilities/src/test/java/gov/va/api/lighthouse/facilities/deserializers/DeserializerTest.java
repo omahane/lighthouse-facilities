@@ -1,6 +1,9 @@
 package gov.va.api.lighthouse.facilities.deserializers;
 
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,6 +14,7 @@ import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.NonNull;
@@ -1126,9 +1130,42 @@ public class DeserializerTest {
         DatamartFacility.class,
         JsonMappingException.class,
         "Cannot construct instance of `gov.va.api.lighthouse.facilities.DatamartFacility$BenefitsService`, problem: No enum constant gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.Foo\n"
-            + " at [Source: (String)\"{\"id\":\"vha_402\",\"type\":\"va_facilities\",\"attributes\":{\"services\":{\"benefits\": [\"foo\"],\"health\": [\"bar\"],\"other\": [\"baz\"],\"last_updated\":\"2022-03-07\"}}}\"; line: 1, column: 79] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"attributes\"]->gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"services\"]->gov.va.api.lighthouse.facilities.DatamartFacility$Services$ServicesBuilder[\"benefits\"]->java.util.ArrayList[0])");
+            + " at [Source: UNKNOWN; line: -1, column: -1] (through reference chain: java.util.ArrayList[0]) (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"attributes\"]->gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"services\"])");
     // Invalid services expressed in V1 format
-    assertExceptionThrown(
+    DatamartFacility invalidFacility =
+        DatamartFacility.builder()
+            .id(facilityId)
+            .type(DatamartFacility.Type.va_facilities)
+            .attributes(
+                DatamartFacility.FacilityAttributes.builder()
+                    .services(
+                        DatamartFacility.Services.builder()
+                            .benefits(
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.BenefitsService>builder()
+                                        .serviceId(TypedService.INVALID_SVC_ID)
+                                        .name("Foo")
+                                        .build()))
+                            .health(
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.HealthService>builder()
+                                        .serviceId(TypedService.INVALID_SVC_ID)
+                                        .name("Bar")
+                                        .build()))
+                            .other(
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.OtherService>builder()
+                                        .serviceId(TypedService.INVALID_SVC_ID)
+                                        .name("Baz")
+                                        .build()))
+                            .lastUpdated(LocalDate.parse("2022-03-07"))
+                            .build())
+                    .build())
+            .build();
+    assertJson(
         "{\"id\":\"vha_402\","
             + "\"type\":\"va_facilities\","
             + "\"attributes\":{"
@@ -1148,9 +1185,7 @@ public class DeserializerTest {
             + "\"last_updated\":\"2022-03-07\""
             + "}}}",
         DatamartFacility.class,
-        JsonMappingException.class,
-        "Cannot construct instance of `gov.va.api.lighthouse.facilities.DatamartFacility$BenefitsService`, problem: Name is null\n"
-            + " at [Source: (String)\"{\"id\":\"vha_402\",\"type\":\"va_facilities\",\"attributes\":{\"services\":{\"benefits\": [{\"serviceId\":\"foo\",\"name\":\"Foo\"}],\"health\": [{\"serviceId\":\"bar\",\"name\":\"Bar\"}],\"other\": [{\"serviceId\":\"baz\",\"name\":\"Baz\"}],\"last_updated\":\"2022-03-07\"}}}\"; line: 1, column: 79] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"attributes\"]->gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"services\"]->gov.va.api.lighthouse.facilities.DatamartFacility$Services$ServicesBuilder[\"benefits\"]->java.util.ArrayList[0])");
+        invalidFacility);
   }
 
   @Test
@@ -1479,25 +1514,46 @@ public class DeserializerTest {
   @Test
   @SneakyThrows
   void deserializeFacilityWithServicesInBothFormats() {
-    DatamartFacility facility =
+    final var facilityId = "vha_402";
+    DatamartFacility versionAgnosticFacility =
         DatamartFacility.builder()
-            .id("vha_402")
+            .id(facilityId)
             .type(DatamartFacility.Type.va_facilities)
             .attributes(
                 DatamartFacility.FacilityAttributes.builder()
                     .services(
                         DatamartFacility.Services.builder()
-                            .benefits(List.of(DatamartFacility.BenefitsService.Pensions))
+                            .benefits(
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.BenefitsService>builder()
+                                        .serviceType(DatamartFacility.BenefitsService.Pensions)
+                                        .name(DatamartFacility.BenefitsService.Pensions.name())
+                                        .build()))
                             .health(
                                 List.of(
-                                    DatamartFacility.HealthService.Cardiology,
-                                    DatamartFacility.HealthService.PrimaryCare))
-                            .other(List.of(DatamartFacility.OtherService.OnlineScheduling))
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.HealthService>builder()
+                                        .serviceType(DatamartFacility.HealthService.Cardiology)
+                                        .name(DatamartFacility.HealthService.Cardiology.name())
+                                        .build(),
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.HealthService>builder()
+                                        .serviceType(DatamartFacility.HealthService.PrimaryCare)
+                                        .name(DatamartFacility.HealthService.PrimaryCare.name())
+                                        .build()))
+                            .other(
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.OtherService>builder()
+                                        .serviceType(DatamartFacility.OtherService.OnlineScheduling)
+                                        .name(DatamartFacility.OtherService.OnlineScheduling.name())
+                                        .build()))
                             .lastUpdated(LocalDate.parse("2022-03-07"))
                             .build())
                     .build())
             .build();
-    // Services expressed in service name format
+    // Services expressed in enumerated service enum list format
     assertJson(
         "{\"id\":\"vha_402\","
             + "\"type\":\"va_facilities\","
@@ -1516,8 +1572,7 @@ public class DeserializerTest {
             + "\"last_updated\":\"2022-03-07\""
             + "}}}",
         DatamartFacility.class,
-        facility);
-    // Services expressed in service id format
+        versionAgnosticFacility);
     assertJson(
         "{\"id\":\"vha_402\","
             + "\"type\":\"va_facilities\","
@@ -1536,6 +1591,140 @@ public class DeserializerTest {
             + "\"last_updated\":\"2022-03-07\""
             + "}}}",
         DatamartFacility.class,
+        versionAgnosticFacility);
+    // Services expressed in service object list format
+    assertJson(
+        "{\"id\":\"vha_402\","
+            + "\"type\":\"va_facilities\","
+            + "\"attributes\":{"
+            + "\"services\":{"
+            + "\"benefits\": [{"
+            + "\"name\":\"Pensions\","
+            + "\"serviceId\":\"pensions\""
+            + "}],"
+            + "\"health\": [{"
+            + "\"name\":\"Cardiology\","
+            + "\"serviceId\":\"cardiology\""
+            + "},"
+            + "{"
+            + "\"name\":\"PrimaryCare\","
+            + "\"serviceId\":\"primaryCare\""
+            + "}],"
+            + "\"other\": [{"
+            + "\"name\":\"OnlineScheduling\","
+            + "\"serviceId\":\"onlineScheduling\""
+            + "}],"
+            + "\"last_updated\":\"2022-03-07\""
+            + "}}}",
+        DatamartFacility.class,
+        versionAgnosticFacility);
+    assertJson(
+        "{\"id\":\"vha_402\","
+            + "\"type\":\"va_facilities\","
+            + "\"attributes\":{"
+            + "\"services\":{"
+            + "\"benefits\": [{"
+            + "\"serviceId\":\"pensions\""
+            + "}],"
+            + "\"health\": [{"
+            + "\"serviceId\":\"cardiology\""
+            + "},"
+            + "{"
+            + "\"serviceId\":\"primaryCare\""
+            + "}],"
+            + "\"other\": [{"
+            + "\"serviceId\":\"onlineScheduling\""
+            + "}],"
+            + "\"last_updated\":\"2022-03-07\""
+            + "}}}",
+        DatamartFacility.class,
+        versionAgnosticFacility);
+
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    Facility facility =
+        Facility.builder()
+            .id(facilityId)
+            .type(Facility.Type.va_facilities)
+            .attributes(
+                Facility.FacilityAttributes.builder()
+                    .services(
+                        Facility.Services.builder()
+                            .benefits(
+                                List.of(
+                                    Facility.Service.<Facility.BenefitsService>builder()
+                                        .serviceType(Facility.BenefitsService.Pensions)
+                                        .name(Facility.BenefitsService.Pensions.name())
+                                        .link(
+                                            buildTypedServiceLink(
+                                                linkerUrl,
+                                                facilityId,
+                                                Facility.BenefitsService.Pensions.serviceId()))
+                                        .build()))
+                            .health(
+                                List.of(
+                                    Facility.Service.<Facility.HealthService>builder()
+                                        .serviceType(Facility.HealthService.Cardiology)
+                                        .name(Facility.HealthService.Cardiology.name())
+                                        .link(
+                                            buildTypedServiceLink(
+                                                linkerUrl,
+                                                facilityId,
+                                                Facility.HealthService.Cardiology.serviceId()))
+                                        .build(),
+                                    Facility.Service.<Facility.HealthService>builder()
+                                        .serviceType(Facility.HealthService.PrimaryCare)
+                                        .name(Facility.HealthService.PrimaryCare.name())
+                                        .link(
+                                            buildTypedServiceLink(
+                                                linkerUrl,
+                                                facilityId,
+                                                Facility.HealthService.PrimaryCare.serviceId()))
+                                        .build()))
+                            .other(
+                                List.of(
+                                    Facility.Service.<Facility.OtherService>builder()
+                                        .serviceType(Facility.OtherService.OnlineScheduling)
+                                        .name(Facility.OtherService.OnlineScheduling.name())
+                                        .link(
+                                            buildTypedServiceLink(
+                                                linkerUrl,
+                                                facilityId,
+                                                Facility.OtherService.OnlineScheduling.serviceId()))
+                                        .build()))
+                            .link(buildServicesLink(linkerUrl, facilityId))
+                            .lastUpdated(LocalDate.parse("2022-03-07"))
+                            .build())
+                    .build())
+            .build();
+    assertJson(
+        "{\"id\":\"vha_402\","
+            + "\"type\":\"va_facilities\","
+            + "\"attributes\":{"
+            + "\"services\":{"
+            + "\"benefits\": [{"
+            + "\"name\":\"Pensions\","
+            + "\"serviceId\":\"pensions\","
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/pensions\""
+            + "}],"
+            + "\"health\": [{"
+            + "\"name\":\"Cardiology\","
+            + "\"serviceId\":\"cardiology\","
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/cardiology\""
+            + "},"
+            + "{"
+            + "\"name\":\"PrimaryCare\","
+            + "\"serviceId\":\"primaryCare\","
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/primaryCare\""
+            + "}],"
+            + "\"other\": [{"
+            + "\"name\":\"OnlineScheduling\","
+            + "\"serviceId\":\"onlineScheduling\","
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/onlineScheduling\""
+            + "}],"
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services\","
+            + "\"lastUpdated\":\"2022-03-07\""
+            + "}}}",
+        Facility.class,
         facility);
   }
 

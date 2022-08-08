@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,12 +53,16 @@ public class CmsOverlayControllerV1Test {
 
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
+  private String baseUrl;
+
+  private String basePath;
+
   CmsOverlayControllerV1 controller() {
     return CmsOverlayControllerV1.builder()
         .facilityRepository(mockFacilityRepository)
         .cmsOverlayRepository(mockCmsOverlayRepository)
-        .baseUrl("http://foo/")
-        .basePath("bp")
+        .baseUrl(baseUrl)
+        .basePath(basePath)
         .build();
   }
 
@@ -493,6 +499,12 @@ public class CmsOverlayControllerV1Test {
         .isThrownBy(() -> serviceIdFromServiceNameMethod.invoke(controller(), null));
   }
 
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+  }
+
   @Test
   @SneakyThrows
   void typedServiceForServiceId() {
@@ -541,6 +553,7 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void updateFacilityWithOverlayData() {
+    final var linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
     DatamartCmsOverlay overlay = overlay();
     overlay.operatingStatus(
         DatamartFacility.OperatingStatus.builder()
@@ -589,7 +602,8 @@ public class CmsOverlayControllerV1Test {
     Facility facility =
         FacilityTransformerV1.toFacility(
             DatamartFacilitiesJacksonConfig.createMapper()
-                .readValue(updatedFacilityEntity.facility(), DatamartFacility.class));
+                .readValue(updatedFacilityEntity.facility(), DatamartFacility.class),
+            linkerUrl);
     assertThat(facility.attributes().activeStatus()).isEqualTo(Facility.ActiveStatus.T);
     assertThat(facility.attributes().operatingStatus())
         .usingRecursiveComparison()

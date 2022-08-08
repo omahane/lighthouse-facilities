@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,6 +10,8 @@ import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v0.Pagination;
 import java.util.List;
+import lombok.NonNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,22 +23,30 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class FacilitiesByStateTest {
   @Autowired private FacilityRepository repo;
 
-  private FacilitiesControllerV0 controller() {
+  private String baseUrl;
+
+  private String basePath;
+
+  private String linkerUrl;
+
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
-        .baseUrl("http://foo/")
-        .basePath("bp")
+        .baseUrl(baseUrl)
+        .basePath(basePath)
         .build();
   }
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
-    assertThat(controller().geoFacilitiesByState("oh", "HEALTH", List.of("urology"), false, 1, 1))
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(
+            controller(baseUrl, basePath)
+                .geoFacilitiesByState("oh", "HEALTH", List.of("urology"), false, 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_757")))
+                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
                 .build());
   }
 
@@ -43,40 +54,48 @@ public class FacilitiesByStateTest {
   void json_invalidService() {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
-        () -> controller().jsonFacilitiesByState("FL", null, List.of("unknown"), null, 1, 1));
+        () ->
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByState("FL", null, List.of("unknown"), null, 1, 1));
   }
 
   @Test
   void json_invalidType() {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
-        () -> controller().jsonFacilitiesByState("FL", "xxx", null, null, 1, 1));
+        () -> controller(baseUrl, basePath).jsonFacilitiesByState("FL", "xxx", null, null, 1, 1));
   }
 
   @Test
   void json_noFilter() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
-    assertThat(controller().jsonFacilitiesByState("oh", null, null, null, 1, 1).data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByState("oh", null, null, null, 1, 1)
+                .data())
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller().jsonFacilitiesByState("oh", null, List.of("urology"), null, 1, 1).data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByState("oh", null, List.of("urology"), null, 1, 1)
+                .data())
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     String linkBase = "http://foo/bp/v0/facilities?services%5B%5D=primarycare&state=oh&type=HEALTH";
     assertThat(
-            controller().jsonFacilitiesByState("oh", "HEALTH", List.of("primarycare"), null, 1, 1))
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByState("oh", "HEALTH", List.of("primarycare"), null, 1, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_757")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=1&per_page=1")
@@ -98,15 +117,18 @@ public class FacilitiesByStateTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
-    assertThat(controller().jsonFacilitiesByState("oh", "HEALTH", emptyList(), null, 1, 1).data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByState("oh", "HEALTH", emptyList(), null, 1, 1)
+                .data())
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void jsonperPageZero() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
-    assertThat(controller().jsonFacilitiesByState("oh", null, null, null, 100, 0))
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath).jsonFacilitiesByState("oh", null, null, null, 100, 0))
         .isEqualTo(
             FacilitiesResponse.builder()
                 .data(emptyList())
@@ -125,5 +147,12 @@ public class FacilitiesByStateTest {
                                 .build())
                         .build())
                 .build());
+  }
+
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+    linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
   }
 }

@@ -1,26 +1,36 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import gov.va.api.lighthouse.facilities.api.v0.Facility;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import java.util.Set;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class FacilityEntityTest {
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
   @Test
+  @SneakyThrows
   void overlayServicesFromServiceTypes() {
     FacilityEntity e = FacilityEntity.builder().build();
     e.overlayServicesFromServiceTypes(
         Set.of(
-            Facility.HealthService.SpecialtyCare,
-            Facility.BenefitsService.ApplyingForBenefits,
-            Facility.OtherService.OnlineScheduling));
+            HealthService.SpecialtyCare,
+            BenefitsService.ApplyingForBenefits,
+            OtherService.OnlineScheduling));
     assertThat(e.overlayServices())
         .containsExactlyInAnyOrder(
-            Facility.HealthService.SpecialtyCare.toString(),
-            Facility.BenefitsService.ApplyingForBenefits.toString(),
-            Facility.OtherService.OnlineScheduling.toString());
+            capitalize(HealthService.SpecialtyCare.serviceId()),
+            capitalize(BenefitsService.ApplyingForBenefits.serviceId()),
+            capitalize(OtherService.OnlineScheduling.serviceId()));
   }
 
   @Test
@@ -57,17 +67,34 @@ public class FacilityEntityTest {
   }
 
   @Test
+  @SneakyThrows
   void servicesFromServiceTypes() {
     FacilityEntity e = FacilityEntity.builder().build();
     e.servicesFromServiceTypes(
         Set.of(
-            Facility.HealthService.SpecialtyCare,
-            Facility.BenefitsService.ApplyingForBenefits,
-            Facility.OtherService.OnlineScheduling));
+            Service.<HealthService>builder()
+                .serviceType(HealthService.SpecialtyCare)
+                .name(HealthService.SpecialtyCare.name())
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceType(BenefitsService.ApplyingForBenefits)
+                .name(BenefitsService.ApplyingForBenefits.name())
+                .build(),
+            Service.<OtherService>builder()
+                .serviceType(OtherService.OnlineScheduling)
+                .name(OtherService.OnlineScheduling.name())
+                .build()));
     assertThat(e.services())
         .containsExactlyInAnyOrder(
-            Facility.HealthService.SpecialtyCare.toString(),
-            Facility.BenefitsService.ApplyingForBenefits.toString(),
-            Facility.OtherService.OnlineScheduling.toString());
+            DATAMART_MAPPER.writeValueAsString(
+                Service.<HealthService>builder().serviceType(HealthService.SpecialtyCare).build()),
+            DATAMART_MAPPER.writeValueAsString(
+                Service.<BenefitsService>builder()
+                    .serviceType(BenefitsService.ApplyingForBenefits)
+                    .build()),
+            DATAMART_MAPPER.writeValueAsString(
+                Service.<OtherService>builder()
+                    .serviceType(OtherService.OnlineScheduling)
+                    .build()));
   }
 }

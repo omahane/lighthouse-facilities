@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.Facility.BenefitsService.ApplyingForBenefits;
 import static gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.PrimaryCare;
 import static gov.va.api.lighthouse.facilities.api.v1.NearbyResponse.Type.NearbyFacility;
@@ -22,7 +24,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.zip.DataFormatException;
+import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -39,6 +43,12 @@ public class NearbyV1Test {
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
   @Mock RestTemplate restTemplate = mock(RestTemplate.class);
+
+  private String baseUrl;
+
+  private String basePath;
+
+  private String linkerUrl;
 
   private NearbyControllerV1 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
@@ -112,7 +122,7 @@ public class NearbyV1Test {
         .build();
   }
 
-  private Facility _facilityBenefits(String id) {
+  private Facility _facilityBenefits(@NonNull String id) {
     return Facility.builder()
         .id(id)
         .attributes(
@@ -120,7 +130,17 @@ public class NearbyV1Test {
                 .latitude(BigDecimal.ONE)
                 .longitude(BigDecimal.ONE)
                 .services(
-                    Facility.Services.builder().benefits(List.of(ApplyingForBenefits)).build())
+                    Facility.Services.builder()
+                        .benefits(
+                            List.of(
+                                Facility.Service.<Facility.BenefitsService>builder()
+                                    .serviceType(ApplyingForBenefits)
+                                    .name(ApplyingForBenefits.name())
+                                    .link(
+                                        buildTypedServiceLink(
+                                            linkerUrl, id, ApplyingForBenefits.serviceId()))
+                                    .build()))
+                        .build())
                 .build())
         .build();
   }
@@ -134,7 +154,7 @@ public class NearbyV1Test {
         datamartFacility);
   }
 
-  private DatamartFacility _facilityHealth(String id) {
+  private DatamartFacility _facilityHealth(@NonNull String id) {
     DatamartFacility facilityV1 =
         FacilityTransformerV1.toVersionAgnostic(
             Facility.builder()
@@ -143,7 +163,18 @@ public class NearbyV1Test {
                     Facility.FacilityAttributes.builder()
                         .latitude(BigDecimal.ONE)
                         .longitude(BigDecimal.ONE)
-                        .services(Facility.Services.builder().health(List.of(PrimaryCare)).build())
+                        .services(
+                            Facility.Services.builder()
+                                .health(
+                                    List.of(
+                                        Facility.Service.<Facility.HealthService>builder()
+                                            .serviceType(PrimaryCare)
+                                            .name(PrimaryCare.name())
+                                            .link(
+                                                buildTypedServiceLink(
+                                                    linkerUrl, id, PrimaryCare.serviceId()))
+                                            .build()))
+                                .build())
                         .build())
                 .build());
     return facilityV1;
@@ -151,7 +182,7 @@ public class NearbyV1Test {
 
   @Test
   void empty() {
-    facilityRepository.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -263,6 +294,13 @@ public class NearbyV1Test {
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response).isEqualTo(hitVha666());
+  }
+
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+    linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
   }
 
   @Test

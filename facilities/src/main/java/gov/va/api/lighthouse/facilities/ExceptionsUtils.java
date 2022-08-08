@@ -11,6 +11,13 @@ final class ExceptionsUtils {
   }
 
   static final class NotFound extends RuntimeException {
+    public NotFound(String serviceId, String facilityId) {
+      super(
+          String.format(
+              "The service identified by %s could not be found for facility %s",
+              serviceId, facilityId));
+    }
+
     public NotFound(String id) {
       super(String.format("The record identified by %s could not be found", id));
     }

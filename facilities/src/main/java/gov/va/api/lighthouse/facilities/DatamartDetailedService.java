@@ -150,8 +150,8 @@ public class DatamartDetailedService {
       private TypeOfService serviceType;
 
       /**
-       * Method used to set service info name and attempt to infer service id based on provided
-       * service name.
+       * Method used to set service info name and attempt to infer service id and type based on
+       * provided service name.
        */
       public ServiceInfoBuilder name(String name) {
         // Update service name
@@ -177,8 +177,8 @@ public class DatamartDetailedService {
       }
 
       /**
-       * Method used to set service id and infer service name based on provided service id given it
-       * is recognized as valid.
+       * Method used to set service id and infer service name and type based on provided service id
+       * given it is recognized as valid.
        */
       @SneakyThrows
       public ServiceInfoBuilder serviceId(String serviceId) {

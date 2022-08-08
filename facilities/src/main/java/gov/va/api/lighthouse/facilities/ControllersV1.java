@@ -1,9 +1,9 @@
 package gov.va.api.lighthouse.facilities;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityBenefitsService;
-import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityHealthService;
-import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityOtherService;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityBenefitsServiceType;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityHealthServiceType;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityOtherServiceType;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
@@ -67,14 +67,17 @@ final class ControllersV1 {
         .map(
             s ->
                 HealthService.isRecognizedServiceId(s.serviceId())
-                    ? toVersionAgnosticFacilityHealthService(
-                        HealthService.fromServiceId(s.serviceId()).get())
+                    ? toVersionAgnosticFacilityHealthServiceType(
+                            HealthService.fromServiceId(s.serviceId()).get())
+                        .get()
                     : BenefitsService.isRecognizedServiceId(s.serviceId())
-                        ? toVersionAgnosticFacilityBenefitsService(
-                            BenefitsService.fromServiceId(s.serviceId()).get())
+                        ? toVersionAgnosticFacilityBenefitsServiceType(
+                                BenefitsService.fromServiceId(s.serviceId()).get())
+                            .get()
                         : OtherService.isRecognizedServiceId(s.serviceId())
-                            ? toVersionAgnosticFacilityOtherService(
-                                OtherService.fromServiceId(s.serviceId()).get())
+                            ? toVersionAgnosticFacilityOtherServiceType(
+                                    OtherService.fromServiceId(s.serviceId()).get())
+                                .get()
                             : null)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());

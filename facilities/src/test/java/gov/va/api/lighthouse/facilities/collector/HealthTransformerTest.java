@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ArrayListMultimap;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import java.lang.reflect.Method;
@@ -218,7 +220,15 @@ public class HealthTransformerTest {
                 .attributes(
                     FacilityAttributes.builder()
                         .facilityType(va_health_facility)
-                        .services(Services.builder().health(List.of(CaregiverSupport)).build())
+                        .services(
+                            Services.builder()
+                                .health(
+                                    List.of(
+                                        Service.<HealthService>builder()
+                                            .serviceType(CaregiverSupport)
+                                            .name(CaregiverSupport.name())
+                                            .build()))
+                                .build())
                         .build())
                 .build());
   }
@@ -275,7 +285,15 @@ public class HealthTransformerTest {
                 .attributes(
                     FacilityAttributes.builder()
                         .facilityType(va_health_facility)
-                        .services(Services.builder().health(List.of(Orthopedics)).build())
+                        .services(
+                            Services.builder()
+                                .health(
+                                    List.of(
+                                        Service.<HealthService>builder()
+                                            .serviceType(Orthopedics)
+                                            .name(Orthopedics.name())
+                                            .build()))
+                                .build())
                         .build())
                 .build());
   }

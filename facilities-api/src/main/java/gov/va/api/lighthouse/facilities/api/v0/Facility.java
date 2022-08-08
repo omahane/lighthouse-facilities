@@ -93,7 +93,9 @@ public final class Facility {
 
     /** Determine whether specified service name represents benefits service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(bs -> bs.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents benefits service. */
@@ -143,10 +145,14 @@ public final class Facility {
 
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
-      return Arrays.stream(values())
-          .parallel()
-          .filter(hs -> hs.serviceId().equals(serviceId))
-          .findFirst();
+      return "mentalHealth".equals(serviceId)
+          ? Optional.of(MentalHealthCare)
+          : "dental".equals(serviceId)
+              ? Optional.of(DentalServices)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
     }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
@@ -184,7 +190,9 @@ public final class Facility {
 
     /** Determine whether specified service id represents health service. */
     public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+      return "mentalHealth".equals(serviceId)
+          || "dental".equals(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
     }
 
     public String serviceId() {
@@ -217,7 +225,9 @@ public final class Facility {
 
     /** Determine whether specified service name represents other service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(os -> os.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents other service. */

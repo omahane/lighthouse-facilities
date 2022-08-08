@@ -134,7 +134,11 @@ public class CmsOverlayCollectorTest {
     expectedFacilityCovid19Map.put(id, DatamartFacility.HealthService.Covid19Vaccine);
     CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
     assertThat(collector.getCovid19VaccineServices().get(id))
-        .isEqualTo(DatamartFacility.HealthService.Covid19Vaccine);
+        .isEqualTo(
+            DatamartFacility.Service.<DatamartFacility.HealthService>builder()
+                .serviceType(DatamartFacility.HealthService.Covid19Vaccine)
+                .name(DatamartFacility.HealthService.Covid19Vaccine.name())
+                .build());
   }
 
   @Test

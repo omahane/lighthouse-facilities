@@ -20,6 +20,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Sp
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.UrgentCare;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Urology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.WomensHealth;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.Type.va_facilities;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.checkAngleBracketNull;
@@ -349,38 +350,45 @@ final class HealthTransformer {
   }
 
   private Services services() {
-    if (allBlank(servicesHealth(), atcEffectiveDate())) {
+    List<Service<HealthService>> healthServices = servicesHealth();
+    if (allBlank(healthServices, atcEffectiveDate())) {
       return null;
     }
-    return Services.builder().health(servicesHealth()).lastUpdated(atcEffectiveDate()).build();
+    return Services.builder().health(healthServices).lastUpdated(atcEffectiveDate()).build();
   }
 
-  private List<HealthService> servicesHealth() {
-    List<HealthService> services =
+  private List<Service<HealthService>> servicesHealth() {
+    List<Service<HealthService>> services =
         accessToCareEntries().stream()
-            .map(ace -> serviceName(ace))
+            .map(
+                ace -> {
+                  final HealthService healthService = serviceName(ace);
+                  return healthService != null
+                      ? Service.<HealthService>builder().serviceType(healthService).build()
+                      : null;
+                })
             .filter(Objects::nonNull)
             .collect(toCollection(ArrayList::new));
     if (accessToCareEntries().stream().anyMatch(ace -> BooleanUtils.isTrue(ace.emergencyCare()))) {
-      services.add(EmergencyCare);
+      services.add(Service.<HealthService>builder().serviceType(EmergencyCare).build());
     }
     if (accessToCareEntries().stream().anyMatch(ace -> BooleanUtils.isTrue(ace.urgentCare()))) {
-      services.add(UrgentCare);
+      services.add(Service.<HealthService>builder().serviceType(UrgentCare).build());
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.DENTISTRY.contains(trimToEmpty(sc.code())))) {
-      services.add(Dental);
+      services.add(Service.<HealthService>builder().serviceType(Dental).build());
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.NUTRITION.contains(trimToEmpty(sc.code())))) {
-      services.add(Nutrition);
+      services.add(Service.<HealthService>builder().serviceType(Nutrition).build());
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.PODIATRY.contains(trimToEmpty(sc.code())))) {
-      services.add(Podiatry);
+      services.add(Service.<HealthService>builder().serviceType(Podiatry).build());
     }
     if (hasCaregiverSupport()) {
-      services.add(CaregiverSupport);
+      services.add(Service.<HealthService>builder().serviceType(CaregiverSupport).build());
     }
     if (hasOrthopedics()) {
-      services.add(Orthopedics);
+      services.add(Service.<HealthService>builder().serviceType(Orthopedics).build());
     }
     Collections.sort(services, (left, right) -> left.name().compareToIgnoreCase(right.name()));
     return emptyToNull(services);
@@ -391,10 +399,15 @@ final class HealthTransformer {
   }
 
   DatamartFacility toDatamartFacility() {
-    if (allBlank(id())) {
+    final var facilityId = id();
+    if (allBlank(facilityId)) {
       return null;
     }
-    return DatamartFacility.builder().id(id()).type(va_facilities).attributes(attributes()).build();
+    return DatamartFacility.builder()
+        .id(facilityId)
+        .type(va_facilities)
+        .attributes(attributes())
+        .build();
   }
 
   private WaitTimes waitTimes() {

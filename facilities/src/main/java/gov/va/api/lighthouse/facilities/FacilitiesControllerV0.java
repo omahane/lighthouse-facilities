@@ -9,6 +9,7 @@ import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV0.createM
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -66,10 +67,7 @@ public class FacilitiesControllerV0 {
       @Value("${facilities.url}") String baseUrl,
       @Value("${facilities.base-path}") String basePath) {
     this.facilityRepository = facilityRepository;
-    String url = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-    String path = basePath.replaceAll("/$", "");
-    path = path.isEmpty() ? path : path + "/";
-    linkerUrl = url + path + "v0/";
+    linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
   }
 
   @SneakyThrows

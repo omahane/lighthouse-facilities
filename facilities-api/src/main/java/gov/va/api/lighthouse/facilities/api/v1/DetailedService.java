@@ -201,7 +201,7 @@ public class DetailedService implements CanBeEmpty {
   @JsonPropertyOrder({"name", "serviceId", "serviceType"})
   @Schema(description = "Service information.")
   public static final class ServiceInfo implements CanBeEmpty {
-    @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
+    @Schema(description = "Service identifier.", example = "covid19Vaccine")
     @JsonAlias("{service_id, service_api_id}")
     @NonNull
     String serviceId;
@@ -228,8 +228,8 @@ public class DetailedService implements CanBeEmpty {
       private TypeOfService serviceType;
 
       /**
-       * Method used to set service info name and attempt to infer service id based on provided
-       * service name.
+       * Method used to set service info name and attempt to infer service id and type based on
+       * provided service name.
        */
       public ServiceInfoBuilder name(String name) {
         // Update service name
@@ -255,8 +255,8 @@ public class DetailedService implements CanBeEmpty {
       }
 
       /**
-       * Method used to set service id and infer service name based on provided service id given it
-       * is recognized as valid.
+       * Method used to set service id and infer service name and type based on provided service id
+       * given it is recognized as valid.
        */
       public ServiceInfoBuilder serviceId(String serviceId) {
         // Determine whether service id is recognized

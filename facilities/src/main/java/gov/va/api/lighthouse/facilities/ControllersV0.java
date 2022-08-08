@@ -68,13 +68,16 @@ final class ControllersV0 {
             s ->
                 HealthService.isRecognizedServiceId(s.serviceId())
                     ? toVersionAgnosticFacilityHealthService(
-                        HealthService.fromServiceId(s.serviceId()).get())
+                            HealthService.fromServiceId(s.serviceId()).get())
+                        .serviceType()
                     : BenefitsService.isRecognizedServiceId(s.serviceId())
                         ? toVersionAgnosticFacilityBenefitsService(
-                            BenefitsService.fromServiceId(s.serviceId()).get())
+                                BenefitsService.fromServiceId(s.serviceId()).get())
+                            .serviceType()
                         : OtherService.isRecognizedServiceId(s.serviceId())
                             ? toVersionAgnosticFacilityOtherService(
-                                OtherService.fromServiceId(s.serviceId()).get())
+                                    OtherService.fromServiceId(s.serviceId()).get())
+                                .serviceType()
                             : null)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());

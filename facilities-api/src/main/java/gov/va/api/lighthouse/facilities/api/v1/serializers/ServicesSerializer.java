@@ -19,9 +19,10 @@ public class ServicesSerializer extends NonEmptySerializer<Services> {
   @SneakyThrows
   public void serialize(Services value, JsonGenerator jgen, SerializerProvider provider) {
     jgen.writeStartObject();
-    writeNonEmpty(jgen, "other", value.other());
     writeNonEmpty(jgen, "health", value.health());
     writeNonEmpty(jgen, "benefits", value.benefits());
+    writeNonEmpty(jgen, "other", value.other());
+    writeNonEmpty(jgen, "link", value.link());
     writeNonEmpty(jgen, "lastUpdated", value.lastUpdated());
     jgen.writeEndObject();
   }

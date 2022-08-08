@@ -87,7 +87,10 @@ public abstract class BaseCmsOverlayController {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
+              // Filter out services with unrecognized service ids
               .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              // Filter out services with invalid service types
+              .filter(ds -> ds.serviceInfo().serviceType() != null)
               .collect(Collectors.toList()));
     }
     return overlay;
@@ -152,11 +155,15 @@ public abstract class BaseCmsOverlayController {
   @SneakyThrows
   protected DatamartDetailedService getOverlayDetailedService(
       @NonNull String facilityId, @NonNull String serviceId) {
-    List<DatamartDetailedService> detailedServices =
+    Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
-            .collect(Collectors.toList());
-    return detailedServices.isEmpty() ? null : detailedServices.get(0);
+            .findFirst();
+    if (detailedService.isPresent()) {
+      return detailedService.get();
+    } else {
+      throw new ExceptionsUtils.NotFound(serviceId, facilityId);
+    }
   }
 
   @SneakyThrows

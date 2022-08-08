@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,6 +34,8 @@ public class SearchByZipJsonTest {
   }
 
   private FacilitiesResponse sample() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_675GA";
     return FacilitiesResponse.builder()
         .links(
             PageLinks.builder()
@@ -53,7 +58,7 @@ public class SearchByZipJsonTest {
         .data(
             List.of(
                 Facility.builder()
-                    .id("vha_675GA")
+                    .id(facilityId)
                     .type(Facility.Type.va_facilities)
                     .attributes(
                         Facility.FacilityAttributes.builder()
@@ -99,17 +104,117 @@ public class SearchByZipJsonTest {
                                 Facility.Services.builder()
                                     .health(
                                         List.of(
-                                            Facility.HealthService.PrimaryCare,
-                                            Facility.HealthService.MentalHealth,
-                                            Facility.HealthService.Audiology,
-                                            Facility.HealthService.Cardiology,
-                                            Facility.HealthService.Dermatology,
-                                            Facility.HealthService.Gastroenterology,
-                                            Facility.HealthService.Ophthalmology,
-                                            Facility.HealthService.Optometry,
-                                            Facility.HealthService.Orthopedics,
-                                            Facility.HealthService.Urology,
-                                            Facility.HealthService.Dental))
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.PrimaryCare)
+                                                .name(Facility.HealthService.PrimaryCare.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.PrimaryCare
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.MentalHealth)
+                                                .name(Facility.HealthService.MentalHealth.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.MentalHealth
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Audiology)
+                                                .name(Facility.HealthService.Audiology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Audiology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Cardiology)
+                                                .name(Facility.HealthService.Cardiology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Cardiology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Dermatology)
+                                                .name(Facility.HealthService.Dermatology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Dermatology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(
+                                                    Facility.HealthService.Gastroenterology)
+                                                .name(
+                                                    Facility.HealthService.Gastroenterology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Gastroenterology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Ophthalmology)
+                                                .name(Facility.HealthService.Ophthalmology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Ophthalmology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Optometry)
+                                                .name(Facility.HealthService.Optometry.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Optometry
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Orthopedics)
+                                                .name(Facility.HealthService.Orthopedics.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Orthopedics
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Urology)
+                                                .name(Facility.HealthService.Urology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Urology.serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Dental)
+                                                .name(Facility.HealthService.Dental.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Dental.serviceId()))
+                                                .build()))
+                                    .link(buildServicesLink(linkerUrl, facilityId))
                                     .lastUpdated(LocalDate.parse("2020-03-02"))
                                     .build())
                             .satisfaction(

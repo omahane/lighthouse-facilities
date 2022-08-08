@@ -1,9 +1,12 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -174,9 +177,9 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
 
-    Set<DatamartFacility.HealthService> facilityHealthServices = new HashSet<>();
+    final Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
     if (!toSaveDetailedServices.isEmpty()) {
-      Set<String> detailedServiceIds = new HashSet<>();
+      final Set<String> detailedServiceIds = new HashSet<>();
       toSaveDetailedServices.stream()
           .forEach(
               service -> {
@@ -186,17 +189,32 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                 if (service
                     .serviceInfo()
                     .serviceId()
-                    .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
-                  if (facilityEntity.services() != null) {
-                    facilityEntity
-                        .services()
-                        .add(capitalize(DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
-                  } else {
-                    facilityEntity.services(
-                        Set.of(
-                            capitalize(DatamartFacility.HealthService.Covid19Vaccine.serviceId())));
+                    .equals(HealthService.Covid19Vaccine.serviceId())) {
+                  try {
+                    if (facilityEntity.services() != null) {
+                      facilityEntity
+                          .services()
+                          .add(
+                              DATAMART_MAPPER.writeValueAsString(
+                                  Service.<HealthService>builder()
+                                      .serviceType(HealthService.Covid19Vaccine)
+                                      .build()));
+                    } else {
+                      facilityEntity.services(
+                          Set.of(
+                              DATAMART_MAPPER.writeValueAsString(
+                                  Service.<HealthService>builder()
+                                      .serviceType(HealthService.Covid19Vaccine)
+                                      .build())));
+                    }
+                  } catch (final JsonProcessingException ex) {
+                    throw new RuntimeException(ex);
                   }
-                  facilityHealthServices.add(DatamartFacility.HealthService.Covid19Vaccine);
+
+                  facilityHealthServices.add(
+                      Service.<HealthService>builder()
+                          .serviceType(HealthService.Covid19Vaccine)
+                          .build());
                 }
               });
       facilityEntity.overlayServices(detailedServiceIds);
@@ -217,6 +235,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                     : DatamartFacility.ActiveStatus.A);
       }
       if (overlay.detailedServices() != null) {
+        // Only add Covid-19 detailed service, if present, to facility attributes
         facility
             .attributes()
             .detailedServices(
@@ -226,7 +245,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .filter(dds -> dds.active())
                         .filter(
                             dds ->
-                                DatamartFacility.HealthService.Covid19Vaccine.serviceId()
+                                HealthService.Covid19Vaccine.serviceId()
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
       }
@@ -245,18 +264,26 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
         disabledCmsServiceIds.stream()
             .forEach(
                 disabledServiceId -> {
-                  if (disabledServiceId.equals(
-                      DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
-                    facilityHealthServices.remove(DatamartFacility.HealthService.Covid19Vaccine);
+                  if (disabledServiceId.equals(HealthService.Covid19Vaccine.serviceId())) {
+                    facilityHealthServices.removeIf(
+                        svc -> HealthService.Covid19Vaccine.serviceId().equals(svc.serviceId()));
+
                     facilityEntity
                         .services()
-                        .remove(
-                            capitalize(DatamartFacility.HealthService.Covid19Vaccine.serviceId()));
+                        .removeIf(
+                            svcJson ->
+                                svcJson.contains(
+                                    "\"serviceId\":\""
+                                        + HealthService.Covid19Vaccine.serviceId()
+                                        + "\""));
+                    facilityEntity
+                        .services()
+                        .remove(capitalize(HealthService.Covid19Vaccine.serviceId()));
                   }
                 });
       }
 
-      List<DatamartFacility.HealthService> facilityHealthServiceList =
+      List<Service<HealthService>> facilityHealthServiceList =
           new ArrayList<>(facilityHealthServices);
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().health(facilityHealthServiceList);

@@ -12,7 +12,7 @@
   <version>3.0.162-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <github.repository-name>https://github.com/department-of-veterans-affairs/lighthouse-facilities.git</github.repository-name>
+    <github.repository-name>lighthouse-facilities</github.repository-name>
   </properties>
   <dependencies>
     <dependency>

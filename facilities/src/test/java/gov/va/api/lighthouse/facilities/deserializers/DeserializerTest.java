@@ -1130,7 +1130,7 @@ public class DeserializerTest {
         DatamartFacility.class,
         JsonMappingException.class,
         "Cannot construct instance of `gov.va.api.lighthouse.facilities.DatamartFacility$BenefitsService`, problem: No enum constant gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.Foo\n"
-            + " at [Source: UNKNOWN; line: -1, column: -1] (through reference chain: java.util.ArrayList[0]) (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"attributes\"]->gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"services\"])");
+            + " at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: java.util.ArrayList[0]) (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"attributes\"]->gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"services\"])");
     // Invalid services expressed in V1 format
     DatamartFacility invalidFacility =
         DatamartFacility.builder()

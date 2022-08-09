@@ -4,7 +4,7 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>test-starter</artifactId>
-    <version>9.0.8</version>
+    <version>11.0.7</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
@@ -12,6 +12,7 @@
   <version>3.0.162-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
+    <github.repository-name>https://github.com/department-of-veterans-affairs/lighthouse-facilities.git</github.repository-name>
     <docker.imageName>lighthouse-${project.artifactId}</docker.imageName>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
   </properties>

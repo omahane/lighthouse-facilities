@@ -4,7 +4,7 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>9.0.8</version>
+    <version>11.0.7</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
@@ -12,6 +12,7 @@
   <version>3.0.162-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
+    <github.repository-name>https://github.com/department-of-veterans-affairs/lighthouse-facilities.git</github.repository-name>
     <commons-csv.version>1.8</commons-csv.version>
     <docker.imageName>lighthouse-facilities</docker.imageName>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
@@ -41,6 +42,12 @@
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
+      <version>4.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.21</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>

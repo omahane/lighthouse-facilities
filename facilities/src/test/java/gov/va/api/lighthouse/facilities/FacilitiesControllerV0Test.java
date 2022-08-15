@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,9 +24,12 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,17 +39,23 @@ public class FacilitiesControllerV0Test {
 
   DriveTimeBandRepository dbr = mock(DriveTimeBandRepository.class);
 
+  private String baseUrl;
+
+  private String basePath;
+
+  private String linkerUrl;
+
   @Test
   @SneakyThrows
   void all() {
-    FacilitySamples samples = FacilitySamples.defaultSamples();
+    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl);
     when(fr.findAllProjectedBy())
         .thenReturn(
             List.of(
                 samples.facilityEntity("vha_691GB"),
                 samples.facilityEntity("vha_740GA"),
                 samples.facilityEntity("vha_757")));
-    String actual = controller().all();
+    String actual = controller(baseUrl, basePath).all();
     assertThat(
             FacilitiesJacksonConfigV0.createMapper()
                 .readValue(actual, GeoFacilitiesResponse.class)
@@ -55,14 +65,14 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void allCsv() {
-    FacilitySamples samples = FacilitySamples.defaultSamples();
+    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl);
     when(fr.findAllProjectedBy())
         .thenReturn(
             List.of(
                 samples.facilityEntity("vha_691GB"),
                 samples.facilityEntity("vha_740GA"),
                 samples.facilityEntity("vha_757")));
-    String actual = controller().allCsv();
+    String actual = controller(baseUrl, basePath).allCsv();
     List<String> actualLines = Splitter.onPattern("\\r?\\n").omitEmptyStrings().splitToList(actual);
     assertThat(actualLines.size()).isEqualTo(4);
     assertThat(actualLines.get(0)).isEqualTo(Joiner.on(",").join(CsvTransformerV0.HEADERS));
@@ -89,11 +99,11 @@ public class FacilitiesControllerV0Test {
                 + "730AM-600PM,730AM-600PM,730AM-600PM,730AM-600PM,800AM-400PM,800AM-400PM,NORMAL,");
   }
 
-  private FacilitiesControllerV0 controller() {
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(fr)
-        .baseUrl("http://foo/")
-        .basePath("bp")
+        .baseUrl(baseUrl)
+        .basePath(basePath)
         .build();
   }
 
@@ -110,8 +120,8 @@ public class FacilitiesControllerV0Test {
             new NullPointerException(
                 "Cannot invoke \"gov.va.api.lighthouse.facilities.HasFacilityPayload.facility()\" because \"entity\" is null"));
     when(fr.findAllProjectedBy()).thenThrow(new NullPointerException("oh noes"));
-    assertThrows(NullPointerException.class, () -> controller().all());
-    assertThrows(NullPointerException.class, () -> controller().allCsv());
+    assertThrows(NullPointerException.class, () -> controller(baseUrl, basePath).all());
+    assertThrows(NullPointerException.class, () -> controller(baseUrl, basePath).allCsv());
     // Nested exception ExceptionsUtils.InvalidParameter
     Method entitiesByBoundingBoxMethod =
         FacilitiesControllerV0.class.getDeclaredMethod(
@@ -120,9 +130,34 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByBoundingBoxMethod.invoke(
-                    controller(), new ArrayList<BigDecimal>(), null, null, null))
+                    controller(baseUrl, basePath), new ArrayList<BigDecimal>(), null, null, null))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new ExceptionsUtils.InvalidParameter("bbox", "[]"));
+    List<BigDecimal> bbox = new ArrayList<>();
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    bbox.add(BigDecimal.valueOf(-180.0));
+    assertThatThrownBy(
+            () ->
+                entitiesByBoundingBoxMethod.invoke(
+                    controller(baseUrl, basePath),
+                    bbox,
+                    null,
+                    new ArrayList<>(Collections.singleton("InvalidService")),
+                    null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new ExceptionsUtils.InvalidParameter("services", "InvalidService"));
+    assertThatThrownBy(
+            () ->
+                entitiesByBoundingBoxMethod.invoke(
+                    controller(baseUrl, basePath),
+                    bbox,
+                    null,
+                    new ArrayList<>(Collections.singleton("InvalidService")),
+                    null))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new ExceptionsUtils.InvalidParameter("services", "InvalidService"));
     // Nested exception ExceptionsUtils.InvalidParameter
     Method entitiesByLatLongMethod =
         FacilitiesControllerV0.class.getDeclaredMethod(
@@ -138,7 +173,7 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByLatLongMethod.invoke(
-                    controller(),
+                    controller(baseUrl, basePath),
                     BigDecimal.valueOf(0.0),
                     BigDecimal.valueOf(0.0),
                     null,
@@ -153,33 +188,23 @@ public class FacilitiesControllerV0Test {
   @Test
   void geoFacilitiesByBoundingBox() {
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .boundingBox(
-                    FacilityRepository.BoundingBoxSpecification.builder()
-                        .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
-                        .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
-                        .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
-                        .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+            FacilityRepository.BoundingBoxSpecification.builder()
+                .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
+                .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
+                .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
+                .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -194,7 +219,8 @@ public class FacilitiesControllerV0Test {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -207,45 +233,38 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples().facilityEntity("vha_757"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_691GB")));
-    assertThat(controller().geoFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB")));
+    assertThat(
+            controller(baseUrl, basePath)
+                .geoFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
   @Test
   void geoFacilitiesByLatLong() {
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .ids(
-                    FacilityRepository.TypeServicesIdsSpecification.builder()
-                        .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+            FacilityRepository.TypeServicesIdsSpecification.builder()
+                .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(26.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -259,14 +278,15 @@ public class FacilitiesControllerV0Test {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
     // Given that each degree of latitude is approximately 69 miles, query for facilities within a
     // 75 mile radius of (27.1745479800001, -97.6667188), which is north of VA Health Care Center in
     // Harlingen, TX: (26.1745479800001, -97.6667188). Confirm that one facility is found in current
     // test scenario.
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -280,12 +300,13 @@ public class FacilitiesControllerV0Test {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
     // Query for facilities within 50 miles of (27.1745479800001, -97.6667188). Confirm no
     // facilities are found in current test scenario.
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -307,33 +328,30 @@ public class FacilitiesControllerV0Test {
   void geoFacilitiesByState() {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .state(FacilityRepository.StateSpecification.builder().state("FL").build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+            FacilityRepository.StateSpecification.builder()
+                .state("FL")
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByState(
                     "FL",
                     "health",
@@ -344,19 +362,21 @@ public class FacilitiesControllerV0Test {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
   @Test
   void geoFacilitiesByVisn() {
     when(fr.findByVisn("test_visn"))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
-    assertThat(controller().geoFacilitiesByVisn("test_visn", 1, 1))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
+    assertThat(controller(baseUrl, basePath).geoFacilitiesByVisn("test_visn", 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -364,33 +384,30 @@ public class FacilitiesControllerV0Test {
   void geoFacilitiesByZip() {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+            FacilityRepository.ZipSpecification.builder()
+                .zip("32934")
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByZip(
                     "32934",
                     "health",
@@ -401,40 +418,31 @@ public class FacilitiesControllerV0Test {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_740GA")))
+                .features(
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
   @Test
   void jsonFacilitiesByBoundingBox() {
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .boundingBox(
-                    FacilityRepository.BoundingBoxSpecification.builder()
-                        .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
-                        .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
-                        .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
-                        .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+            FacilityRepository.BoundingBoxSpecification.builder()
+                .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
+                .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
+                .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
+                .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -448,7 +456,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -471,6 +479,38 @@ public class FacilitiesControllerV0Test {
                                 .build())
                         .build())
                 .build());
+    // Test empty list if from index is larger than size of data.
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByBoundingBox(
+                    List.of(
+                        BigDecimal.valueOf(-97.65),
+                        BigDecimal.valueOf(26.16),
+                        BigDecimal.valueOf(-97.67),
+                        BigDecimal.valueOf(26.18)),
+                    "health",
+                    List.of("Cardiology", "Audiology", "Urology"),
+                    Boolean.FALSE,
+                    3,
+                    1)
+                .data())
+        .isEmpty();
+    // Test with empty service list
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByBoundingBox(
+                    List.of(
+                        BigDecimal.valueOf(-97.65),
+                        BigDecimal.valueOf(26.16),
+                        BigDecimal.valueOf(-97.67),
+                        BigDecimal.valueOf(26.18)),
+                    "health",
+                    List.of(),
+                    Boolean.FALSE,
+                    1,
+                    1)
+                .data())
+        .isEmpty();
   }
 
   @Test
@@ -482,13 +522,15 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples().facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_691GB"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_757")));
-    assertThat(controller().jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757")));
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -524,10 +566,12 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples().facilityEntity("vha_691GB"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples().facilityEntity("vha_757")));
-    assertThat(controller().jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 0))
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757")));
+    assertThat(
+            controller(baseUrl, basePath)
+                .jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 0))
         .isEqualTo(
             FacilitiesResponse.builder()
                 .data(emptyList())
@@ -552,31 +596,21 @@ public class FacilitiesControllerV0Test {
   @Test
   void jsonFacilitiesByLatLong() {
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .ids(
-                    FacilityRepository.TypeServicesIdsSpecification.builder()
-                        .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+            FacilityRepository.TypeServicesIdsSpecification.builder()
+                .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(26.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -589,7 +623,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -623,7 +657,7 @@ public class FacilitiesControllerV0Test {
     // Harlingen, TX: (26.1745479800001, -97.6667188). Confirm that one facility is found in current
     // test scenario.
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -636,7 +670,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -670,7 +704,7 @@ public class FacilitiesControllerV0Test {
     // Query for facilities within 50 miles of (27.1745479800001, -97.6667188). Confirm no
     // facilities are found in current test scenario.
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -711,34 +745,32 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void jsonFacilitiesByState() {
-    FacilityRepository.FacilitySpecificationHelper spec =
-        FacilityRepository.FacilitySpecificationHelper.builder()
-            .state(FacilityRepository.StateSpecification.builder().state("FL").build())
-            .facilityType(
-                FacilityRepository.FacilityTypeSpecification.builder()
-                    .facilityType(FacilityEntity.Type.vha)
-                    .build())
-            .services(
-                FacilityRepository.ServicesSpecification.builder()
-                    .services(
-                        ImmutableSet.copyOf(
-                            List.of(
-                                Facility.HealthService.Cardiology,
-                                Facility.HealthService.Audiology,
-                                Facility.HealthService.Urology)))
-                    .build())
-            .mobile(FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
-            .build();
     Page mockPage = mock(Page.class);
     when(mockPage.get())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
-    when(fr.findAll(spec, PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
+    when(fr.findAll(
+            FacilityRepository.StateSpecification.builder()
+                .state("FL")
+                .facilityType(FacilityEntity.Type.vha)
+                .services(
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
+                .build(),
+            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByState(
                     "FL",
                     "health",
@@ -748,7 +780,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -777,11 +809,11 @@ public class FacilitiesControllerV0Test {
   @Test
   void jsonFacilitiesByVisn() {
     when(fr.findByVisn("test_visn"))
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
-    assertThat(controller().jsonFacilitiesByVisn("test_visn", 1, 1))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
+    assertThat(controller(baseUrl, basePath).jsonFacilitiesByVisn("test_visn", 1, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self("http://foo/bp/v0/facilities?visn=test_visn&page=1&per_page=1")
@@ -807,33 +839,30 @@ public class FacilitiesControllerV0Test {
   void jsonFacilitiesByZip() {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
-        .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
+                .stream());
     when(fr.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
-                .mobile(
-                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+            FacilityRepository.ZipSpecification.builder()
+                .zip("32934")
+                .facilityType(FacilityEntity.Type.vha)
                 .services(
-                    FacilityRepository.ServicesSpecification.builder()
-                        .services(
-                            ImmutableSet.copyOf(
-                                List.of(
-                                    Facility.HealthService.Cardiology,
-                                    Facility.HealthService.Audiology,
-                                    Facility.HealthService.Urology)))
-                        .build())
-                .facilityType(
-                    FacilityRepository.FacilityTypeSpecification.builder()
-                        .facilityType(FacilityEntity.Type.vha)
-                        .build())
+                    ImmutableSet.copyOf(
+                        List.of(
+                            DatamartFacility.HealthService.Cardiology,
+                            DatamartFacility.HealthService.Audiology,
+                            DatamartFacility.HealthService.Urology)))
+                .mobile(Boolean.FALSE)
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip(
                     "32934",
                     "health",
@@ -843,7 +872,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -871,30 +900,40 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void readGeoJson() {
-    GeoFacility geo = FacilitySamples.defaultSamples().geoFacility("vha_691GB");
-    FacilityEntity entity = FacilitySamples.defaultSamples().facilityEntity("vha_691GB");
+    GeoFacility geo = FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_691GB");
+    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB");
     when(fr.findById(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "691GB")))
         .thenReturn(Optional.of(entity));
-    assertThat(controller().readGeoJson("vha_691GB")).isEqualTo(GeoFacilityReadResponse.of(geo));
+    assertThat(controller(baseUrl, basePath).readGeoJson("vha_691GB"))
+        .isEqualTo(GeoFacilityReadResponse.of(geo));
   }
 
   @Test
   void readJson() {
-    Facility facility = FacilitySamples.defaultSamples().facility("vha_691GB");
-    FacilityEntity entity = FacilitySamples.defaultSamples().facilityEntity("vha_691GB");
+    Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB");
+    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB");
     when(fr.findById(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "691GB")))
         .thenReturn(Optional.of(entity));
-    assertThat(controller().readJson("vha_691GB"))
+    assertThat(controller(baseUrl, basePath).readJson("vha_691GB"))
         .isEqualTo(FacilityReadResponse.builder().facility(facility).build());
   }
 
   @Test
   void readJson_malformed() {
-    assertThrows(ExceptionsUtils.NotFound.class, () -> controller().readJson("xxx"));
+    assertThrows(
+        ExceptionsUtils.NotFound.class, () -> controller(baseUrl, basePath).readJson("xxx"));
   }
 
   @Test
   void readJson_notFound() {
-    assertThrows(ExceptionsUtils.NotFound.class, () -> controller().readJson("vha_691GB"));
+    assertThrows(
+        ExceptionsUtils.NotFound.class, () -> controller(baseUrl, basePath).readJson("vha_691GB"));
+  }
+
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+    linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
   }
 }

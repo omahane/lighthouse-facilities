@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -51,8 +50,12 @@ public class DetailedServicesResponseEmptyFieldsTest {
                 .data(
                     List.of(
                         DetailedService.builder()
-                            .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
-                            .name("test")
+                            .serviceInfo(
+                                DetailedService.ServiceInfo.builder()
+                                    .serviceId(Facility.HealthService.Cardiology.serviceId())
+                                    .name("test")
+                                    .serviceType(Facility.HealthService.Cardiology.serviceType())
+                                    .build())
                             .build()))
                 .build()
                 .isEmpty())

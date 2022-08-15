@@ -261,6 +261,26 @@ public class HealthControllerTest {
   }
 
   @Test
+  void stateCemeteriesAccessException() {
+    setRequestAttributes(mock(RequestAttributes.class));
+    when(insecureRestTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplate.exchange(
+            startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(ok());
+    when(restTemplate.exchange(
+            startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(ok());
+    when(restTemplate.exchange(
+            startsWith("http://statecems"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(String.class)))
+        .thenThrow(ResourceAccessException.class);
+    ResponseEntity<Health> response = _controller().collectorBackendHealth();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  @Test
   @SneakyThrows
   void verifyMissingTrailingSlashAppended() {
     String urlMissingTrailingSlash = "https://developer.va.gov";

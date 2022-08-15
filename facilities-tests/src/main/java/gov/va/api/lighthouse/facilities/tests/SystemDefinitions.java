@@ -13,7 +13,7 @@ public class SystemDefinitions {
 
   private static Ids ids() {
     return Ids.builder()
-        .facility("vba_322c")
+        .facility("vha_516")
         .facilityIdsCsv("nca_055,nca_s1001,vba_322c,vc_0101V,vha_402GA")
         .latitude("28.112464")
         .longitude("-80.7015994")
@@ -148,11 +148,7 @@ public class SystemDefinitions {
 
     @NonNull String apiPath;
 
-    /**
-     * Builds full url with apiPath.
-     *
-     * @return url
-     */
+    /** Construct base API url. */
     public String urlWithApiPath() {
       StringBuilder builder = new StringBuilder(url());
       if (!apiPath().startsWith("/")) {

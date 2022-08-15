@@ -26,6 +26,10 @@ import org.apache.commons.lang3.StringUtils;
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = NearbyResponseSerializer.class)
 @JsonPropertyOrder({"data", "meta"})
+@Schema(
+    description =
+        "Response which contains minimum and maximum time it takes " + "to reach facility.",
+    nullable = true)
 public final class NearbyResponse implements CanBeEmpty {
   List<@Valid @NotNull Nearby> data;
 
@@ -33,6 +37,7 @@ public final class NearbyResponse implements CanBeEmpty {
   Meta meta;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(data()) && (meta() == null || meta().isEmpty());
@@ -51,14 +56,15 @@ public final class NearbyResponse implements CanBeEmpty {
   @Schema(nullable = true)
   public static final class NearbyAttributes implements CanBeEmpty {
     @NotNull
-    @Schema(example = "10")
+    @Schema(description = "Minimum time to reach facility.", example = "10")
     Integer minTime;
 
     @NotNull
-    @Schema(example = "20")
+    @Schema(description = "Maximum time to reach facility.", example = "20")
     Integer maxTime;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(minTime()) && ObjectUtils.isEmpty(maxTime());
@@ -71,13 +77,18 @@ public final class NearbyResponse implements CanBeEmpty {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = MetaSerializer.class)
   @Schema(
-      description = "JSON API-compliant object containing metadata about this response",
+      description = "JSON API-compliant object containing metadata about this response.",
       nullable = true)
   public static final class Meta implements CanBeEmpty {
-    @Schema(example = "APR2021", nullable = true)
+    @Schema(
+        description =
+            "Version of the drive time band " + "data set used to generate this response.",
+        example = "APR2021",
+        nullable = true)
     String bandVersion;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return StringUtils.isBlank(bandVersion());
@@ -90,20 +101,21 @@ public final class NearbyResponse implements CanBeEmpty {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = NearbySerializer.class)
   @Schema(
-      description = "JSON API-compliant object describing a nearby VA facility",
+      description = "JSON API-compliant object describing a nearby VA facility.",
       nullable = true)
   public static final class Nearby implements CanBeEmpty {
-    @Schema(example = "vha_688")
+    @Schema(description = "Identifier for facility.", example = "vha_688")
     @NotNull
     String id;
 
-    @Schema(example = "va_health_facility")
+    @Schema(description = "Type of facility.", example = "va_health_facility")
     @NotNull
     Type type;
 
     @Valid @NotNull NearbyAttributes attributes;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return StringUtils.isBlank(id())

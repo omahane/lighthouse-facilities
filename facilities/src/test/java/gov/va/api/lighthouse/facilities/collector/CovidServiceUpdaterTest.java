@@ -14,20 +14,32 @@ public class CovidServiceUpdaterTest {
   public void noCovidServicesToUpdate() {
     DatamartDetailedService service1 =
         DatamartDetailedService.builder()
-            .name("Service1")
-            .serviceId("service1")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Cardiology.serviceId())
+                    .name(DatamartFacility.HealthService.Cardiology.name())
+                    .serviceType(DatamartFacility.HealthService.Cardiology.serviceType())
+                    .build())
             .path("http://www.service.one.va.gov")
             .build();
     DatamartDetailedService service2 =
         DatamartDetailedService.builder()
-            .name("Service2")
-            .serviceId("service2")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.CaregiverSupport.serviceId())
+                    .name(DatamartFacility.HealthService.CaregiverSupport.name())
+                    .serviceType(DatamartFacility.HealthService.CaregiverSupport.serviceType())
+                    .build())
             .path("http://www.service.two.va.gov")
             .build();
     DatamartDetailedService service3 =
         DatamartDetailedService.builder()
-            .name("Service3")
-            .serviceId("service3")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Chiropractic.serviceId())
+                    .name(DatamartFacility.HealthService.Chiropractic.name())
+                    .serviceType(DatamartFacility.HealthService.Chiropractic.serviceType())
+                    .build())
             .path("http://www.service.three.va.gov")
             .build();
     List<DatamartDetailedService> detailedServices = List.of(service1, service2, service3);
@@ -42,26 +54,42 @@ public class CovidServiceUpdaterTest {
   public void updateCovidServicePaths() {
     DatamartDetailedService service1 =
         DatamartDetailedService.builder()
-            .name("Service1")
-            .serviceId("service1")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Cardiology.serviceId())
+                    .name(DatamartFacility.HealthService.Cardiology.name())
+                    .serviceType(DatamartFacility.HealthService.Cardiology.serviceType())
+                    .build())
             .path("http://www.service.one.va.gov")
             .build();
     DatamartDetailedService service2 =
         DatamartDetailedService.builder()
-            .name("Service2")
-            .serviceId("service2")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.CaregiverSupport.serviceId())
+                    .name(DatamartFacility.HealthService.CaregiverSupport.name())
+                    .serviceType(DatamartFacility.HealthService.CaregiverSupport.serviceType())
+                    .build())
             .path("http://www.service.two.va.gov")
             .build();
     DatamartDetailedService covidService =
         DatamartDetailedService.builder()
-            .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
-            .serviceId(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             .path("http://path.to.update.gov")
             .build();
     DatamartDetailedService service3 =
         DatamartDetailedService.builder()
-            .name("Service3")
-            .serviceId("service3")
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(uncapitalize(DatamartFacility.HealthService.Chiropractic.name()))
+                    .name(DatamartFacility.HealthService.Chiropractic.name())
+                    .serviceType(DatamartFacility.HealthService.Chiropractic.serviceType())
+                    .build())
             .path("http://www.service.three.va.gov")
             .build();
     List<DatamartDetailedService> detailedServices =

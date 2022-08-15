@@ -2,15 +2,17 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet_center;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.Type.va_facilities;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_1;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_2;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_OLD_3;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_1;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_2;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_3;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -22,33 +24,30 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.AppointmentPhoneNumber;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceAddress;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceEmailContact;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceHours;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatusCode;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
+import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
+import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
@@ -57,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -70,67 +70,7 @@ public class InternalFacilitiesControllerTest {
 
   FacilitiesCollector collector = mock(FacilitiesCollector.class);
 
-  private static DatamartDetailedService _covid19DetailedService() {
-    return DatamartDetailedService.builder()
-        .active(true)
-        .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-        .name(HealthService.Covid19Vaccine.name())
-        .descriptionFacility(null)
-        .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-        .onlineSchedulingAvailable("True")
-        .phoneNumbers(
-            List.of(
-                AppointmentPhoneNumber.builder()
-                    .extension("123")
-                    .label("Main phone")
-                    .number("555-555-1212")
-                    .type("tel")
-                    .build()))
-        .referralRequired("True")
-        .walkInsAccepted("False")
-        .serviceLocations(
-            List.of(
-                DetailedServiceLocation.builder()
-                    .serviceLocationAddress(
-                        DetailedServiceAddress.builder()
-                            .buildingNameNumber("Baxter Building")
-                            .clinicName("Baxter Clinic")
-                            .wingFloorOrRoomNumber("Wing East")
-                            .address1("122 Main St.")
-                            .address2(null)
-                            .city("Rochester")
-                            .state("NY")
-                            .zipCode("14623-1345")
-                            .countryCode("US")
-                            .build())
-                    .appointmentPhoneNumbers(
-                        List.of(
-                            AppointmentPhoneNumber.builder()
-                                .extension("567")
-                                .label("Alt phone")
-                                .number("556-565-1119")
-                                .type("tel")
-                                .build()))
-                    .emailContacts(
-                        List.of(
-                            DetailedServiceEmailContact.builder()
-                                .emailAddress("georgea@va.gov")
-                                .emailLabel("George Anderson")
-                                .build()))
-                    .facilityServiceHours(
-                        DetailedServiceHours.builder()
-                            .monday("8:30AM-7:00PM")
-                            .tuesday("8:30AM-7:00PM")
-                            .wednesday("8:30AM-7:00PM")
-                            .thursday("8:30AM-7:00PM")
-                            .friday("8:30AM-7:00PM")
-                            .saturday("8:30AM-7:00PM")
-                            .sunday("CLOSED")
-                            .build())
-                    .additionalHoursInfo("Please call for an appointment outside...")
-                    .build()))
-        .build();
-  }
+  CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
 
   private static DatamartFacility _facility(
       String id,
@@ -138,21 +78,29 @@ public class InternalFacilitiesControllerTest {
       String zip,
       double latitude,
       double longitude,
-      List<Facility.HealthService> health) {
+      List<gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService> health) {
     return FacilityTransformerV0.toVersionAgnostic(
-        Facility.builder()
+        gov.va.api.lighthouse.facilities.api.v0.Facility.builder()
             .id(id)
             .attributes(
-                Facility.FacilityAttributes.builder()
+                gov.va.api.lighthouse.facilities.api.v0.Facility.FacilityAttributes.builder()
                     .address(
-                        Facility.Addresses.builder()
-                            .physical(Facility.Address.builder().state(state).zip(zip).build())
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.Addresses.builder()
+                            .physical(
+                                gov.va.api.lighthouse.facilities.api.v0.Facility.Address.builder()
+                                    .state(state)
+                                    .zip(zip)
+                                    .build())
                             .build())
                     .latitude(BigDecimal.valueOf(latitude))
                     .longitude(BigDecimal.valueOf(longitude))
-                    .services(Facility.Services.builder().health(health).build())
+                    .services(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.Services.builder()
+                            .health(health)
+                            .build())
                     .mobile(false)
-                    .facilityType(Facility.FacilityType.va_cemetery)
+                    .facilityType(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.FacilityType.va_cemetery)
                     .build())
             .build());
   }
@@ -163,7 +111,10 @@ public class InternalFacilitiesControllerTest {
       String zip,
       double latitude,
       double longitude,
-      List<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService> health) {
+      List<
+              gov.va.api.lighthouse.facilities.api.v1.Facility.Service<
+                  gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>>
+          health) {
     return FacilityTransformerV1.toVersionAgnostic(
         gov.va.api.lighthouse.facilities.api.v1.Facility.builder()
             .id(id)
@@ -194,11 +145,90 @@ public class InternalFacilitiesControllerTest {
     return DatamartCmsOverlay.builder()
         .operatingStatus(_overlay_operating_status())
         .detailedServices(_overlay_detailed_services())
+        .healthCareSystem(_overlay_health_care_system())
         .build();
   }
 
   private static List<DatamartDetailedService> _overlay_detailed_services() {
-    return List.of(_covid19DetailedService());
+    return List.of(_overlay_detailed_services(HealthService.Covid19Vaccine, true));
+  }
+
+  private static DatamartDetailedService _overlay_detailed_services(
+      @NonNull HealthService healthService, boolean isActive) {
+    return DatamartDetailedService.builder()
+        .active(isActive)
+        .serviceInfo(
+            DatamartDetailedService.ServiceInfo.builder()
+                .serviceId(healthService.serviceId())
+                .name(
+                    HealthService.Covid19Vaccine.equals(healthService)
+                        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
+                        : healthService.name())
+                .serviceType(healthService.serviceType())
+                .build())
+        .appointmentLeadIn("Your VA health care team will contact you if you...more text")
+        .onlineSchedulingAvailable("True")
+        .phoneNumbers(
+            List.of(
+                DatamartDetailedService.AppointmentPhoneNumber.builder()
+                    .extension("123")
+                    .label("Main phone")
+                    .number("555-555-1212")
+                    .type("tel")
+                    .build()))
+        .referralRequired("True")
+        .walkInsAccepted("False")
+        .serviceLocations(
+            List.of(
+                DatamartDetailedService.DetailedServiceLocation.builder()
+                    .serviceLocationAddress(
+                        DatamartDetailedService.DetailedServiceAddress.builder()
+                            .buildingNameNumber("Baxter Building")
+                            .clinicName("Baxter Clinic")
+                            .wingFloorOrRoomNumber("Wing East")
+                            .address1("122 Main St.")
+                            .address2(null)
+                            .city("Rochester")
+                            .state("NY")
+                            .zipCode("14623-1345")
+                            .countryCode("US")
+                            .build())
+                    .appointmentPhoneNumbers(
+                        List.of(
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
+                                .extension("567")
+                                .label("Alt phone")
+                                .number("556-565-1119")
+                                .type("tel")
+                                .build()))
+                    .emailContacts(
+                        List.of(
+                            DatamartDetailedService.DetailedServiceEmailContact.builder()
+                                .emailAddress("georgea@va.gov")
+                                .emailLabel("George Anderson")
+                                .build()))
+                    .facilityServiceHours(
+                        DatamartDetailedService.DetailedServiceHours.builder()
+                            .monday("8:30AM-7:00PM")
+                            .tuesday("8:30AM-7:00PM")
+                            .wednesday("8:30AM-7:00PM")
+                            .thursday("8:30AM-7:00PM")
+                            .friday("8:30AM-7:00PM")
+                            .saturday("8:30AM-7:00PM")
+                            .sunday("CLOSED")
+                            .build())
+                    .additionalHoursInfo("Please call for an appointment outside...")
+                    .build()))
+        .build();
+  }
+
+  private static DatamartCmsOverlay.HealthCareSystem _overlay_health_care_system() {
+    return DatamartCmsOverlay.HealthCareSystem.builder()
+        .name("Example Health Care System Name")
+        .url("https://www.va.gov/example/locations/facility")
+        .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+        .healthConnectPhone("123-456-7890 x123")
+        .build();
   }
 
   private static DatamartFacility.OperatingStatus _overlay_operating_status() {
@@ -214,6 +244,16 @@ public class InternalFacilitiesControllerTest {
         .facilityRepository(facilityRepository)
         .cmsOverlayRepository(overlayRepository)
         .build();
+  }
+
+  private FacilitiesCollector _facilitiesCollector() {
+    return new FacilitiesCollector(
+        mock(InsecureRestTemplateProvider.class),
+        mock(JdbcTemplate.class),
+        mockCmsOverlayCollector,
+        "atcBaseUrl",
+        "atpBaseUrl",
+        "cemeteriesBaseUrl");
   }
 
   private FacilityEntity _facilityEntity(DatamartFacility fac) {
@@ -237,7 +277,7 @@ public class InternalFacilitiesControllerTest {
       if (overlay.detailedServices() != null) {
         for (DatamartDetailedService service : overlay.detailedServices()) {
           if (service.active()) {
-            cmsServicesNames.add(service.name());
+            cmsServicesNames.add(capitalize(service.serviceInfo().serviceId()));
           }
         }
       }
@@ -253,6 +293,11 @@ public class InternalFacilitiesControllerTest {
         fac);
   }
 
+  private DatamartFacility.OperatingStatus _operatingStatus(
+      DatamartFacility.OperatingStatusCode code) {
+    return DatamartFacility.OperatingStatus.builder().code(code).build();
+  }
+
   @SneakyThrows
   private CmsOverlayEntity _overlayEntity(DatamartCmsOverlay overlay, String id) {
     return CmsOverlayEntity.builder()
@@ -265,389 +310,11 @@ public class InternalFacilitiesControllerTest {
             overlay.detailedServices() == null || overlay.detailedServices().isEmpty()
                 ? null
                 : JacksonConfig.createMapper().writeValueAsString(overlay.detailedServices()))
+        .healthCareSystem(
+            overlay.healthCareSystem() == null
+                ? null
+                : JacksonConfig.createMapper().writeValueAsString(overlay.healthCareSystem()))
         .build();
-  }
-
-  @Test
-  @SneakyThrows
-  void checkForInvalidServiceIdsInCmsOverlay() {
-    var pk = "vha_402";
-    var cmsServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(HealthService.Covid19Vaccine.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(OtherService.OnlineScheduling.name()))
-                .name(OtherService.OnlineScheduling.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(BenefitsService.Pensions.name()))
-                .name(BenefitsService.Pensions.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Urology.name()))
-                .name(HealthService.Urology.name())
-                .build());
-    DatamartCmsOverlay cmsOverlay =
-        DatamartCmsOverlay.builder()
-            .operatingStatus(
-                OperatingStatus.builder()
-                    .code(OperatingStatusCode.LIMITED)
-                    .additionalInfo("Limited")
-                    .build())
-            .detailedServices(cmsServices)
-            .build();
-    assertThat(overlayRepository.findAll()).isEmpty();
-    overlayRepository.save(_overlayEntity(cmsOverlay, pk));
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(_overlayEntity(cmsOverlay, pk)));
-    // Check for invalid service ids in existing overlays
-    ResponseEntity<String> response = _controller().checkForInvalidServiceIdsInCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "No failures to perform invalid service id check encountered.\n"
-                + "No invalid service ids identified for existing overlays.\n"
-                + "Completed invalid service id check for all overlay detailed services!");
-    // Add in invalid detailed services and re-check
-    List<DatamartDetailedService> updatedCmsServices = new ArrayList<>();
-    updatedCmsServices.addAll(cmsServices);
-    updatedCmsServices.add(
-        DatamartDetailedService.builder()
-            .serviceId(DatamartDetailedService.INVALID_SVC_ID)
-            .name(HealthService.SocialWork.name())
-            .build());
-    updatedCmsServices.add(
-        DatamartDetailedService.builder()
-            .serviceId(DatamartDetailedService.INVALID_SVC_ID)
-            .name("Mental Health Care")
-            .build());
-    cmsOverlay.detailedServices(updatedCmsServices);
-    overlayRepository.save(_overlayEntity(cmsOverlay, pk));
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(_overlayEntity(cmsOverlay, pk)));
-    // Check for invalid service ids in existing overlays
-    response = _controller().checkForInvalidServiceIdsInCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Invalid service id(s) found for vha_402 existing detailed services in overlay"
-                + " with LIMITED operating status code for the following service names: "
-                + "SocialWork, Mental Health Care"
-                + "Completed invalid service id check for all overlay detailed services!");
-    // Exception Cases
-    CmsOverlayRepository mockOverlayRepository = mock(CmsOverlayRepository.class);
-    when(mockOverlayRepository.findAll()).thenThrow(new NullPointerException("oh noes"));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(facilityRepository)
-            .cmsOverlayRepository(mockOverlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to check service id for all overlay detailed services: oh noes");
-    CmsOverlayEntity mockOverlayEntity = mock(CmsOverlayEntity.class);
-    when(mockOverlayEntity.cmsServices()).thenReturn(null);
-    mockOverlayRepository = mock(CmsOverlayRepository.class);
-    when(mockOverlayRepository.findAll()).thenReturn(List.of(mockOverlayEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(facilityRepository)
-            .cmsOverlayRepository(mockOverlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "No failures to perform invalid service id check encountered.\n"
-                + "No invalid service ids identified for existing overlays.\n"
-                + "Completed invalid service id check for all overlay detailed services!");
-    mockOverlayEntity = mock(CmsOverlayEntity.class);
-    when(mockOverlayEntity.cmsServices()).thenReturn("{\"noSuchName\":\"noSuchValue\"}");
-    when(mockOverlayEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    mockOverlayRepository = mock(CmsOverlayRepository.class);
-    when(mockOverlayRepository.findAll()).thenReturn(List.of(mockOverlayEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(facilityRepository)
-            .cmsOverlayRepository(mockOverlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to check service id for detailed services associated with vha_402: "
-                + "Cannot deserialize value of type "
-                + "`[Lgov.va.api.lighthouse.facilities.DatamartDetailedService;` "
-                + "from Object value (token `JsonToken.START_OBJECT`) "
-                + "at [Source: (String)\"{\"noSuchName\":\"noSuchValue\"}\"; "
-                + "line: 1, column: 1]"
-                + "Completed invalid service id check for all overlay detailed services!");
-  }
-
-  @Test
-  @SneakyThrows
-  void checkForInvalidServiceIdsInFacilityAttributesWithMixedServices() {
-    var pk = "vha_402";
-    var type = DatamartFacility.Type.va_facilities;
-    var state = "FL";
-    var zip = "32934";
-    var latitude = 1.2;
-    var longitude = 3.4;
-    var healthServices =
-        List.of(HealthService.Cardiology, HealthService.Covid19Vaccine, HealthService.Urology);
-    var facilityType = va_health_facility;
-    var mixedDetailedServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(HealthService.Covid19Vaccine.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(OtherService.OnlineScheduling.name()))
-                .name(OtherService.OnlineScheduling.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(BenefitsService.Pensions.name()))
-                .name(BenefitsService.Pensions.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Urology.name()))
-                .name(HealthService.Urology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(DatamartDetailedService.INVALID_SVC_ID)
-                .name(HealthService.SocialWork.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(DatamartDetailedService.INVALID_SVC_ID)
-                .name("Mental Health Care")
-                .build());
-    DatamartFacility facility =
-        DatamartFacility.builder()
-            .id(pk)
-            .type(type)
-            .attributes(
-                FacilityAttributes.builder()
-                    .address(
-                        Addresses.builder()
-                            .physical(Address.builder().state(state).zip(zip).build())
-                            .build())
-                    .latitude(BigDecimal.valueOf(latitude))
-                    .longitude(BigDecimal.valueOf(longitude))
-                    .services(Services.builder().health(healthServices).build())
-                    .mobile(false)
-                    .facilityType(facilityType)
-                    .detailedServices(mixedDetailedServices)
-                    .operatingStatus(
-                        OperatingStatus.builder()
-                            .code(OperatingStatusCode.LIMITED)
-                            .additionalInfo("Limited")
-                            .build())
-                    .build())
-            .build();
-    assertThat(
-            facility.attributes().detailedServices().stream()
-                .parallel()
-                .anyMatch(ds -> ds.serviceId().equals(DatamartDetailedService.INVALID_SVC_ID)))
-        .isTrue();
-
-    assertThat(facilityRepository.findAll()).isEmpty();
-    // Translation of list of detailed services to string will filter out any detailed service with
-    // an invalid service id through custom deserializers.
-    FacilityEntity facilityEntity = _facilityEntity(facility);
-    assertThat(
-            CmsOverlayHelper.getDetailedServices(facilityEntity.cmsServices()).stream()
-                .parallel()
-                .anyMatch(ds -> ds.serviceId().equals(DatamartDetailedService.INVALID_SVC_ID)))
-        .isFalse();
-    facilityRepository.save(facilityEntity);
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(facilityEntity));
-    // Check for invalid service ids in facility attributes
-    ResponseEntity<String> response = _controller().checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "No failures to perform invalid service id check encountered.\n"
-                + "No invalid service ids identified for existing facility attributes.\n"
-                + "Completed invalid service id check for all facility detailed services!");
-    // Exception Cases
-    FacilityRepository mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenThrow(new NullPointerException("oh noes"));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to check service ids for all facility detailed services: oh noes");
-    FacilityEntity mockFacilityEntity = mock(FacilityEntity.class);
-    when(mockFacilityEntity.facility()).thenReturn(null);
-    when(mockFacilityEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenReturn(List.of(mockFacilityEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to check service id for detailed services associated with vha_402: "
-                + "argument \"content\" is nullCompleted invalid service id check "
-                + "for all facility detailed services!");
-    mockFacilityEntity = mock(FacilityEntity.class);
-    when(mockFacilityEntity.facility()).thenReturn("{\"noSuchName\":\"noSuchValue\"}");
-    when(mockFacilityEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenReturn(List.of(mockFacilityEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to check service id for detailed services associated with vha_402: "
-                + "Unrecognized field \"noSuchName\" (class gov.va.api.lighthouse.facilities.DatamartFacility), "
-                + "not marked as ignorable (3 known properties: \"type\", \"id\", \"attributes\"])\n"
-                + " at [Source: (String)\"{\"noSuchName\":\"noSuchValue\"}\"; "
-                + "line: 1, column: 16] "
-                + "(through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"noSuchName\"])"
-                + "Completed invalid service id check for all facility detailed services!");
-  }
-
-  @Test
-  @SneakyThrows
-  void checkForInvalidServiceIdsInFacilityAttributesWithValidServices() {
-    var pk = "vha_402";
-    var type = DatamartFacility.Type.va_facilities;
-    var state = "FL";
-    var zip = "32934";
-    var latitude = 1.2;
-    var longitude = 3.4;
-    var healthServices =
-        List.of(HealthService.Cardiology, HealthService.Covid19Vaccine, HealthService.Urology);
-    var facilityType = va_health_facility;
-    var facilityDetailedServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(HealthService.Covid19Vaccine.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(OtherService.OnlineScheduling.name()))
-                .name(OtherService.OnlineScheduling.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(BenefitsService.Pensions.name()))
-                .name(BenefitsService.Pensions.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Urology.name()))
-                .name(HealthService.Urology.name())
-                .build());
-    DatamartFacility facility =
-        DatamartFacility.builder()
-            .id(pk)
-            .type(type)
-            .attributes(
-                FacilityAttributes.builder()
-                    .address(
-                        Addresses.builder()
-                            .physical(Address.builder().state(state).zip(zip).build())
-                            .build())
-                    .latitude(BigDecimal.valueOf(latitude))
-                    .longitude(BigDecimal.valueOf(longitude))
-                    .services(Services.builder().health(healthServices).build())
-                    .mobile(false)
-                    .facilityType(facilityType)
-                    .detailedServices(facilityDetailedServices)
-                    .operatingStatus(
-                        OperatingStatus.builder()
-                            .code(OperatingStatusCode.LIMITED)
-                            .additionalInfo("Limited")
-                            .build())
-                    .build())
-            .build();
-    assertThat(facilityRepository.findAll()).isEmpty();
-    FacilityEntity facilityEntity = _facilityEntity(facility);
-    facilityRepository.save(facilityEntity);
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(facilityEntity));
-    // Check for invalid service ids in facility attributes
-    ResponseEntity<String> response = _controller().checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "No failures to perform invalid service id check encountered.\n"
-                + "No invalid service ids identified for existing facility attributes.\n"
-                + "Completed invalid service id check for all facility detailed services!");
-    // Exception cases
-    FacilityEntity mockFacilityEntity = mock(FacilityEntity.class);
-    when(mockFacilityEntity.facility())
-        .thenReturn(
-            "{\"id\":\"vha_402\","
-                + "\"type\":\"va_facilities\","
-                + "\"attributes\":{"
-                + "\"detailed_services\":[{"
-                + "\"serviceId\":\"INVALID_ID\","
-                + "\"name\":\"noSuchName\","
-                + "\"appointment_phones\":[],"
-                + "\"service_locations\":[]"
-                + "}]"
-                + "}"
-                + "}");
-    when(mockFacilityEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    FacilityRepository mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenReturn(List.of(mockFacilityEntity));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.checkForInvalidServiceIdsInFacilityAttributes();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "No failures to perform invalid service id check encountered.\n"
-                + "No invalid service ids identified for existing facility attributes.\n"
-                + "Completed invalid service id check for all facility detailed services!");
   }
 
   @Test
@@ -655,12 +322,30 @@ public class InternalFacilitiesControllerTest {
   void collect_createUpdate() {
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
-        _facility("vha_f2", "NEAT", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f2",
+            "NEAT",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     List<DatamartFacility> datamartFacilities = List.of(f1, f2);
     DatamartFacility f2Old =
-        _facility("vha_f2", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f2",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f2Old));
     when(collector.collectFacilities()).thenReturn(datamartFacilities);
     ReloadResponse response = _controller().reload().getBody();
@@ -677,18 +362,113 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
+  void collect_doNotInferOperatingStatus() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus().code(DatamartFacility.OperatingStatusCode.CLOSED);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is not null, and the overlay operating status matches the
+    // facility operating status,
+    // then active status should not be used and facility operating status should not change
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullHealthCareSystem() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullHealthCareSystemAndPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.healthCareSystem(null);
+    facility.attributes().phone(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone()).isNull();
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_healthConnectNullPhone() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    facility.attributes().phone(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().phone()).isNull();
+    assertDoesNotThrow(
+        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
+  @SneakyThrows
   void collect_invalidLatLong() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "999", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            facilityId,
+            "FL",
+            "999",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1V1 =
         _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().latitude(null);
     f1.attributes().longitude(null);
     f1V1.attributes().latitude(null);
@@ -704,15 +484,45 @@ public class InternalFacilitiesControllerTest {
   void collect_missing() {
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f2Old =
-        _facility("vha_f2", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f2",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f3Old =
-        _facility("vha_f3", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f3",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f4Old =
-        _facility("vha_f4", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f4",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old));
     facilityRepository.save(_facilityEntity(f2Old));
     facilityRepository.save(_facilityEntity(f3Old));
@@ -724,7 +534,15 @@ public class InternalFacilitiesControllerTest {
     List<FacilityEntity> findAll = ImmutableList.copyOf(facilityRepository.findAll());
     assertThat(findAll).hasSize(4);
     assertThat(findAll.get(0).missingTimestamp()).isNull();
-    assertThat(findAll.get(0).services()).isEqualTo(Set.of("MentalHealth"));
+    assertThat(findAll.get(0).services())
+        .isEqualTo(
+            Set.of(
+                JacksonConfig.createMapper()
+                    .writeValueAsString(
+                        Service.<HealthService>builder()
+                            .serviceType(HealthService.MentalHealth)
+                            .name(HealthService.MentalHealth.name())
+                            .build())));
     assertThat(findAll.get(1).missingTimestamp()).isNotNull();
     assertThat(findAll.get(2).missingTimestamp()).isNotNull();
     assertThat(findAll.get(3).missingTimestamp()).isNotNull();
@@ -735,23 +553,49 @@ public class InternalFacilitiesControllerTest {
   void collect_missingComesBack() {
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(Instant.now().toEpochMilli()));
     when(collector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
     assertThat(result.missingTimestamp()).isNull();
-    assertThat(result.services()).isEqualTo(Set.of("MentalHealth"));
+    assertThat(result.services())
+        .isEqualTo(
+            Set.of(
+                JacksonConfig.createMapper()
+                    .writeValueAsString(
+                        Service.<HealthService>builder()
+                            .serviceType(HealthService.MentalHealth)
+                            .name(HealthService.MentalHealth.name())
+                            .build())));
   }
 
   @Test
   @SneakyThrows
   void collect_missingTimestampPreserved() {
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     long early = Instant.now().minusSeconds(60).toEpochMilli();
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(early));
     when(collector.collectFacilities()).thenReturn(emptyList());
@@ -764,17 +608,39 @@ public class InternalFacilitiesControllerTest {
   @Test
   @SneakyThrows
   void collect_noStateOrZip() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
-    DatamartFacility f1V1 =
-        _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
+    DatamartFacility f1V1 =
+        _facilityV1(
+            facilityId,
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().address().physical().state(null);
     f1.attributes().address().physical().zip(null);
     f1.attributes().latitude(BigDecimal.valueOf(91.4));
@@ -834,10 +700,131 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
+  @SneakyThrows
+  void collect_operatingStatusWithOverlay() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility.attributes().operatingStatus(null);
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus().code(DatamartFacility.OperatingStatusCode.CLOSED);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is null, but overlay operating status is not null, then active
+    // status should not be
+    // used, instead overlay operating status should be used
+    assertThat(facility.attributes().operatingStatus()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(overlay.operatingStatus().code());
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_populateOperatingStatusFromNull() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    facility.attributes().operatingStatus(null);
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    overlay.operatingStatus(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility operating status is null, and overlay operating status is null and therefore
+    // cannot be used to
+    // populate facility operating status, then active status should be used to infer facility
+    // operating status
+    assertThat(facility.attributes().operatingStatus()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_setHealthConnectPhoneNumber() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), _overlay());
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector =
+        new FacilitiesCollector(
+            mock(InsecureRestTemplateProvider.class),
+            mock(JdbcTemplate.class),
+            mockCmsOverlayCollector,
+            "atcBaseUrl",
+            "atpBaseUrl",
+            "cemeteriesBaseUrl");
+    assertThat(facility.attributes().phone().healthConnect()).isNull();
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().phone().healthConnect())
+        .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateOperatingStatusToClosed() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(null);
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.NORMAL));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.T);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility's operating status is NORMAL, the overlay's operating status is null, and the
+    // facility's ActiveStatus
+    // is T, then the ActiveStatus should be used to change the operating status to CLOSED
+    assertThat(facility.attributes().operatingStatus().code)
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateOperatingStatusToNormal() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(null);
+    facility
+        .attributes()
+        .operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    // If facility's operating status is NORMAL, the overlay's operating status is null, and the
+    // facility's ActiveStatus
+    // is T, then the ActiveStatus should be used to change the operating status to CLOSED
+    assertThat(facility.attributes().operatingStatus().code)
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
+    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+  }
+
+  @Test
   void deleteFacilityByIdWithOverlay() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f, _overlay()));
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     ResponseEntity<String> response = _controller().deleteFacilityById("vha_f1");
@@ -852,7 +839,13 @@ public class InternalFacilitiesControllerTest {
   void deleteFacilityByIdWithoutOverlay() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f));
     ResponseEntity<String> response = _controller().deleteFacilityById("vha_f1");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -863,7 +856,13 @@ public class InternalFacilitiesControllerTest {
   void deleteFacilityOverlayById() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     ResponseEntity<Void> response = null;
     facilityRepository.save(_facilityEntity(f, _overlay()));
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
@@ -888,6 +887,7 @@ public class InternalFacilitiesControllerTest {
                 _overlayEntity(
                     DatamartCmsOverlay.builder()
                         .detailedServices(_overlay_detailed_services())
+                        .healthCareSystem(_overlay_health_care_system())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -907,8 +907,30 @@ public class InternalFacilitiesControllerTest {
                 _overlayEntity(
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
+                        .healthCareSystem(_overlay_health_care_system())
                         .build(),
                     "vha_f1")));
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "system");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .operatingStatus(_overlay_operating_status())
+                        .detailedServices(_overlay_detailed_services())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    // Test deleting system node when system node does not exist
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    datamartCmsOverlay.healthCareSystem(null);
+    overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "system");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     overlayRepository.deleteAll();
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", null);
@@ -952,8 +974,113 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
+  void deleteFacilityOverlayWithCovid19Vaccine() {
+    DatamartFacility f =
+        _facility(
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare,
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.Covid19Vaccine));
+    ResponseEntity<Void> response = null;
+    FacilityEntity fe = _facilityEntity(f, _overlay());
+    facilityRepository.save(_facilityEntity(f, _overlay()));
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "operating_status");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    RecursiveComparisonConfiguration facilityEntityCompConfig =
+        RecursiveComparisonConfiguration.builder()
+            .withIgnoredFields("version", "lastUpdated")
+            .build();
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                f,
+                DatamartCmsOverlay.builder()
+                    .detailedServices(_overlay_detailed_services())
+                    .build()));
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .detailedServices(_overlay_detailed_services())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "detailed_services");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    // Covid19Vaccine should be remove from facility health services list
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                _facility(
+                    "vha_f1",
+                    "FL",
+                    "South",
+                    1.2,
+                    3.4,
+                    List.of(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService
+                            .MentalHealthCare)),
+                DatamartCmsOverlay.builder().operatingStatus(_overlay_operating_status()).build()));
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .operatingStatus(_overlay_operating_status())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", null);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    // Covid19Vaccine should be remove from facility health services list
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveFieldByFieldElementComparator(facilityEntityCompConfig)
+        .containsOnly(
+            _facilityEntity(
+                _facility(
+                    "vha_f1",
+                    "FL",
+                    "South",
+                    1.2,
+                    3.4,
+                    List.of(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService
+                            .MentalHealthCare)),
+                DatamartCmsOverlay.builder().operatingStatus(null).build()));
+    assertThat(overlayRepository.findAll()).isEmpty();
+  }
+
+  @Test
   void deleteNonExistingFacilityByIdReturnsAccepted() {
     assertThat(_controller().deleteFacilityById("vha_f1").getStatusCodeValue()).isEqualTo(202);
+  }
+
+  @Test
+  void deleteOverlayHealthCareSystem() {
+    CmsOverlayEntity cmsOverlayEntity = _overlayEntity(_overlay(), "vha_f1");
+    overlayRepository.save(cmsOverlayEntity);
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(List.of(cmsOverlayEntity));
+    _controller().deleteCmsOverlayById("vha_f1", "system");
+    cmsOverlayEntity.healthCareSystem(null);
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(List.of(cmsOverlayEntity));
   }
 
   @Test
@@ -966,7 +1093,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.00,
             100.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
         _facility(
             "vha_f2",
@@ -974,7 +1102,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.00,
             50.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Duplicate =
         _facility(
             "vha_f1dup",
@@ -982,7 +1111,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             102.00,
             102.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2Duplicate =
         _facility(
             "vha_f2dup",
@@ -990,7 +1120,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             52.00,
             52.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     ReloadResponse response = ReloadResponse.start();
     facilityRepository.save(_facilityEntity(f1));
     facilityRepository.save(_facilityEntity(f2));
@@ -1034,7 +1165,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.00,
             100.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
         _facility(
             "vha_f2",
@@ -1042,7 +1174,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.00,
             50.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Duplicate =
         _facility(
             "vha_f1dup",
@@ -1050,7 +1183,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.0002,
             100.0002,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2Duplicate =
         _facility(
             "vha_f2dup",
@@ -1058,7 +1192,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.0002,
             50.0002,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f1));
     facilityRepository.save(_facilityEntity(f2));
     assertThat(facilityRepository.findById(FacilityEntity.Pk.fromIdString("vha_f1"))).isNotNull();
@@ -1192,63 +1327,16 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
-  @SneakyThrows
   void populateCmsOverlayTable() {
-    var pk = "vha_402";
-    var type = va_facilities;
-    var state = "FL";
-    var zip = "32934";
-    var latitude = BigDecimal.valueOf(1.2);
-    var longitude = BigDecimal.valueOf(3.4);
-    var healthServices = List.of(HealthService.Cardiology);
-    var facilityType = va_health_facility;
-    var facilityDetailedServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build());
-    DatamartFacility facility =
-        DatamartFacility.builder()
-            .id(pk)
-            .type(type)
-            .attributes(
-                FacilityAttributes.builder()
-                    .address(
-                        Addresses.builder()
-                            .physical(Address.builder().state(state).zip(zip).build())
-                            .build())
-                    .latitude(latitude)
-                    .longitude(longitude)
-                    .services(Services.builder().health(healthServices).build())
-                    .mobile(false)
-                    .facilityType(facilityType)
-                    .detailedServices(facilityDetailedServices)
-                    .operatingStatus(
-                        OperatingStatus.builder()
-                            .code(OperatingStatusCode.LIMITED)
-                            .additionalInfo("Limited")
-                            .build())
-                    .build())
-            .build();
-    assertThat(facilityRepository.findAll()).isEmpty();
-    FacilityEntity facilityEntity = _facilityEntity(facility);
-    facilityEntity.cmsServices(
-        JacksonConfig.createMapper().writeValueAsString(facilityDetailedServices));
+    DatamartFacility datamartFacility =
+        _facility(
+            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+    DatamartCmsOverlay datamartCmsOverlay = _overlay();
+    FacilityEntity facilityEntity = _facilityEntity(datamartFacility, datamartCmsOverlay);
     facilityRepository.save(facilityEntity);
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(facilityEntity));
-    // Populate overlay using CMS services
-    assertThat(overlayRepository.findAll()).isEmpty();
     _controller().populateCmsOverlayTable();
     assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(
-            List.of(
-                _overlayEntity(
-                    DatamartCmsOverlay.builder().detailedServices(facilityDetailedServices).build(),
-                    pk)));
+        .containsOnly(_overlayEntity(datamartCmsOverlay, "vha_f1"));
   }
 
   @Test
@@ -1268,12 +1356,6 @@ public class InternalFacilitiesControllerTest {
                 .facilityRepository(mockRepo)
                 .build()
                 .populateCmsOverlayTable());
-    assertDoesNotThrow(
-        () ->
-            InternalFacilitiesController.builder()
-                .facilityRepository(mockRepo)
-                .build()
-                .updateAllDetailedServiceIdAndTransferToCmsOverlay());
   }
 
   @Test
@@ -1361,21 +1443,54 @@ public class InternalFacilitiesControllerTest {
                                 Services.builder()
                                     .health(
                                         List.of(
-                                            HealthService.PrimaryCare, HealthService.MentalHealth))
+                                            Service.<HealthService>builder()
+                                                .serviceType(HealthService.PrimaryCare)
+                                                .name(HealthService.PrimaryCare.name())
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(HealthService.MentalHealth)
+                                                .name(HealthService.MentalHealth.name())
+                                                .build()))
                                     .benefits(
                                         List.of(
-                                            BenefitsService.ApplyingForBenefits,
-                                            BenefitsService.BurialClaimAssistance))
-                                    .other(List.of(OtherService.OnlineScheduling))
+                                            Service.<BenefitsService>builder()
+                                                .serviceType(BenefitsService.ApplyingForBenefits)
+                                                .name(BenefitsService.ApplyingForBenefits.name())
+                                                .build(),
+                                            Service.<BenefitsService>builder()
+                                                .serviceType(BenefitsService.BurialClaimAssistance)
+                                                .name(BenefitsService.BurialClaimAssistance.name())
+                                                .build()))
+                                    .other(
+                                        List.of(
+                                            Service.<OtherService>builder()
+                                                .serviceType(OtherService.OnlineScheduling)
+                                                .name(OtherService.OnlineScheduling.name())
+                                                .build()))
                                     .build())
                             .build())
                     .build()))
         .containsExactlyInAnyOrder(
-            HealthService.PrimaryCare,
-            HealthService.MentalHealth,
-            BenefitsService.ApplyingForBenefits,
-            BenefitsService.BurialClaimAssistance,
-            OtherService.OnlineScheduling);
+            Service.<HealthService>builder()
+                .serviceType(HealthService.PrimaryCare)
+                .name(HealthService.PrimaryCare.name())
+                .build(),
+            Service.<HealthService>builder()
+                .serviceType(HealthService.MentalHealth)
+                .name(HealthService.MentalHealth.name())
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceType(BenefitsService.ApplyingForBenefits)
+                .name(BenefitsService.ApplyingForBenefits.name())
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceType(BenefitsService.BurialClaimAssistance)
+                .name(BenefitsService.BurialClaimAssistance.name())
+                .build(),
+            Service.<OtherService>builder()
+                .serviceType(OtherService.OnlineScheduling)
+                .name(OtherService.OnlineScheduling.name())
+                .build());
   }
 
   @Test
@@ -1422,170 +1537,44 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
-  @SneakyThrows
-  void updateAllDetailedServiceIdAndTransferToCmsOverlay() {
-    var pk = "vha_402";
-    var type = DatamartFacility.Type.va_facilities;
-    var state = "FL";
-    var zip = "32934";
-    var latitude = 1.2;
-    var longitude = 3.4;
-    var healthServices =
-        List.of(HealthService.Cardiology, HealthService.Covid19Vaccine, HealthService.Urology);
-    var facilityType = va_health_facility;
-    var facilityDetailedServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(HealthService.Covid19Vaccine.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(OtherService.OnlineScheduling.name()))
-                .name(OtherService.OnlineScheduling.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(BenefitsService.Pensions.name()))
-                .name(BenefitsService.Pensions.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Urology.name()))
-                .name(HealthService.Urology.name())
-                .build());
-    DatamartFacility facility =
-        DatamartFacility.builder()
-            .id(pk)
-            .type(type)
-            .attributes(
-                FacilityAttributes.builder()
-                    .address(
-                        Addresses.builder()
-                            .physical(Address.builder().state(state).zip(zip).build())
-                            .build())
-                    .latitude(BigDecimal.valueOf(latitude))
-                    .longitude(BigDecimal.valueOf(longitude))
-                    .services(Services.builder().health(healthServices).build())
-                    .mobile(false)
-                    .facilityType(facilityType)
-                    .detailedServices(facilityDetailedServices)
-                    .operatingStatus(
-                        OperatingStatus.builder()
-                            .code(OperatingStatusCode.LIMITED)
-                            .additionalInfo("Limited")
-                            .build())
-                    .build())
-            .build();
-    assertThat(facilityRepository.findAll()).isEmpty();
-    FacilityEntity facilityEntity = _facilityEntity(facility);
-    facilityRepository.save(facilityEntity);
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(facilityEntity));
-    assertThat(overlayRepository.findAll()).isEmpty();
-    overlayRepository.save(_overlayEntity(_overlay(), pk));
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(
-            List.of(
-                _overlayEntity(
-                    DatamartCmsOverlay.builder()
-                        .operatingStatus(_overlay_operating_status())
-                        .detailedServices(_overlay_detailed_services())
-                        .build(),
-                    pk)));
-    // Transfer detailed services from facility to overlay
-    ResponseEntity<String> response =
-        _controller().updateAllDetailedServiceIdAndTransferToCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Updating service id for detailed services associated with facility vha_402"
-                + "Updating service id for existing vha_402 CMS overlay detailed services"
-                + "Completed update and transfer of all facility detailed services to cms_overlay table!");
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(
-            List.of(
-                _overlayEntity(
-                    DatamartCmsOverlay.builder()
-                        .operatingStatus(_overlay_operating_status())
-                        .detailedServices(facilityDetailedServices)
-                        .build(),
-                    pk)));
-    // Exception Cases
-    FacilityRepository mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenThrow(new NullPointerException("oh noes"));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.updateAllDetailedServiceIdAndTransferToCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to update and transfer all facility detailed services to cms_overlay table: oh noes");
-    FacilityEntity mockFacilityEntity = mock(FacilityEntity.class);
-    when(mockFacilityEntity.facility()).thenReturn(null);
-    when(mockFacilityEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenReturn(List.of(mockFacilityEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.updateAllDetailedServiceIdAndTransferToCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to update and transfer all facility detailed services to cms_overlay table: argument \"content\" is null");
-    mockFacilityEntity = mock(FacilityEntity.class);
-    when(mockFacilityEntity.facility()).thenReturn("{\"noSuchName\":\"noSuchValue\"}");
-    when(mockFacilityEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_402"));
-    mockFacilityRepository = mock(FacilityRepository.class);
-    when(mockFacilityRepository.findAll()).thenReturn(List.of(mockFacilityEntity));
-    controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(mockFacilityRepository)
-            .cmsOverlayRepository(overlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.updateAllDetailedServiceIdAndTransferToCmsOverlay();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to update and transfer all facility detailed services to cms_overlay table: "
-                + "Unrecognized field \"noSuchName\" "
-                + "(class gov.va.api.lighthouse.facilities.DatamartFacility), "
-                + "not marked as ignorable (3 known properties: \"type\", \"id\", \"attributes\"]) "
-                + "at [Source: (String)\"{\"noSuchName\":\"noSuchValue\"}\"; "
-                + "line: 1, column: 16] "
-                + "(through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"noSuchName\"])");
-  }
-
-  @Test
   void updateAndSave_error() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     FacilityRepository repo = mock(FacilityRepository.class);
     when(repo.save(any(FacilityEntity.class))).thenThrow(new RuntimeException("oh noez"));
     InternalFacilitiesController controller =
         InternalFacilitiesController.builder().facilityRepository(repo).build();
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "CO", "5319", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            facilityId,
+            "CO",
+            "5319",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1V1 =
         _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().address().mailing(Address.builder().zip("12345-56").build());
     f1V1.attributes().address().mailing(Address.builder().zip("12345-56").build());
     ReloadResponse response = ReloadResponse.start();
@@ -1620,13 +1609,32 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   void updateAndSave_replaceInstructions() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "32934", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "32934",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
-        _facility("vha_f2", "FL", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f2",
+            "FL",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     DatamartFacility f3 =
-        _facility("vha_f3", "FL", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f3",
+            "FL",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     DatamartFacility f1V1 =
         _facilityV1(
             "vha_f1",
@@ -1634,7 +1642,21 @@ public class InternalFacilitiesControllerTest {
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f1",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     DatamartFacility f2V1 =
         _facilityV1(
             "vha_f2",
@@ -1642,7 +1664,21 @@ public class InternalFacilitiesControllerTest {
             "32934",
             5.6,
             6.7,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f2",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .UrgentCare.serviceId()))
+                    .build()));
     DatamartFacility f3V1 =
         _facilityV1(
             "vha_f3",
@@ -1650,7 +1686,21 @@ public class InternalFacilitiesControllerTest {
             "32934",
             5.6,
             6.7,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f3",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .UrgentCare.serviceId()))
+                    .build()));
     f1.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_1);
     f2.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_2);
     f3.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_3);
@@ -1709,85 +1759,24 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
-  void updateServiceIdForExistingCmsOverlays() {
-    var pk = "vha_402";
-    var cmsServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Cardiology.name()))
-                .name(HealthService.Cardiology.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(HealthService.Covid19Vaccine.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(OtherService.OnlineScheduling.name()))
-                .name(OtherService.OnlineScheduling.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(BenefitsService.Pensions.name()))
-                .name(BenefitsService.Pensions.name())
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceId(uncapitalize(HealthService.Urology.name()))
-                .name(HealthService.Urology.name())
-                .build());
-    DatamartCmsOverlay cmsOverlay =
-        DatamartCmsOverlay.builder()
-            .operatingStatus(
-                OperatingStatus.builder()
-                    .code(OperatingStatusCode.LIMITED)
-                    .additionalInfo("Limited")
-                    .build())
-            .detailedServices(cmsServices)
-            .build();
-    assertThat(overlayRepository.findAll()).isEmpty();
-    overlayRepository.save(_overlayEntity(cmsOverlay, pk));
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(List.of(_overlayEntity(cmsOverlay, pk)));
-    // Update service id for existing detailed services in CMS overlays
-    ResponseEntity<String> response = _controller().updateServiceIdForExistingCmsOverlays();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Updating service id for detailed services associated with overlay vha_402"
-                + "Completed service id update for existing detailed services in overlay!");
-    assertThat(overlayRepository.findAll())
-        .usingRecursiveComparison()
-        .isEqualTo(
-            List.of(
-                _overlayEntity(
-                    DatamartCmsOverlay.builder()
-                        .operatingStatus(_overlay_operating_status())
-                        .detailedServices(cmsServices)
-                        .build(),
-                    pk)));
-    // Exception Cases
-    CmsOverlayRepository mockOverlayRepository = mock(CmsOverlayRepository.class);
-    when(mockOverlayRepository.findAll()).thenThrow(new NullPointerException("oh noes"));
-    InternalFacilitiesController controller =
-        InternalFacilitiesController.builder()
-            .facilityRepository(facilityRepository)
-            .cmsOverlayRepository(mockOverlayRepository)
-            .collector(collector)
-            .build();
-    response = controller.updateServiceIdForExistingCmsOverlays();
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody())
-        .isEqualToIgnoringWhitespace(
-            "Failed to update service id for existing detailed services in overlay: oh noes");
-  }
-
-  @Test
-  @SneakyThrows
   void upload() {
     DatamartFacility f1 =
         _facility(
-            "vha_f91", "FU", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f91",
+            "FU",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
-        _facility("vha_f92", "NEAT", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f92",
+            "NEAT",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     List<DatamartFacility> collectedFacilities = List.of(f1, f2);
     _controller().upload(collectedFacilities);
     RecursiveComparisonConfiguration comparisonConfig =

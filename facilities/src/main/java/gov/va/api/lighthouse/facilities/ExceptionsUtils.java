@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import java.util.List;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -11,16 +10,14 @@ final class ExceptionsUtils {
     }
   }
 
-  static final class ParameterInvalidWithoutOthers extends RuntimeException {
-    ParameterInvalidWithoutOthers(String name, List<String> missing) {
+  static final class NotFound extends RuntimeException {
+    public NotFound(String serviceId, String facilityId) {
       super(
           String.format(
-              "'%s' cannot be included while the following parameters are null: %s",
-              name, String.join(", ", missing)));
+              "The service identified by %s could not be found for facility %s",
+              serviceId, facilityId));
     }
-  }
 
-  static final class NotFound extends RuntimeException {
     public NotFound(String id) {
       super(String.format("The record identified by %s could not be found", id));
     }

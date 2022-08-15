@@ -21,6 +21,7 @@ public class OperatingStatusSerializer extends NonEmptySerializer<OperatingStatu
     jgen.writeStartObject();
     writeNonEmpty(jgen, "code", value.code());
     writeNonEmpty(jgen, "additionalInfo", value.additionalInfo());
+    writeNonEmpty(jgen, "supplementalStatus", value.supplementalStatuses());
     jgen.writeEndObject();
   }
 }

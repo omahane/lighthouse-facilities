@@ -15,6 +15,7 @@ import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +116,8 @@ public class NearbyUtils {
     @SneakyThrows
     Path2D toPath(DriveTimeBandEntity entity) {
       PssgDriveTimeBand asBand = mapper.readValue(entity.band(), PssgDriveTimeBand.class);
-      List<List<List<Double>>> rings = asBand.geometry().rings();
+      List<List<List<Double>>> rings =
+          asBand.geometry() == null ? Collections.emptyList() : asBand.geometry().rings();
       checkState(!rings.isEmpty());
       List<List<Double>> exteriorRing = rings.get(0);
       Path2D path2D = toPath2D(exteriorRing);

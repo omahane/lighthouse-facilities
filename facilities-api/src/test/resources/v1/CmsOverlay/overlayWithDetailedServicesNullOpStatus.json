@@ -1,8 +1,11 @@
 {
   "detailedServices" : [
     {
-      "serviceId" : "cardiology",
-      "name" : "Cardiology",
+      "serviceInfo" : {
+        "name" : "Cardiology",
+        "serviceId" : "cardiology",
+        "serviceType" : "health"
+      },
       "appointmentLeadIn" : "Your VA health care team will contact you if you...more text",
       "appointmentPhones" : [
         {
@@ -56,8 +59,11 @@
       "path" : "replaceable path here"
     },
     {
-      "serviceId" : "caregiverSupport",
-      "name" : "CaregiverSupport",
+      "serviceInfo" : {
+        "name" : "CaregiverSupport",
+        "serviceId" : "caregiverSupport",
+        "serviceType" : "health"
+      },
       "appointmentLeadIn" : "Your VA health care team will contact you if you...more text",
       "appointmentPhones" : [
         {
@@ -111,8 +117,11 @@
       "path" : "replaceable path here"
     },
     {
-      "serviceId" : "emergencyCare",
-      "name" : "EmergencyCare",
+      "serviceInfo" : {
+        "name" : "EmergencyCare",
+        "serviceId" : "emergencyCare",
+        "serviceType" : "health"
+      },
       "appointmentLeadIn" : "Your VA health care team will contact you if you...more text",
       "appointmentPhones" : [
         {

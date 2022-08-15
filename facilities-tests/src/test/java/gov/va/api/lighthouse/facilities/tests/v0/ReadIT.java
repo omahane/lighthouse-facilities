@@ -7,6 +7,7 @@ import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDef
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.lighthouse.facilities.api.v0.FacilityReadResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilityReadResponse;
+import gov.va.api.lighthouse.facilities.tests.SystemDefinitions;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import org.junit.jupiter.api.MethodOrderer;

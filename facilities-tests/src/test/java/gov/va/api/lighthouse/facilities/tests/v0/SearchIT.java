@@ -1,4 +1,4 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.v0;
 
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
@@ -8,13 +8,11 @@ import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
-<<<<<<< HEAD:facilities-tests/src/test/java/gov/va/api/lighthouse/facilities/tests/v0/SearchIT.java
-=======
+import gov.va.api.lighthouse.facilities.tests.SystemDefinitions;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
->>>>>>> d6c5afec86aaf8930f7994cf2f03b4811a16d92d:facilities-tests/src/test/java/gov/va/api/lighthouse/facilities/tests/SearchIT.java
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;

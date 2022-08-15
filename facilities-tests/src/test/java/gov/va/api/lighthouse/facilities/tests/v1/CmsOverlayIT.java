@@ -37,14 +37,14 @@ public class CmsOverlayIT {
           + "\"serviceId\":\""
           + uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name())
           + "\","
-          + "\"name\":\"COVID-19 vaccines\","
+          + "\"name\":\"Covid19Vaccine\","
           + "\"active\":true,"
           + "\"changed\": \"2021-02-04T22:36:49+00:00\","
           + "\"description_facility\":\"I'm a facility service!\","
           + "\"health_service_api_id\":\"12435\","
           + "\"appointment_leadin\":\"Your VA health care team will contact you if you...more text\","
           + "\"online_scheduling_available\": \"Unknown\","
-          + "\"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\","
+          + "\"path\": \"https://www.va.gov\\/bay-pines-health-care\\/programs\\/covid-19-vaccines\\/\","
           + "\"appointment_phones\": [  "
           + "{"
           + "\"extension\": \"123\","
@@ -202,10 +202,15 @@ public class CmsOverlayIT {
   private List<DetailedService> detailedServices() {
     return List.of(
         DetailedService.builder()
-            .name("COVID-19 vaccines")
-            .serviceId(uncapitalize(Facility.HealthService.Covid19Vaccine.name()))
+                .serviceInfo(DetailedService.ServiceInfo.builder()
+                        .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                        .name("Covid19Vaccine")
+                        .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                        .build()
+                )
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
+                .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
             .phoneNumbers(
                 List.of(
                     DetailedService.AppointmentPhoneNumber.builder()
@@ -396,7 +401,6 @@ public class CmsOverlayIT {
             .expectValid(FacilityReadResponse.class)
             .facility();
     assertThat(facility.attributes().operatingStatus()).isEqualTo(ops);
-    assertThat(facility.attributes().services()).isNull();
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")

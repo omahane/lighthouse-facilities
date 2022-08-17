@@ -1,13 +1,11 @@
 package gov.va.api.lighthouse.facilities;
 
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -16,43 +14,24 @@ import org.junit.jupiter.api.Test;
 public class CmsOverlayTransformerV0Test {
   @Test
   public void cmsOverlayRoundtrip() {
-    // Lossless transformation
-    CmsOverlay covidOnlyOverlay = overlay(List.of(Facility.HealthService.Covid19Vaccine));
+    CmsOverlay overlay = overlay();
     assertThat(
             CmsOverlayTransformerV0.toCmsOverlay(
-                CmsOverlayTransformerV0.toVersionAgnostic(covidOnlyOverlay)))
+                CmsOverlayTransformerV0.toVersionAgnostic(overlay)))
         .usingRecursiveComparison()
-        .isEqualTo(covidOnlyOverlay);
-    // Non-lossless transformation
-    CmsOverlay overlayWithMoreThanCovidServices = overlay();
-    assertThat(
-            CmsOverlayTransformerV0.toCmsOverlay(
-                CmsOverlayTransformerV0.toVersionAgnostic(overlayWithMoreThanCovidServices)))
-        .usingRecursiveComparison()
-        .isEqualTo(covidOnlyOverlay);
+        .isEqualTo(overlay);
   }
 
   @Test
   public void cmsOverlayVisitorRoundtrip() {
-    // Lossless transformation
-    CmsOverlay covidOnlyOverlay = overlay(List.of(Facility.HealthService.Covid19Vaccine));
+    CmsOverlay overlay = overlay();
     assertThat(
             CmsOverlayTransformerV0.toCmsOverlay(
                 CmsOverlayTransformerV1.toVersionAgnostic(
                     CmsOverlayTransformerV1.toCmsOverlay(
-                        CmsOverlayTransformerV0.toVersionAgnostic(covidOnlyOverlay)))))
+                        CmsOverlayTransformerV0.toVersionAgnostic(overlay)))))
         .usingRecursiveComparison()
-        .isEqualTo(covidOnlyOverlay);
-    // Non-lossless transformation
-    CmsOverlay overlayWithMoreThanCovidServices = overlay();
-    assertThat(
-            CmsOverlayTransformerV0.toCmsOverlay(
-                CmsOverlayTransformerV1.toVersionAgnostic(
-                    CmsOverlayTransformerV1.toCmsOverlay(
-                        CmsOverlayTransformerV0.toVersionAgnostic(
-                            overlayWithMoreThanCovidServices)))))
-        .usingRecursiveComparison()
-        .isEqualTo(covidOnlyOverlay);
+        .isEqualTo(overlay);
   }
 
   private DatamartCmsOverlay datamartCmsOverlay() {
@@ -72,26 +51,24 @@ public class CmsOverlayTransformerV0Test {
                 .build())
         .detailedServices(
             healthServices != null ? getDatamartDetailedServices(healthServices, true) : null)
+        .healthCareSystem(
+            DatamartCmsOverlay.HealthCareSystem.builder()
+                .name("Example Health Care System Name")
+                .url("https://www.va.gov/example/locations/facility")
+                .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+                .healthConnectPhone("123-456-7890 x123")
+                .build())
         .build();
   }
 
   @Test
   public void datamartCmsOverlayRoundtrip() {
-    // Lossless transformation
-    DatamartCmsOverlay covidOnlyDatamartCmsOverlay =
-        datamartCmsOverlay(List.of(DatamartFacility.HealthService.Covid19Vaccine));
+    DatamartCmsOverlay datamartCmsOverlay = datamartCmsOverlay();
     assertThat(
             CmsOverlayTransformerV0.toVersionAgnostic(
-                CmsOverlayTransformerV0.toCmsOverlay(covidOnlyDatamartCmsOverlay)))
+                CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay)))
         .usingRecursiveComparison()
-        .isEqualTo(covidOnlyDatamartCmsOverlay);
-    // Non-lossless transformation
-    DatamartCmsOverlay datamartCmsOverlayWithMoreThanCovidService = datamartCmsOverlay();
-    assertThat(
-            CmsOverlayTransformerV0.toVersionAgnostic(
-                CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlayWithMoreThanCovidService)))
-        .usingRecursiveComparison()
-        .isEqualTo(covidOnlyDatamartCmsOverlay);
+        .isEqualTo(datamartCmsOverlay);
   }
 
   private DatamartDetailedService getDatamartDetailedService(
@@ -100,14 +77,12 @@ public class CmsOverlayTransformerV0Test {
         .active(isActive)
         .serviceInfo(
             DatamartDetailedService.ServiceInfo.builder()
-                .serviceId(uncapitalize(healthService.name()))
+                .serviceId(healthService.serviceId())
                 .name(
-                    healthService
-                            .name()
-                            .equals(DatamartFacility.HealthService.Covid19Vaccine.name())
-                        ? "COVID-19 vaccines"
+                    DatamartFacility.HealthService.Covid19Vaccine.equals(healthService)
+                        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
                         : healthService.name())
-                .serviceType(getDatamartServiceType(healthService))
+                .serviceType(healthService.serviceType())
                 .build())
         .path("https://path/to/service/goodness")
         .phoneNumbers(
@@ -130,7 +105,6 @@ public class CmsOverlayTransformerV0Test {
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .descriptionFacility("facility description")
         .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(
@@ -200,30 +174,15 @@ public class CmsOverlayTransformerV0Test {
         .collect(Collectors.toList());
   }
 
-  private DatamartDetailedService.ServiceType getDatamartServiceType(
-      @NonNull ServiceType serviceType) {
-    return Arrays.stream(DatamartFacility.HealthService.values())
-            .anyMatch(hs -> hs.name().equals(serviceType.name()))
-        ? DatamartDetailedService.ServiceType.Health
-        : Arrays.stream(DatamartFacility.BenefitsService.values())
-                .anyMatch(bs -> bs.name().equals(serviceType.name()))
-            ? DatamartDetailedService.ServiceType.Benefits
-            : Arrays.stream(DatamartFacility.OtherService.values())
-                    .anyMatch(os -> os.name().equals(serviceType.name()))
-                ? DatamartDetailedService.ServiceType.Other
-                : // Default to health service type
-                DatamartDetailedService.ServiceType.Health;
-  }
-
   private DetailedService getDetailedService(
       @NonNull Facility.HealthService healthService, boolean isActive) {
     return DetailedService.builder()
         .active(isActive)
+        .serviceId(healthService.serviceId())
         .name(
-            healthService.name().equals(Facility.HealthService.Covid19Vaccine.name())
-                ? "COVID-19 vaccines"
+            Facility.HealthService.Covid19Vaccine.equals(healthService)
+                ? CMS_OVERLAY_SERVICE_NAME_COVID_19
                 : healthService.name())
-        .serviceId(uncapitalize(healthService.name()))
         .path("https://path/to/service/goodness")
         .phoneNumbers(
             List.of(
@@ -245,7 +204,6 @@ public class CmsOverlayTransformerV0Test {
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .descriptionFacility("facility description")
         .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(
@@ -328,6 +286,13 @@ public class CmsOverlayTransformerV0Test {
                 .additionalInfo("additional operating status info")
                 .build())
         .detailedServices(healthServices != null ? getDetailedServices(healthServices, true) : null)
+        .healthCareSystem(
+            CmsOverlay.HealthCareSystem.builder()
+                .name("Example Health Care System Name")
+                .url("https://www.va.gov/example/locations/facility")
+                .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+                .healthConnectPhone("123-456-7890 x123")
+                .build())
         .build();
   }
 
@@ -368,8 +333,7 @@ public class CmsOverlayTransformerV0Test {
 
   @Test
   public void transformDatamartCmsOverlay() {
-    // All non-Covid19 detailed services filtered out for V0
-    CmsOverlay expected = overlay(List.of(Facility.HealthService.Covid19Vaccine));
+    CmsOverlay expected = overlay();
     DatamartCmsOverlay datamartCmsOverlay = datamartCmsOverlay();
     assertThat(CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay))
         .usingRecursiveComparison()

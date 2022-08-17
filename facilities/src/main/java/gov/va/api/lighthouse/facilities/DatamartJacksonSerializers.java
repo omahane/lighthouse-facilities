@@ -18,12 +18,6 @@ import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.AppointmentPhoneNumber;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceAddress;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceEmailContact;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceHours;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
-import gov.va.api.lighthouse.facilities.DatamartDetailedService.ServiceInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,15 +39,6 @@ final class DatamartJacksonSerializers {
     mod.addSerializer(Satisfaction.class, new SatisfactionSerializer());
     mod.addSerializer(Services.class, new ServicesSerializer());
     mod.addSerializer(WaitTimes.class, new WaitTimesSerializer());
-    mod.addSerializer(DatamartDetailedService.class, new DetailedServiceSerializer());
-    mod.addSerializer(ServiceInfo.class, new DetailedServiceInfoSerializer());
-    mod.addSerializer(DetailedServiceAddress.class, new DetailedServiceAddressSerializer());
-    mod.addSerializer(
-        AppointmentPhoneNumber.class, new DetailedServiceAppointmentPhoneNumberSerializer());
-    mod.addSerializer(
-        DetailedServiceEmailContact.class, new DetailedServiceEmailContactSerializer());
-    mod.addSerializer(DetailedServiceHours.class, new DetailedServiceHoursSerializer());
-    mod.addSerializer(DetailedServiceLocation.class, new DetailedServiceLocationSerializer());
     return mod;
   }
 
@@ -86,185 +71,6 @@ final class DatamartJacksonSerializers {
       parent = parent.getParent();
     }
     return parents;
-  }
-
-  private static final class DetailedServiceSerializer
-      extends StdSerializer<DatamartDetailedService> {
-    public DetailedServiceSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceSerializer(Class<DatamartDetailedService> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DatamartDetailedService value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeObjectField("serviceInfo", value.serviceInfo());
-      jgen.writeStringField("description_facility", value.descriptionFacility());
-      jgen.writeStringField("appointment_leadin", value.appointmentLeadIn());
-      jgen.writeObjectField("appointment_phones", value.phoneNumbers());
-      jgen.writeStringField("online_scheduling_available", value.onlineSchedulingAvailable());
-      jgen.writeStringField("referral_required", value.referralRequired());
-      jgen.writeStringField("walk_ins_accepted", value.walkInsAccepted());
-      jgen.writeObjectField("service_locations", value.serviceLocations());
-      jgen.writeStringField("path", value.path());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceInfoSerializer extends StdSerializer<ServiceInfo> {
-    public DetailedServiceInfoSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceInfoSerializer(Class<ServiceInfo> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(ServiceInfo value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeStringField("name", value.name());
-      jgen.writeStringField("serviceId", value.serviceId());
-      jgen.writeObjectField("serviceType", value.serviceType());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceAddressSerializer
-      extends StdSerializer<DetailedServiceAddress> {
-    public DetailedServiceAddressSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceAddressSerializer(Class<DetailedServiceAddress> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DetailedServiceAddress value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeStringField("building_name_number", value.buildingNameNumber());
-      jgen.writeStringField("clinic_name", value.clinicName());
-      jgen.writeStringField("wing_floor_or_room_number", value.wingFloorOrRoomNumber());
-      jgen.writeStringField("address_line1", value.address1());
-      jgen.writeStringField("address_line2", value.address2());
-      jgen.writeStringField("city", value.city());
-      jgen.writeStringField("state", value.state());
-      jgen.writeStringField("zip_code", value.zipCode());
-      jgen.writeStringField("country_code", value.countryCode());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceHoursSerializer
-      extends StdSerializer<DetailedServiceHours> {
-    public DetailedServiceHoursSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceHoursSerializer(Class<DetailedServiceHours> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DetailedServiceHours value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeStringField("Monday", value.monday());
-      jgen.writeStringField("Tuesday", value.tuesday());
-      jgen.writeStringField("Wednesday", value.wednesday());
-      jgen.writeStringField("Thursday", value.thursday());
-      jgen.writeStringField("Friday", value.friday());
-      jgen.writeStringField("Saturday", value.saturday());
-      jgen.writeStringField("Sunday", value.sunday());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceLocationSerializer
-      extends StdSerializer<DetailedServiceLocation> {
-    public DetailedServiceLocationSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceLocationSerializer(Class<DetailedServiceLocation> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DetailedServiceLocation value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeObjectField(
-          "service_location_address",
-          Optional.ofNullable(value.serviceLocationAddress())
-              .orElse(DetailedServiceAddress.builder().build()));
-      jgen.writeObjectField(
-          "appointment_phones",
-          Optional.ofNullable(value.appointmentPhoneNumbers()).orElse(emptyList()));
-      jgen.writeObjectField(
-          "email_contacts", Optional.ofNullable(value.emailContacts()).orElse(emptyList()));
-      jgen.writeObjectField(
-          "facility_service_hours",
-          Optional.ofNullable(value.facilityServiceHours())
-              .orElse(DetailedServiceHours.builder().build()));
-      jgen.writeStringField("additional_hours_info", value.additionalHoursInfo());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceEmailContactSerializer
-      extends StdSerializer<DetailedServiceEmailContact> {
-    public DetailedServiceEmailContactSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceEmailContactSerializer(Class<DetailedServiceEmailContact> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DetailedServiceEmailContact value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeStringField("email_address", value.emailAddress());
-      jgen.writeStringField("email_label", value.emailLabel());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceAppointmentPhoneNumberSerializer
-      extends StdSerializer<AppointmentPhoneNumber> {
-    public DetailedServiceAppointmentPhoneNumberSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceAppointmentPhoneNumberSerializer(Class<AppointmentPhoneNumber> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        AppointmentPhoneNumber value, JsonGenerator jgen, SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeStringField("extension", value.extension());
-      jgen.writeStringField("label", value.label());
-      jgen.writeStringField("number", value.number());
-      jgen.writeStringField("type", value.type());
-      jgen.writeEndObject();
-    }
   }
 
   private static final class AddressSerializer extends StdSerializer<Address> {
@@ -487,7 +293,8 @@ final class DatamartJacksonSerializers {
           && value.afterHours() == null
           && value.patientAdvocate() == null
           && value.mentalHealthClinic() == null
-          && value.enrollmentCoordinator() == null;
+          && value.enrollmentCoordinator() == null
+          && value.healthConnect() == null;
     }
 
     @SneakyThrows
@@ -520,6 +327,7 @@ final class DatamartJacksonSerializers {
         writeNonNullOrHealth(jgen, "patient_advocate", value.patientAdvocate());
         writeNonNull(jgen, "mental_health_clinic", value.mentalHealthClinic());
         writeNonNullOrHealth(jgen, "enrollment_coordinator", value.enrollmentCoordinator());
+        writeNonNullOrHealth(jgen, "health_connect", value.healthConnect());
       } else {
         if (idStartsWith(jgen, "nca_")) {
           jgen.writeObjectField("fax", null);

@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -12,14 +11,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
-import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -40,10 +33,6 @@ public class CmsOverlayControllerV0Test {
 
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
-  private DatamartCmsOverlay activeOverlay() {
-    return overlay(List.of(HealthService.Covid19Vaccine, HealthService.Cardiology), true);
-  }
-
   CmsOverlayControllerV0 controller() {
     return CmsOverlayControllerV0.builder()
         .facilityRepository(mockFacilityRepository)
@@ -59,24 +48,25 @@ public class CmsOverlayControllerV0Test {
     assertThatThrownBy(() -> controller().getExistingOverlayEntity(pk))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
-    when(mockFacilityRepository.findById(pk)).thenThrow(new NullPointerException("oh noes"));
-    assertThatThrownBy(() -> controller().saveOverlay(id, activeOverlay()))
+    assertThatThrownBy(() -> controller().saveOverlay(id, overlay()))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
   }
 
   private DatamartDetailedService getDatamartDetailedService(
-      @NonNull HealthService healthService, boolean isActive) {
+      @NonNull DatamartFacility.HealthService healthService, boolean isActive) {
     return DatamartDetailedService.builder()
         .serviceInfo(
             DatamartDetailedService.ServiceInfo.builder()
-                .serviceId(uncapitalize(HealthService.Covid19Vaccine.name()))
-                .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-                .serviceType(DatamartDetailedService.ServiceType.Health)
+                .serviceId(healthService.serviceId())
+                .name(
+                    DatamartFacility.HealthService.Covid19Vaccine.equals(healthService)
+                        ? CMS_OVERLAY_SERVICE_NAME_COVID_19
+                        : healthService.name())
+                .serviceType(healthService.serviceType())
                 .build())
         .active(isActive)
         .changed(null)
-        .descriptionFacility(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .path("replaceable path here")
@@ -134,8 +124,16 @@ public class CmsOverlayControllerV0Test {
         .build();
   }
 
+  private List<DatamartDetailedService> getDatamartDetailedServices(boolean isActive) {
+    return getDatamartDetailedServices(
+        List.of(
+            DatamartFacility.HealthService.Covid19Vaccine,
+            DatamartFacility.HealthService.Cardiology),
+        isActive);
+  }
+
   private List<DatamartDetailedService> getDatamartDetailedServices(
-      @NonNull List<HealthService> healthServices, boolean isActive) {
+      @NonNull List<DatamartFacility.HealthService> healthServices, boolean isActive) {
     return healthServices.stream()
         .map(
             hs -> {
@@ -147,7 +145,7 @@ public class CmsOverlayControllerV0Test {
   @Test
   @SneakyThrows
   void getExistingOverlay() {
-    DatamartCmsOverlay overlay = activeOverlay();
+    DatamartCmsOverlay overlay = overlay();
     var pk = FacilityEntity.Pk.fromIdString("vha_402");
     CmsOverlayEntity cmsOverlayEntity =
         CmsOverlayEntity.builder()
@@ -158,6 +156,9 @@ public class CmsOverlayControllerV0Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -179,21 +180,128 @@ public class CmsOverlayControllerV0Test {
         .hasMessage("The record identified by vha_041 could not be found");
   }
 
-  private DatamartCmsOverlay overlay(
-      @NonNull List<HealthService> healthServices, boolean isActive) {
+  private DatamartCmsOverlay.HealthCareSystem healthCareSystem() {
+    return DatamartCmsOverlay.HealthCareSystem.builder()
+        .name("Example Health Care System Name")
+        .url("https://www.va.gov/example/locations/facility")
+        .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
+        .healthConnectPhone("123-456-7890 x123")
+        .build();
+  }
+
+  private DatamartCmsOverlay overlay() {
     return DatamartCmsOverlay.builder()
         .operatingStatus(
             DatamartFacility.OperatingStatus.builder()
                 .code(DatamartFacility.OperatingStatusCode.NOTICE)
                 .additionalInfo("i need attention")
                 .build())
-        .detailedServices(getDatamartDetailedServices(healthServices, isActive))
+        .detailedServices(getDatamartDetailedServices(true))
+        .healthCareSystem(healthCareSystem())
         .build();
   }
 
   @Test
   @SneakyThrows
-  void updateIsAcceptedForKnownStationUsingServiceId() {
+  void updateFacilityWithOverlayData() {
+    DatamartCmsOverlay overlay = overlay();
+    overlay.operatingStatus(
+        DatamartFacility.OperatingStatus.builder()
+            .code(DatamartFacility.OperatingStatusCode.CLOSED)
+            .additionalInfo("i need attention")
+            .build());
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    Facility f =
+        Facility.builder()
+            .id("vha_402")
+            .attributes(Facility.FacilityAttributes.builder().website("va.gov").build())
+            .build();
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(pk)
+            .services(new HashSet<>())
+            .facility(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
+            .build();
+    when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(facilityEntity));
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    controller().saveOverlay("vha_402", overlay);
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
+    List<DatamartDetailedService> datamartDetailedServices =
+        updatedCovidPathOverlay.detailedServices();
+    updateServiceUrlPaths("vha_402", datamartDetailedServices);
+    updatedCovidPathOverlay.detailedServices(datamartDetailedServices);
+    // active will ALWAYS be false when retrieving from the database, the fact the overlay
+    // exists means that active was true at the time of insertion
+    for (DatamartDetailedService d : datamartDetailedServices) {
+      d.active(false);
+    }
+    // Verify that facility is updated with detailed services from overlay
+    FacilityEntity updatedFacilityEntity = mockFacilityRepository.findById(pk).get();
+    Facility facility =
+        FacilityTransformerV0.toFacility(
+            DatamartFacilitiesJacksonConfig.createMapper()
+                .readValue(updatedFacilityEntity.facility(), DatamartFacility.class));
+    // Only Covid-19 service should be present in facility attributes, if present in detailed
+    // services overlay for facility
+    assertThat(facility.attributes().detailedServices())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            DetailedServiceTransformerV0.toDetailedServices(
+                datamartDetailedServices.parallelStream()
+                    .filter(
+                        dds ->
+                            dds.serviceInfo()
+                                .serviceId()
+                                .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
+                    .collect(Collectors.toList())));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(Facility.ActiveStatus.T);
+    assertThat(facility.attributes().operatingStatus())
+        .usingRecursiveComparison()
+        .isEqualTo(CmsOverlayTransformerV0.toCmsOverlay(overlay).operatingStatus());
+  }
+
+  @Test
+  @SneakyThrows
+  void updateHealthCareSystem() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    controller().saveOverlay(pk.toIdString(), overlay);
+    var response = controller().getOverlay(pk.toIdString());
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().overlay().healthCareSystem())
+        .isEqualTo(CmsOverlayTransformerV0.toCmsOverlay(overlay()).healthCareSystem());
+  }
+
+  @Test
+  @SneakyThrows
+  void updateIsAcceptedForKnownStation() {
     Facility f =
         Facility.builder()
             .id("vha_402")
@@ -208,7 +316,7 @@ public class CmsOverlayControllerV0Test {
                     .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
-    DatamartCmsOverlay overlay = activeOverlay();
+    DatamartCmsOverlay overlay = overlay();
     ResponseEntity<Void> response = controller().saveOverlay("vha_402", overlay);
     Set<String> detailedServices = new HashSet<>();
     for (DatamartDetailedService service : overlay.detailedServices()) {
@@ -221,61 +329,9 @@ public class CmsOverlayControllerV0Test {
             detailedServices.parallelStream()
                 .filter(
                     ds ->
-                        Arrays.stream(HealthService.values()).anyMatch(hs -> hs.name().equals(ds))
-                            || Arrays.stream(BenefitsService.values())
-                                .anyMatch(bs -> bs.name().equals(ds))
-                            || Arrays.stream(OtherService.values())
-                                .anyMatch(os -> os.name().equals(ds)))
-                .collect(Collectors.toList()))
-        .usingRecursiveComparison()
-        .isEqualTo(detailedServices);
-    entity.cmsOperatingStatus(
-        DatamartFacilitiesJacksonConfig.createMapper()
-            .writeValueAsString(overlay.operatingStatus()));
-    entity.overlayServices(detailedServices);
-    verify(mockFacilityRepository).save(entity);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  @Test
-  @SneakyThrows
-  void updateIsAcceptedForKnownStationUsingServiceName() {
-    Facility f =
-        Facility.builder()
-            .id("vha_402")
-            .attributes(Facility.FacilityAttributes.builder().website("va.gov").build())
-            .build();
-    var pk = FacilityEntity.Pk.fromIdString("vha_402");
-    FacilityEntity entity =
-        FacilityEntity.builder()
-            .id(pk)
-            .facility(
-                DatamartFacilitiesJacksonConfig.createMapper()
-                    .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
-            .build();
-    when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
-    DatamartCmsOverlay overlay = activeOverlay();
-    ResponseEntity<Void> response = controller().saveOverlay("vha_402", overlay);
-    Set<String> detailedServices = new HashSet<>();
-    for (DatamartDetailedService service : overlay.detailedServices()) {
-      if (service.active()) {
-        if (CMS_OVERLAY_SERVICE_NAME_COVID_19.equals(service.serviceInfo().name())) {
-          detailedServices.add(HealthService.Covid19Vaccine.name());
-        } else {
-          detailedServices.add(service.serviceInfo().name());
-        }
-      }
-    }
-    // Test contained DetailedService is one of HealthService, BenefitsService, or OtherService
-    assertThat(
-            detailedServices.parallelStream()
-                .filter(
-                    ds ->
-                        Arrays.stream(HealthService.values()).anyMatch(hs -> hs.name().equals(ds))
-                            || Arrays.stream(BenefitsService.values())
-                                .anyMatch(bs -> bs.name().equals(ds))
-                            || Arrays.stream(OtherService.values())
-                                .anyMatch(os -> os.name().equals(ds)))
+                        DatamartFacility.HealthService.isRecognizedServiceEnum(ds)
+                            || DatamartFacility.BenefitsService.isRecognizedServiceEnum(ds)
+                            || DatamartFacility.OtherService.isRecognizedServiceEnum(ds))
                 .collect(Collectors.toList()))
         .usingRecursiveComparison()
         .isEqualTo(detailedServices);
@@ -291,15 +347,162 @@ public class CmsOverlayControllerV0Test {
   void updateIsSkippedForUnknownStation() {
     var pk = FacilityEntity.Pk.fromIdString("vha_666");
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.empty());
-    ResponseEntity<Void> response = controller().saveOverlay("vha_666", activeOverlay());
+    ResponseEntity<Void> response = controller().saveOverlay("vha_666", overlay());
     verifyNoMoreInteractions(mockFacilityRepository);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
   }
 
   @Test
   @SneakyThrows
+  void updateOverlayWithDisabledService() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    Facility f =
+        Facility.builder()
+            .id("vha_402")
+            .attributes(Facility.FacilityAttributes.builder().website("va.gov").build())
+            .build();
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(pk)
+            .services(new HashSet<>())
+            .facility(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
+            .build();
+    when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(facilityEntity));
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .cmsServices(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    // Update overlay with disabled service
+    overlay.detailedServices(
+        List.of(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                        .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                        .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                        .build())
+                .active(false)
+                .build()));
+    controller().saveOverlay("vha_402", overlay);
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
+    List<DatamartDetailedService> datamartDetailedServices =
+        updatedCovidPathOverlay.detailedServices();
+    updateServiceUrlPaths("vha_402", datamartDetailedServices);
+    updatedCovidPathOverlay.detailedServices(datamartDetailedServices);
+    for (DatamartDetailedService d : updatedCovidPathOverlay.detailedServices()) {
+      d.active(false);
+    }
+    ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    // Verify that COVID-19 vaccines was removed because its active flag is false
+    assertThat(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
+                response.getBody().overlay().detailedServices()))
+        .containsAll(
+            updatedCovidPathOverlay.detailedServices().stream()
+                .filter(
+                    ds ->
+                        ds.serviceInfo()
+                            .serviceId()
+                            .equals(DatamartFacility.HealthService.Cardiology.serviceId()))
+                .toList());
+  }
+
+  @Test
+  @SneakyThrows
+  void updateOverlaysWithNoExistingServices() {
+    DatamartCmsOverlay overlay = overlay();
+    var pk = FacilityEntity.Pk.fromIdString("vha_402");
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(pk)
+            .cmsOperatingStatus(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.operatingStatus()))
+            .build();
+    when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    List<DatamartDetailedService> detailedServices =
+        List.of(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(DatamartFacility.HealthService.PrimaryCare.serviceId())
+                        .name(DatamartFacility.HealthService.PrimaryCare.name())
+                        .serviceType(DatamartFacility.HealthService.PrimaryCare.serviceType())
+                        .build())
+                .active(true)
+                .build(),
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(DatamartFacility.HealthService.UrgentCare.serviceId())
+                        .name(DatamartFacility.HealthService.UrgentCare.name())
+                        .serviceType(DatamartFacility.HealthService.UrgentCare.serviceType())
+                        .build())
+                .active(true)
+                .build());
+    // Force service id to be empty
+    detailedServices.stream()
+        .filter(
+            ds ->
+                ds.serviceInfo()
+                    .serviceId()
+                    .equals(DatamartFacility.HealthService.PrimaryCare.serviceId()))
+        .forEach(
+            ds -> {
+              ds.serviceInfo().serviceId("");
+            });
+    overlay.detailedServices(detailedServices);
+    controller().saveOverlay("vha_402", overlay);
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
+    List<DatamartDetailedService> datamartDetailedServices =
+        updatedCovidPathOverlay.detailedServices();
+    updateServiceUrlPaths("vha_402", datamartDetailedServices);
+    updatedCovidPathOverlay.detailedServices(datamartDetailedServices);
+    // active will ALWAYS be false when retrieving from the database, the fact the overlay
+    // exists means that active was true at the time of insertion
+    for (DatamartDetailedService d : detailedServices) {
+      d.active(false);
+    }
+    ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    // Repopulate service id for assertion
+    detailedServices.stream()
+        .filter(
+            ds ->
+                ds.serviceInfo()
+                    .name()
+                    .equalsIgnoreCase(DatamartFacility.HealthService.PrimaryCare.name()))
+        .forEach(
+            ds -> {
+              ds.serviceInfo().serviceId(DatamartFacility.HealthService.PrimaryCare.serviceId());
+            });
+    assertThat(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
+                response.getBody().overlay().detailedServices()))
+        .containsAll(detailedServices);
+  }
+
+  @Test
+  @SneakyThrows
   void updateWithExistingOverlay() {
-    DatamartCmsOverlay overlay = activeOverlay();
+    DatamartCmsOverlay overlay = overlay();
     var pk = FacilityEntity.Pk.fromIdString("vha_402");
     CmsOverlayEntity cmsOverlayEntity =
         CmsOverlayEntity.builder()
@@ -310,33 +513,21 @@ public class CmsOverlayControllerV0Test {
             .cmsServices(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.detailedServices()))
+            .healthCareSystem(
+                DatamartFacilitiesJacksonConfig.createMapper()
+                    .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     List<DatamartDetailedService> additionalServices =
-        List.of(
-            DatamartDetailedService.builder()
-                .serviceInfo(
-                    DatamartDetailedService.ServiceInfo.builder()
-                        .serviceId(uncapitalize(DatamartFacility.HealthService.Urology.name()))
-                        .name("additional service1")
-                        .serviceType(DatamartDetailedService.ServiceType.Health)
-                        .build())
-                .active(true)
-                .build(),
-            DatamartDetailedService.builder()
-                .serviceInfo(
-                    DatamartDetailedService.ServiceInfo.builder()
-                        .serviceId(
-                            uncapitalize(DatamartFacility.HealthService.CaregiverSupport.name()))
-                        .name("additional service2")
-                        .serviceType(DatamartDetailedService.ServiceType.Health)
-                        .build())
-                .active(true)
-                .build());
+        getDatamartDetailedServices(
+            List.of(
+                DatamartFacility.HealthService.PrimaryCare,
+                DatamartFacility.HealthService.UrgentCare),
+            true);
     overlay.detailedServices(additionalServices);
     ResponseEntity<Void> resp = controller().saveOverlay("vha_402", overlay);
     assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-    DatamartCmsOverlay updatedCovidPathOverlay = activeOverlay();
+    DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
         updatedCovidPathOverlay.detailedServices();
     updateServiceUrlPaths("vha_402", datamartDetailedServices);
@@ -353,14 +544,10 @@ public class CmsOverlayControllerV0Test {
     ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
-    // All non-Covid19 detailed services filtered out of V0
     assertThat(
             DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
-        .containsAll(
-            updateServiceUrlPaths(
-                "vha_402",
-                getDatamartDetailedServices(List.of(HealthService.Covid19Vaccine), false)));
+        .containsAll(combinedServices);
   }
 
   @Test
@@ -380,18 +567,19 @@ public class CmsOverlayControllerV0Test {
                     .writeValueAsString(FacilityTransformerV0.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
-    DatamartCmsOverlay overlay = activeOverlay();
+    DatamartCmsOverlay overlay = overlay();
     for (DatamartDetailedService d : overlay.detailedServices()) {
-      if (d.serviceInfo().name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
+      if (d.serviceInfo()
+          .serviceId()
+          .equals(DatamartFacility.HealthService.Covid19Vaccine.serviceId())) {
         assertThat(d.path()).isEqualTo("replaceable path here");
       }
     }
     ResponseEntity<Void> response = controller().saveOverlay("vha_402", overlay);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    CmsOverlay cmsOverlay = CmsOverlayTransformerV0.toCmsOverlay(overlay);
-    for (DetailedService d : cmsOverlay.detailedServices()) {
-      if (d.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19)) {
-        assertThat(d.path())
+    for (DatamartDetailedService dds : overlay.detailedServices()) {
+      if (dds.serviceInfo().serviceId().equals(Facility.HealthService.Covid19Vaccine.serviceId())) {
+        assertThat(dds.path())
             .isEqualTo("https://www.va.gov/maine-health-care/programs/covid-19-vaccines/");
       }
     }

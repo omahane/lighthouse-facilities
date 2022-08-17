@@ -1,42 +1,46 @@
 package gov.va.api.lighthouse.facilities;
 
-import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceAddressDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceEmailContactDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceHoursDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceLocationDeserializer;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
-@JsonInclude()
 @JsonIgnoreProperties(
     ignoreUnknown = true,
     value = {"active"},
     allowSetters = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
   "serviceInfo",
-  "description_facility",
   "appointment_leadin",
   "appointment_phones",
   "online_scheduling_available",
@@ -44,16 +48,15 @@ import lombok.NonNull;
   "walk_ins_accepted",
   "service_locations"
 })
-@JsonDeserialize(using = DatamartDetailedServiceDeserializer.class)
 public class DatamartDetailedService {
   @NonNull ServiceInfo serviceInfo;
+
+  @JsonProperty("wait_time")
+  PatientWaitTime waitTime;
 
   boolean active;
 
   @JsonIgnore String changed;
-
-  @JsonProperty("description_facility")
-  String descriptionFacility;
 
   @JsonProperty("appointment_leadin")
   String appointmentLeadIn;
@@ -75,19 +78,51 @@ public class DatamartDetailedService {
   @JsonProperty("walk_ins_accepted")
   String walkInsAccepted;
 
-  public enum ServiceType {
-    @JsonProperty("benefits")
-    Benefits,
-    @JsonProperty("health")
-    Health,
-    @JsonProperty("other")
-    Other;
+  private boolean isRecognizedEnumOrCovidService(String serviceName) {
+    return isNotEmpty(serviceName)
+        && (HealthService.isRecognizedEnumOrCovidService(serviceName)
+            || BenefitsService.isRecognizedServiceEnum(serviceName)
+            || OtherService.isRecognizedServiceEnum(serviceName));
+  }
 
-    /** Ensure that Jackson can create ServiceType enum regardless of capitalization. */
-    @JsonCreator
-    public static ServiceType fromString(String name) {
-      return valueOf(capitalize(name));
+  private boolean isRecognizedServiceId(String serviceId) {
+    return isNotEmpty(serviceId)
+        && (HealthService.isRecognizedServiceId(serviceId)
+            || BenefitsService.isRecognizedServiceId(serviceId)
+            || OtherService.isRecognizedServiceId(serviceId));
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
+  @JsonProperty("serviceId")
+  @JsonAlias("service_id")
+  public DatamartDetailedService serviceId(String serviceId) {
+    if (isRecognizedServiceId(serviceId)) {
+      // Update service info based on recognized service id
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().serviceId(serviceId).build()
+              : serviceInfo().serviceId(serviceId));
     }
+    return this;
+  }
+
+  /**
+   * Provide backwards compatability with non-serviceInfo block format detailed services, such as
+   * CMS uploads.
+   */
+  @JsonProperty("name")
+  public DatamartDetailedService serviceName(String serviceName) {
+    if (isRecognizedEnumOrCovidService(serviceName)) {
+      // Update service info based on recognized service name
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().name(serviceName).build()
+              : serviceInfo().name(serviceName));
+    }
+    return this;
   }
 
   @Data
@@ -97,8 +132,6 @@ public class DatamartDetailedService {
   @JsonPropertyOrder({"name", "serviceId", "serviceType"})
   @Schema(description = "Service information.")
   public static final class ServiceInfo {
-    @JsonIgnore public static final String INVALID_SVC_ID = "INVALID_ID";
-
     @Schema(description = "Service id.", example = "covid19Vaccine")
     @NonNull
     String serviceId;
@@ -107,14 +140,77 @@ public class DatamartDetailedService {
     String name;
 
     @Schema(description = "Service type.", example = "Health")
-    @NonNull
-    ServiceType serviceType;
+    TypeOfService serviceType;
+
+    public static class ServiceInfoBuilder {
+      private String serviceId;
+
+      private String name;
+
+      private TypeOfService serviceType;
+
+      /**
+       * Method used to set service info name and attempt to infer service id and type based on
+       * provided service name.
+       */
+      public ServiceInfoBuilder name(String name) {
+        // Update service name
+        this.name = name;
+        // Update service id and type
+        final TypedService typedService =
+            HealthService.isRecognizedEnumOrCovidService(name)
+                ? HealthService.fromString(name)
+                : BenefitsService.isRecognizedServiceEnum(name)
+                    ? BenefitsService.fromString(name)
+                    : OtherService.isRecognizedServiceEnum(name)
+                        ? OtherService.fromString(name)
+                        : null;
+        if (typedService != null) {
+          this.serviceId = typedService.serviceId();
+          this.serviceType = typedService.serviceType();
+        } else if (StringUtils.isEmpty(serviceId)) {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
+        }
+        return this;
+      }
+
+      /**
+       * Method used to set service id and infer service name and type based on provided service id
+       * given it is recognized as valid.
+       */
+      @SneakyThrows
+      public ServiceInfoBuilder serviceId(String serviceId) {
+        // Determine whether service id is recognized
+        final Optional<? extends TypedService> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            this.name = typedService.get().name();
+          }
+          this.serviceType = typedService.get().serviceType();
+        } else {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
+        }
+        return this;
+      }
+    }
   }
 
   @Data
   @Builder
-  @JsonInclude()
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "building_name_number",
     "clinic_name",
@@ -126,7 +222,6 @@ public class DatamartDetailedService {
     "zip_code",
     "country_code"
   })
-  @JsonDeserialize(using = DatamartDetailedServiceAddressDeserializer.class)
   public static final class DetailedServiceAddress {
     @JsonProperty("address_line1")
     String address1;
@@ -156,8 +251,8 @@ public class DatamartDetailedService {
 
   @Data
   @Builder
-  @JsonInclude()
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class AppointmentPhoneNumber {
     String extension;
 
@@ -171,6 +266,7 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "service_location_address",
     "appointment_phones",
@@ -178,7 +274,6 @@ public class DatamartDetailedService {
     "facility_service_hours",
     "additional_hours_info"
   })
-  @JsonDeserialize(using = DatamartDetailedServiceLocationDeserializer.class)
   public static final class DetailedServiceLocation {
     @JsonProperty("additional_hours_info")
     String additionalHoursInfo;
@@ -200,7 +295,7 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartDetailedServiceEmailContactDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class DetailedServiceEmailContact {
     @JsonProperty("email_address")
     String emailAddress;
@@ -212,8 +307,8 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"})
-  @JsonDeserialize(using = DatamartDetailedServiceHoursDeserializer.class)
   public static final class DetailedServiceHours {
     @JsonProperty("Monday")
     String monday;
@@ -235,5 +330,19 @@ public class DatamartDetailedService {
 
     @JsonProperty("Sunday")
     String sunday;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  public static final class PatientWaitTime {
+    @JsonProperty("new")
+    BigDecimal newPatientWaitTime;
+
+    @JsonProperty("established")
+    BigDecimal establishedPatientWaitTime;
+
+    @JsonProperty("effective_date")
+    LocalDate effectiveDate;
   }
 }

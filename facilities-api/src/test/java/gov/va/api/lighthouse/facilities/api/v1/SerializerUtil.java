@@ -8,16 +8,14 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceAd
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceEmailContact;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceHours;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceLocation;
-import gov.va.api.lighthouse.facilities.api.v1.DetailedService.ServiceInfo;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse.FacilitiesMetadata;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Address;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Addresses;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Phone;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Satisfaction;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Services;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.WaitTimes;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse.Nearby;
 import gov.va.api.lighthouse.facilities.api.v1.ReloadResponse.Problem;
 import gov.va.api.lighthouse.facilities.api.v1.ReloadResponse.Timing;
@@ -57,7 +55,6 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.ReloadResponseSeriali
 import gov.va.api.lighthouse.facilities.api.v1.serializers.ReloadResponseTimingSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.SatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.ServicesSerializer;
-import gov.va.api.lighthouse.facilities.api.v1.serializers.WaitTimesSerializer;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -82,10 +79,9 @@ public final class SerializerUtil {
     mod.addSerializer(Phone.class, new PhoneSerializer());
     mod.addSerializer(Satisfaction.class, new SatisfactionSerializer());
     mod.addSerializer(Services.class, new ServicesSerializer());
-    mod.addSerializer(WaitTimes.class, new WaitTimesSerializer());
     mod.addSerializer(PageLinks.class, new PageLinksSerializer());
     mod.addSerializer(DetailedService.class, new DetailedServiceSerializer());
-    mod.addSerializer(ServiceInfo.class, new DetailedServiceInfoSerializer());
+    mod.addSerializer(DetailedService.ServiceInfo.class, new DetailedServiceInfoSerializer());
     mod.addSerializer(DetailedServiceAddress.class, new DetailedServiceAddressSerializer());
     mod.addSerializer(
         AppointmentPhoneNumber.class, new DetailedServiceAppointmentPhoneNumberSerializer());

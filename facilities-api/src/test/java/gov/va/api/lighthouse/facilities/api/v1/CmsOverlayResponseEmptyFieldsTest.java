@@ -4,7 +4,6 @@ import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
 import static gov.va.api.lighthouse.facilities.api.v1.DetailedServiceUtils.getDetailedService;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -29,9 +28,9 @@ public class CmsOverlayResponseEmptyFieldsTest {
 
   private List<DetailedService> getDetailedServices() {
     return List.of(
-        getDetailedService(Facility.HealthService.Cardiology.name()),
-        getDetailedService(Facility.HealthService.CaregiverSupport.name()),
-        getDetailedService(Facility.HealthService.EmergencyCare.name()));
+        getDetailedService(Facility.HealthService.Cardiology),
+        getDetailedService(Facility.HealthService.CaregiverSupport),
+        getDetailedService(Facility.HealthService.EmergencyCare));
   }
 
   @Test
@@ -52,10 +51,10 @@ public class CmsOverlayResponseEmptyFieldsTest {
                                     .serviceInfo(
                                         DetailedService.ServiceInfo.builder()
                                             .serviceId(
-                                                uncapitalize(
-                                                    Facility.HealthService.Cardiology.name()))
+                                                Facility.HealthService.Cardiology.serviceId())
                                             .name(Facility.HealthService.Cardiology.name())
-                                            .serviceType(DetailedService.ServiceType.Health)
+                                            .serviceType(
+                                                Facility.HealthService.Cardiology.serviceType())
                                             .build())
                                     .build()))
                         .build())

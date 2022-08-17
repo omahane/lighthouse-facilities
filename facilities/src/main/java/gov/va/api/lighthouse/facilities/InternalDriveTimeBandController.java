@@ -65,18 +65,20 @@ public class InternalDriveTimeBandController {
 
   private Rectangle2D boundsOf(PssgDriveTimeBand band) {
     var rect = new AtomicReference<Rectangle2D>();
-    band.geometry().rings().stream()
-        .flatMap(r -> r.stream())
-        .forEach(
-            coord -> {
-              double x = coord.get(PssgDriveTimeBand.INDEX_LONGITUDE);
-              double y = coord.get(PssgDriveTimeBand.INDEX_LATITUDE);
-              if (rect.get() == null) {
-                rect.set(new Rectangle2D.Double(x, y, x, y));
-              } else {
-                rect.get().add(x, y);
-              }
-            });
+    if (band.geometry() != null) {
+      band.geometry().rings().stream()
+          .flatMap(r -> r.stream())
+          .forEach(
+              coord -> {
+                double x = coord.get(PssgDriveTimeBand.INDEX_LONGITUDE);
+                double y = coord.get(PssgDriveTimeBand.INDEX_LATITUDE);
+                if (rect.get() == null) {
+                  rect.set(new Rectangle2D.Double(x, y, x, y));
+                } else {
+                  rect.get().add(x, y);
+                }
+              });
+    }
     /* If there now rings for some reason, bounds are a point. */
     if (rect.get() == null) {
       return new Rectangle2D.Double();

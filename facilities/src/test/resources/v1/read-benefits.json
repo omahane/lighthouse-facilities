@@ -38,10 +38,17 @@
       ],
       "services" : {
         "benefits" : [
-          "EducationAndCareerCounseling",
-          "VocationalRehabilitationAndEmploymentAssistance"
+          {
+            "name" : "EducationAndCareerCounseling",
+            "serviceId" : "educationAndCareerCounseling"
+          },
+          {
+            "name" : "VocationalRehabilitationAndEmploymentAssistance",
+            "serviceId" : "vocationalRehabilitationAndEmploymentAssistance"
+          }
         ]
       },
+      "activeStatus" : "A",
       "operatingStatus" : {
         "code" : "NORMAL"
       }

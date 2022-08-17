@@ -202,15 +202,15 @@ public class CmsOverlayIT {
   private List<DetailedService> detailedServices() {
     return List.of(
         DetailedService.builder()
-                .serviceInfo(DetailedService.ServiceInfo.builder()
-                        .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-                        .name("Covid19Vaccine")
-                        .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
-                        .build()
-                )
+            .serviceInfo(
+                DetailedService.ServiceInfo.builder()
+                    .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                    .name("Covid19Vaccine")
+                    .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
-                .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
+            .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
             .phoneNumbers(
                 List.of(
                     DetailedService.AppointmentPhoneNumber.builder()

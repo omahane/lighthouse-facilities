@@ -9,7 +9,7 @@
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities</artifactId>
-  <version>3.0.163-SNAPSHOT</version>
+  <version>3.0.164-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <github.repository-name>lighthouse-facilities</github.repository-name>
@@ -20,6 +20,7 @@
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.1</swagger-maven-plugin.version>
     <timezonemap.version>LATEST</timezonemap.version>
+    <talos.version>3.0.2</talos.version>
   </properties>
   <dependencies>
     <dependency>
@@ -69,6 +70,11 @@
       <groupId>us.dustinj.timezonemap</groupId>
       <artifactId>timezonemap</artifactId>
       <version>${timezonemap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.lighthouse</groupId>
+      <artifactId>talos</artifactId>
+      <version>${talos.version}</version>
     </dependency>
   </dependencies>
   <build>

@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities.collector;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import static gov.va.api.lighthouse.facilities.api.UrlFormatHelper.withTrailingSlash;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
 
@@ -49,28 +50,28 @@ public class FacilitiesCollector {
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final String atcBaseUrl;
-
-  protected final String atpBaseUrl;
-
   protected final String cemeteriesBaseUrl;
 
   private final CmsOverlayCollector cmsOverlayCollector;
 
+  private final AccessToCareCollector accessToCareCollector;
+
+  private final AccessToPwtCollector accessToPwtCollector;
+
   /** Primary facilities collector constructor. */
   public FacilitiesCollector(
-      @Autowired InsecureRestTemplateProvider insecureRestTemplateProvider,
-      @Autowired JdbcTemplate jdbcTemplate,
-      @Autowired CmsOverlayCollector cmsOverlayCollector,
-      @Value("${access-to-care.url}") String atcBaseUrl,
-      @Value("${access-to-pwt.url}") String atpBaseUrl,
+      @Autowired @NonNull InsecureRestTemplateProvider insecureRestTemplateProvider,
+      @Autowired @NonNull JdbcTemplate jdbcTemplate,
+      @Autowired @NonNull CmsOverlayCollector cmsOverlayCollector,
+      @Autowired @NonNull AccessToCareCollector accessToCareCollector,
+      @Autowired @NonNull AccessToPwtCollector accessToPwtCollector,
       @Value("${cemeteries.url}") String cemeteriesBaseUrl) {
     this.insecureRestTemplateProvider = insecureRestTemplateProvider;
     this.jdbcTemplate = jdbcTemplate;
-    this.atcBaseUrl = withTrailingSlash(atcBaseUrl);
-    this.atpBaseUrl = withTrailingSlash(atpBaseUrl);
     this.cemeteriesBaseUrl = withTrailingSlash(cemeteriesBaseUrl);
     this.cmsOverlayCollector = cmsOverlayCollector;
+    this.accessToCareCollector = accessToCareCollector;
+    this.accessToPwtCollector = accessToPwtCollector;
   }
 
   /** Returns list of vha facilities contained in a file. */
@@ -137,10 +138,6 @@ public class FacilitiesCollector {
         .build();
   }
 
-  static String withTrailingSlash(@NonNull String url) {
-    return url.endsWith("/") ? url : url + "/";
-  }
-
   /** Collect datamart facilities. */
   @SneakyThrows
   public List<DatamartFacility> collectFacilities() {
@@ -158,8 +155,8 @@ public class FacilitiesCollector {
     }
     Collection<DatamartFacility> healths =
         HealthsCollector.builder()
-            .atcBaseUrl(atcBaseUrl)
-            .atpBaseUrl(atpBaseUrl)
+            .accessToCareCollector(accessToCareCollector)
+            .accessToPwtCollector(accessToPwtCollector)
             .cscFacilities(cscFacilities)
             .orthoFacilities(orthoFacilities)
             .jdbcTemplate(jdbcTemplate)

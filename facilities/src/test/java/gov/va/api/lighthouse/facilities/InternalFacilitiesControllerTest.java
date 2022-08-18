@@ -35,6 +35,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
+import gov.va.api.lighthouse.facilities.collector.AccessToCareCollector;
+import gov.va.api.lighthouse.facilities.collector.AccessToPwtCollector;
 import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
@@ -251,8 +253,8 @@ public class InternalFacilitiesControllerTest {
         mock(InsecureRestTemplateProvider.class),
         mock(JdbcTemplate.class),
         mockCmsOverlayCollector,
-        "atcBaseUrl",
-        "atpBaseUrl",
+        mock(AccessToCareCollector.class),
+        mock(AccessToPwtCollector.class),
         "cemeteriesBaseUrl");
   }
 
@@ -755,8 +757,8 @@ public class InternalFacilitiesControllerTest {
             mock(InsecureRestTemplateProvider.class),
             mock(JdbcTemplate.class),
             mockCmsOverlayCollector,
-            "atcBaseUrl",
-            "atpBaseUrl",
+            mock(AccessToCareCollector.class),
+            mock(AccessToPwtCollector.class),
             "cemeteriesBaseUrl");
     assertThat(facility.attributes().phone().healthConnect()).isNull();
     facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));

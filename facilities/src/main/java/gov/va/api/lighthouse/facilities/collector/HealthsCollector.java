@@ -10,19 +10,16 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
-import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -32,20 +29,17 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Builder
 final class HealthsCollector {
-  @NonNull final String atcBaseUrl;
 
-  @NonNull final String atpBaseUrl;
+  @NonNull final AccessToCareCollector accessToCareCollector;
+
+  @NonNull final AccessToPwtCollector accessToPwtCollector;
 
   @NonNull final JdbcTemplate jdbcTemplate;
 
@@ -122,8 +116,6 @@ final class HealthsCollector {
 
   Collection<DatamartFacility> collect() {
     try {
-      ListMultimap<String, AccessToCareEntry> accessToCareEntries = loadAccessToCare();
-      ListMultimap<String, AccessToPwtEntry> accessToPwtEntries = loadAccessToPwt();
       Map<String, String> mentalHealthPhoneNumbers = loadMentalHealthPhoneNumbers();
       ListMultimap<String, StopCode> stopCodesMap = loadStopCodes();
       return vastEntities.stream()
@@ -133,8 +125,8 @@ final class HealthsCollector {
               v ->
                   HealthTransformer.builder()
                       .vast(v)
-                      .accessToCare(accessToCareEntries)
-                      .accessToPwt(accessToPwtEntries)
+                      .accessToCareCollector(accessToCareCollector)
+                      .accessToPwtCollector(accessToPwtCollector)
                       .cscFacilities(cscFacilities)
                       .orthoFacilities(orthoFacilities)
                       .mentalHealthPhoneNumbers(mentalHealthPhoneNumbers)
@@ -150,67 +142,6 @@ final class HealthsCollector {
   }
 
   @SneakyThrows
-  private ListMultimap<String, AccessToCareEntry> loadAccessToCare() {
-    final Stopwatch totalWatch = Stopwatch.createStarted();
-    String url =
-        UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "atcapis/v1.1/patientwaittimes")
-            .build()
-            .toUriString();
-    String response =
-        insecureRestTemplate
-            .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class)
-            .getBody();
-    List<AccessToCareEntry> entries =
-        JacksonConfig.createMapper()
-            .readValue(response, new TypeReference<List<AccessToCareEntry>>() {});
-    ListMultimap<String, AccessToCareEntry> map = ArrayListMultimap.create();
-    for (int i = 0; i < entries.size(); i++) {
-      AccessToCareEntry entry = entries.get(i);
-      if (entry.facilityId() == null) {
-        log.warn("AccessToCare entry has null facility ID");
-        continue;
-      }
-      map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
-    }
-    log.info(
-        "Loading patient wait times took {} millis for {} entries",
-        totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-        entries.size());
-    checkState(!entries.isEmpty(), "No AccessToCare entries");
-    return ImmutableListMultimap.copyOf(map);
-  }
-
-  @SneakyThrows
-  private ListMultimap<String, AccessToPwtEntry> loadAccessToPwt() {
-    Stopwatch watch = Stopwatch.createStarted();
-    String url =
-        UriComponentsBuilder.fromHttpUrl(atpBaseUrl + "Shep/getRawData")
-            .queryParam("location", "*")
-            .build()
-            .toUriString();
-    String response =
-        insecureRestTemplate
-            .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class)
-            .getBody();
-    List<AccessToPwtEntry> entries =
-        JacksonConfig.createMapper()
-            .readValue(response, new TypeReference<List<AccessToPwtEntry>>() {});
-    ListMultimap<String, AccessToPwtEntry> map = ArrayListMultimap.create();
-    for (AccessToPwtEntry entry : entries) {
-      if (entry.facilityId() == null) {
-        log.warn("AccessToPwt entry has null facility ID");
-        continue;
-      }
-      map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
-    }
-    log.info(
-        "Loading satisfaction scores took {} millis for {} entries",
-        watch.stop().elapsed(TimeUnit.MILLISECONDS),
-        entries.size());
-    checkState(!entries.isEmpty(), "No AccessToPwt entries");
-    return ImmutableListMultimap.copyOf(map);
-  }
-
   private Map<String, String> loadMentalHealthPhoneNumbers() {
     Stopwatch watch = Stopwatch.createStarted();
     Map<String, String> map = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);

@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities.api;
 
+import static gov.va.api.lighthouse.facilities.api.UrlFormatHelper.withTrailingSlash;
+
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
@@ -8,10 +10,10 @@ public class ServiceLinkBuilder {
   /** Build base link url used for versioned API calls. */
   private static String buildLinkerUrl(
       @NonNull String baseUrl, @NonNull String basePath, @NonNull String version) {
-    String url = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+    String url = withTrailingSlash(baseUrl);
     String path = basePath.replaceAll("/$", "");
-    path = path.isEmpty() ? path : path + "/";
-    return url + path + version + "/";
+    path = path.isEmpty() ? path : withTrailingSlash(path);
+    return withTrailingSlash(url + path + version);
   }
 
   /** Build base link url used for V0 API calls. */
@@ -26,21 +28,18 @@ public class ServiceLinkBuilder {
 
   /**
    * Build link to obtain collection of services for facility. Example:
-   * http://localhost:8085/v1/facilities/vha_402/services.
+   * https://api.va.gov/services/va_facilities/v1/facilities/vha_402/services.
    */
   public static String buildServicesLink(@NonNull String linkerUrl, @NonNull String facilityId) {
     StringBuilder linkUrl = new StringBuilder();
-    linkUrl.append(linkerUrl.trim());
-    if (!linkerUrl.endsWith("/")) {
-      linkUrl.append("/");
-    }
+    linkUrl.append(withTrailingSlash(linkerUrl.trim()));
     linkUrl.append("facilities/").append(facilityId.trim()).append("/services");
     return linkUrl.toString();
   }
 
   /**
    * Build link to obtain specific facility service. Example:
-   * http://localhost:8085/v1/facilities/vha_402/services/cardiology.
+   * https://api.va.gov/services/va_facilities/v1/facilities/vha_402/services/cardiology.
    */
   public static String buildTypedServiceLink(
       @NonNull String linkerUrl, @NonNull String facilityId, @NonNull String serviceId) {

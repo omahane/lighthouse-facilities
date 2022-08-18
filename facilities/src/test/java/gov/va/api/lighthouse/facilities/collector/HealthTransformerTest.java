@@ -6,6 +6,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.Type.va_faciliti
 import static gov.va.api.lighthouse.facilities.collector.FacilitiesCollector.loadFacilitiesFromResource;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ArrayListMultimap;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
@@ -15,7 +16,6 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +35,8 @@ public class HealthTransformerTest {
     HealthTransformer withActiveStatus =
         HealthTransformer.builder()
             .vast(VastEntity.builder().pod(ActiveStatus.A.name()).build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -48,8 +48,8 @@ public class HealthTransformerTest {
     HealthTransformer withInactiveStatus =
         HealthTransformer.builder()
             .vast(VastEntity.builder().pod(ActiveStatus.T.name()).build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -68,8 +68,8 @@ public class HealthTransformerTest {
                         .cocClassificationId(classificationId)
                         .abbreviation(featureCode)
                         .build())
-                .accessToCare(ArrayListMultimap.create())
-                .accessToPwt(ArrayListMultimap.create())
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -85,8 +85,8 @@ public class HealthTransformerTest {
     assertThat(
             HealthTransformer.builder()
                 .vast(VastEntity.builder().build())
-                .accessToCare(ArrayListMultimap.create())
-                .accessToPwt(ArrayListMultimap.create())
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -112,8 +112,8 @@ public class HealthTransformerTest {
     assertThat(
             HealthTransformer.builder()
                 .vast(VastEntity.builder().build())
-                .accessToCare(ArrayListMultimap.create())
-                .accessToPwt(ArrayListMultimap.create())
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -122,17 +122,13 @@ public class HealthTransformerTest {
                 .build()
                 .toDatamartFacility())
         .isNull();
-    ArrayListMultimap<String, AccessToCareEntry> atc = ArrayListMultimap.create();
-    atc.put("VHA_X", AccessToCareEntry.builder().build());
-    ArrayListMultimap<String, AccessToPwtEntry> atp = ArrayListMultimap.create();
-    atp.put("VHA_X", AccessToPwtEntry.builder().build());
     ArrayListMultimap<String, StopCode> sc = ArrayListMultimap.create();
     sc.put("VHA_X", StopCode.builder().build());
     assertThat(
             HealthTransformer.builder()
                 .vast(VastEntity.builder().stationNumber("x").build())
-                .accessToCare(atc)
-                .accessToPwt(atp)
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -144,38 +140,13 @@ public class HealthTransformerTest {
   }
 
   @Test
-  @SneakyThrows
-  public void emptyWaitTime() {
-    HealthTransformer healthTransformer =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .build();
-    Method waitTimeMethod =
-        HealthTransformer.class.getDeclaredMethod("waitTime", AccessToCareEntry.class);
-    waitTimeMethod.setAccessible(true);
-    AccessToCareEntry nullAtc = null;
-    assertThat(waitTimeMethod.invoke(healthTransformer, nullAtc)).isNull();
-    assertThat(
-            waitTimeMethod.invoke(
-                healthTransformer, AccessToCareEntry.builder().apptTypeName("CARDIOLOGY").build()))
-        .isNull();
-  }
-
-  @Test
   void facilityWithCaregiverSupport() {
     var cscStationNumbers = new ArrayList<>(List.of("vha_123GA", "vha_321GA", "vha_789GA"));
     HealthTransformer hasCaregiverSupportAndStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -186,8 +157,8 @@ public class HealthTransformerTest {
     HealthTransformer hasCaregiverSupportWithNoStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -195,17 +166,13 @@ public class HealthTransformerTest {
             .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(hasCaregiverSupportWithNoStationNumber.hasCaregiverSupport()).isFalse();
-    ArrayListMultimap<String, AccessToCareEntry> atc = ArrayListMultimap.create();
-    atc.put("VHA_689", AccessToCareEntry.builder().build());
-    ArrayListMultimap<String, AccessToPwtEntry> atp = ArrayListMultimap.create();
-    atp.put("VHA_689", AccessToPwtEntry.builder().build());
     ArrayListMultimap<String, StopCode> sc = ArrayListMultimap.create();
     sc.put("VHA_689", StopCode.builder().build());
     assertThat(
             HealthTransformer.builder()
                 .vast(VastEntity.builder().stationNumber("689").build())
-                .accessToCare(atc)
-                .accessToPwt(atp)
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME))
                 .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -239,8 +206,8 @@ public class HealthTransformerTest {
     HealthTransformer hasOrthopedicsAndStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -251,8 +218,8 @@ public class HealthTransformerTest {
     HealthTransformer hasOrthopedicsWithNoStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -260,17 +227,13 @@ public class HealthTransformerTest {
             .orthoFacilities(orthoStationNumbers)
             .build();
     assertThat(hasOrthopedicsWithNoStationNumber.hasOrthopedics()).isFalse();
-    ArrayListMultimap<String, AccessToCareEntry> atc = ArrayListMultimap.create();
-    atc.put("VHA_689", AccessToCareEntry.builder().build());
-    ArrayListMultimap<String, AccessToPwtEntry> atp = ArrayListMultimap.create();
-    atp.put("VHA_689", AccessToPwtEntry.builder().build());
     ArrayListMultimap<String, StopCode> sc = ArrayListMultimap.create();
     sc.put("VHA_689", StopCode.builder().build());
     assertThat(
             HealthTransformer.builder()
                 .vast(VastEntity.builder().stationNumber("689").build())
-                .accessToCare(atc)
-                .accessToPwt(atp)
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME))
                 .mentalHealthPhoneNumbers(emptyMap())
@@ -304,8 +267,8 @@ public class HealthTransformerTest {
     HealthTransformer lacksCaregiverSupport =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("456GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -316,8 +279,8 @@ public class HealthTransformerTest {
     HealthTransformer noCaregiverSupportForStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -328,8 +291,8 @@ public class HealthTransformerTest {
     HealthTransformer noCaregiverSupportOrStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -345,8 +308,8 @@ public class HealthTransformerTest {
     HealthTransformer lacksOrthopedics =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("456GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -357,8 +320,8 @@ public class HealthTransformerTest {
     HealthTransformer noOrthopedicsForStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -369,8 +332,8 @@ public class HealthTransformerTest {
     HealthTransformer noOrthopedicsOrStationNumber =
         HealthTransformer.builder()
             .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -381,65 +344,12 @@ public class HealthTransformerTest {
   }
 
   @Test
-  @SneakyThrows
-  public void serviceName() {
-    HealthTransformer healthTransformer =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .build();
-    Method serviceNameMethod =
-        HealthTransformer.class.getDeclaredMethod("serviceName", AccessToCareEntry.class);
-    serviceNameMethod.setAccessible(true);
-    AccessToCareEntry nullAtc = null;
-    assertThat(serviceNameMethod.invoke(healthTransformer, nullAtc)).isNull();
-    assertThat(
-            serviceNameMethod.invoke(
-                healthTransformer, AccessToCareEntry.builder().apptTypeName("CARDIOLOGY").build()))
-        .isEqualTo(Cardiology);
-  }
-
-  @Test
-  @SneakyThrows
-  public void waitTimeNumbers() {
-    HealthTransformer healthTransformer =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .build();
-    Method waitTimeNumberMethod =
-        HealthTransformer.class.getDeclaredMethod("waitTimeNumber", BigDecimal.class);
-    waitTimeNumberMethod.setAccessible(true);
-    BigDecimal waitTimeNumber = null;
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(healthTransformer, waitTimeNumber))
-        .isNull();
-    waitTimeNumber = new BigDecimal(999);
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(healthTransformer, waitTimeNumber))
-        .isNull();
-    waitTimeNumber = new BigDecimal("160");
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(healthTransformer, waitTimeNumber))
-        .isEqualTo(waitTimeNumber);
-  }
-
-  @Test
   public void website() {
     HealthTransformer blankId =
         HealthTransformer.builder()
             .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -451,8 +361,8 @@ public class HealthTransformerTest {
     HealthTransformer healthTransformer =
         HealthTransformer.builder()
             .vast(VastEntity.builder().stationNumber("123").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(Map.of("vha_123", expectedWebsite))
@@ -470,8 +380,8 @@ public class HealthTransformerTest {
     HealthTransformer zip =
         HealthTransformer.builder()
             .vast(VastEntity.builder().zip("32934").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
@@ -482,8 +392,8 @@ public class HealthTransformerTest {
     HealthTransformer zipWithPlus4 =
         HealthTransformer.builder()
             .vast(VastEntity.builder().zip("32934").zip4("2807").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
+            .accessToCareCollector(mock(AccessToCareCollector.class))
+            .accessToPwtCollector(mock(AccessToPwtCollector.class))
             .mentalHealthPhoneNumbers(emptyMap())
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())

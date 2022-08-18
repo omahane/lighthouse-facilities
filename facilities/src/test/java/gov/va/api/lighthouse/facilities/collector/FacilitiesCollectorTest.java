@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities.collector;
 
+import static gov.va.api.lighthouse.facilities.api.UrlFormatHelper.withTrailingSlash;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -198,8 +199,8 @@ public class FacilitiesCollectorTest {
         mock(InsecureRestTemplateProvider.class);
     JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
     CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
-    String mockAtcBaseUrl = "atcBaseUrl";
-    String mockAtpBaseUrl = "atpBaseUrl";
+    AccessToCareCollector mockAtc = mock(AccessToCareCollector.class);
+    AccessToPwtCollector mockAtp = mock(AccessToPwtCollector.class);
     String mockCemeteriesBaseUrl = "cemeteriesBaseUrl";
     assertThrows(
         NullPointerException.class,
@@ -209,7 +210,7 @@ public class FacilitiesCollectorTest {
                 mockJdbcTemplate,
                 mockCmsOverlayCollector,
                 null,
-                mockAtpBaseUrl,
+                mockAtp,
                 mockCemeteriesBaseUrl));
     assertThrows(
         NullPointerException.class,
@@ -218,7 +219,7 @@ public class FacilitiesCollectorTest {
                 mockInsecureRestTemplateProvider,
                 mockJdbcTemplate,
                 mockCmsOverlayCollector,
-                mockAtcBaseUrl,
+                mockAtc,
                 null,
                 mockCemeteriesBaseUrl));
     assertThrows(
@@ -228,8 +229,8 @@ public class FacilitiesCollectorTest {
                 mockInsecureRestTemplateProvider,
                 mockJdbcTemplate,
                 mockCmsOverlayCollector,
-                mockAtcBaseUrl,
-                mockAtpBaseUrl,
+                mockAtc,
+                mockAtp,
                 null));
 
     when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays())
@@ -239,8 +240,8 @@ public class FacilitiesCollectorTest {
             mockInsecureRestTemplateProvider,
             mockJdbcTemplate,
             mockCmsOverlayCollector,
-            mockAtcBaseUrl,
-            mockAtpBaseUrl,
+            mockAtc,
+            mockAtp,
             mockCemeteriesBaseUrl);
     assertThrows(
         CollectorExceptions.CollectorException.class,
@@ -249,7 +250,7 @@ public class FacilitiesCollectorTest {
     ResultSet mockRs = mock(ResultSet.class);
     when(mockRs.getBoolean("VCTR2")).thenThrow(new SQLException("oh noes"));
     assertThrows(SQLException.class, () -> FacilitiesCollector.toVastEntity(mockRs));
-    assertThrows(NullPointerException.class, () -> FacilitiesCollector.withTrailingSlash(null));
+    assertThrows(NullPointerException.class, () -> withTrailingSlash(null));
 
     assertThrows(
         IllegalArgumentException.class, () -> FacilitiesCollector.loadFacilitiesFromResource(null));
@@ -272,8 +273,8 @@ public class FacilitiesCollectorTest {
                     mockInsecureRestTemplateProvider,
                     mockTemplate,
                     new CmsOverlayCollector(mockCmsOverlayRepository),
-                    "http://atc",
-                    "http://atp",
+                    mock(AccessToCareCollector.class),
+                    mock(AccessToPwtCollector.class),
                     "http://statecems")
                 .collectFacilities());
   }
@@ -282,10 +283,8 @@ public class FacilitiesCollectorTest {
   void verifyMissingTrailingSlashAppended() {
     String urlMissingTrailingSlash = "https://developer.va.gov";
     String urlWithTrailingSlash = "https://developer.va.gov/";
-    assertThat(FacilitiesCollector.withTrailingSlash(urlMissingTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
-    assertThat(FacilitiesCollector.withTrailingSlash(urlWithTrailingSlash))
-        .isEqualTo(urlWithTrailingSlash);
+    assertThat(withTrailingSlash(urlMissingTrailingSlash)).isEqualTo(urlWithTrailingSlash);
+    assertThat(withTrailingSlash(urlWithTrailingSlash)).isEqualTo(urlWithTrailingSlash);
   }
 
   @Test
@@ -406,8 +405,8 @@ public class FacilitiesCollectorTest {
                     insecureRestTemplateProvider,
                     jdbcTemplate,
                     new CmsOverlayCollector(mockCmsOverlayRepository),
-                    "http://atc",
-                    "http://atp",
+                    mock(AccessToCareCollector.class),
+                    mock(AccessToPwtCollector.class),
                     "http://statecems")
                 .collectFacilities()
                 .size())

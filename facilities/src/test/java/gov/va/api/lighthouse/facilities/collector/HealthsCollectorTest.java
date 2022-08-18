@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities.collector;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,8 +12,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,8 +38,8 @@ class HealthsCollectorTest {
         CollectorExceptions.HealthsCollectorException.class,
         () ->
             HealthsCollector.builder()
-                .atcBaseUrl("http://atc/")
-                .atpBaseUrl("http://atp/")
+                .accessToCareCollector(mock(AccessToCareCollector.class))
+                .accessToPwtCollector(mock(AccessToPwtCollector.class))
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .vastEntities(emptyList())
@@ -61,28 +58,6 @@ class HealthsCollectorTest {
     assertThrows(SQLException.class, () -> HealthsCollector.putMentalHealthContact(mockRs, null));
     when(mockRs.getString("Sta6a")).thenThrow(new SQLException("oh noes"));
     assertThrows(SQLException.class, () -> HealthsCollector.putStopCode(mockRs, null));
-
-    Method loadAccessToPwtMethod =
-        HealthsCollector.class.getDeclaredMethod("loadAccessToPwt", null);
-    loadAccessToPwtMethod.setAccessible(true);
-    RestTemplate insecureRestTemplate = mock(RestTemplate.class);
-    when(insecureRestTemplate.exchange(
-            startsWith("http"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenThrow(new RestClientException("oh noez"));
-    HealthsCollector collector =
-        HealthsCollector.builder()
-            .atcBaseUrl("http://atc/")
-            .atpBaseUrl("http://atp/")
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .vastEntities(emptyList())
-            .jdbcTemplate(mock(JdbcTemplate.class))
-            .insecureRestTemplate(insecureRestTemplate)
-            .websites(emptyMap())
-            .build();
-    assertThatThrownBy(() -> loadAccessToPwtMethod.invoke(collector, null))
-        .isInstanceOf(InvocationTargetException.class)
-        .hasCause(new RestClientException("oh noez"));
   }
 
   @Test

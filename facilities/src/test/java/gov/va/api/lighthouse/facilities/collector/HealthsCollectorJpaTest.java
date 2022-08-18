@@ -111,8 +111,8 @@ class HealthsCollectorJpaTest {
     _saveStopCode("666", "123", "", "10");
     _saveStopCode("666", "180", "", "20");
     _saveStopCode("666", "411", "", "30");
-    RestTemplate insecureRestTemplate = mock(RestTemplate.class);
-    when(insecureRestTemplate.exchange(
+    RestTemplate mockInsecureRestTemplate = mock(RestTemplate.class);
+    when(mockInsecureRestTemplate.exchange(
             startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(
             ResponseEntity.of(
@@ -129,7 +129,7 @@ class HealthsCollectorJpaTest {
                                     .urgentCare(true)
                                     .sliceEndDate("2020-03-02T00:00:00")
                                     .build())))));
-    when(insecureRestTemplate.exchange(
+    when(mockInsecureRestTemplate.exchange(
             startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(
             ResponseEntity.of(
@@ -176,14 +176,24 @@ class HealthsCollectorJpaTest {
             .mobile(false)
             .visn("21")
             .build();
+
+    final InsecureRestTemplateProvider mockInsecureRestTemplateProvider =
+        mock(InsecureRestTemplateProvider.class);
+    when(mockInsecureRestTemplateProvider.restTemplate()).thenReturn(mockInsecureRestTemplate);
+
+    final AccessToCareCollector mockAtc =
+        new AccessToCareCollector(mockInsecureRestTemplateProvider, "http://atc/");
+    final AccessToPwtCollector mockAtp =
+        new AccessToPwtCollector(mockInsecureRestTemplateProvider, "http://atp/");
+
     assertThat(
             HealthsCollector.builder()
-                .atcBaseUrl("http://atc/")
-                .atpBaseUrl("http://atp/")
+                .accessToCareCollector(mockAtc)
+                .accessToPwtCollector(mockAtp)
                 .cscFacilities(new ArrayList<>())
                 .orthoFacilities(new ArrayList<>())
                 .jdbcTemplate(jdbcTemplate)
-                .insecureRestTemplate(insecureRestTemplate)
+                .insecureRestTemplate(mockInsecureRestTemplate)
                 .vastEntities(List.of(entity))
                 .websites(emptyMap())
                 .build()

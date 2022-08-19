@@ -1,6 +1,9 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import com.google.common.collect.ImmutableMap;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +70,16 @@ public class ServiceNameAggregator {
             });
   }
 
-  public Optional<String> serviceName(@NonNull String serviceId) {
-    return Optional.ofNullable(serviceIdToServiceNameAggregate.get(serviceId));
+  /** Method used to obtain aggregated service name for given service id. */
+  public String serviceName(String serviceId) {
+    return serviceIdToServiceNameAggregate.containsKey(serviceId)
+        ? serviceIdToServiceNameAggregate.get(serviceId)
+        : HealthService.isRecognizedServiceId(serviceId)
+            ? HealthService.fromServiceId(serviceId).get().name()
+            : BenefitsService.isRecognizedServiceId(serviceId)
+                ? BenefitsService.fromServiceId(serviceId).get().name()
+                : OtherService.isRecognizedServiceId(serviceId)
+                    ? OtherService.fromServiceId(serviceId).get().name()
+                    : null;
   }
 }

@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities.collector;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Cardiology;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.MentalHealth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,8 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
@@ -20,8 +20,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-public class AccessToCareCollectorTest {
-  private static AccessToCareCollector accessToCareCollector;
+public class AccessToCareMapperTest {
+  private static AccessToCareMapper accessToCareMapper;
 
   @BeforeAll
   @SneakyThrows
@@ -58,39 +58,35 @@ public class AccessToCareCollectorTest {
         mock(InsecureRestTemplateProvider.class);
     when(mockInsecureRestTemplateProvider.restTemplate()).thenReturn(mockRestTemplate);
 
-    accessToCareCollector =
-        new AccessToCareCollector(mockInsecureRestTemplateProvider, mockAtcBaseUrl);
+    accessToCareMapper = new AccessToCareMapper(mockInsecureRestTemplateProvider, mockAtcBaseUrl);
   }
 
   @Test
   @SneakyThrows
-  public void emptyWaitTime() {
-    Method waitTimeMethod =
-        AccessToCareCollector.class.getDeclaredMethod("waitTime", AccessToCareEntry.class);
-    waitTimeMethod.setAccessible(true);
-    AccessToCareEntry nullAtc = null;
-    assertThat(waitTimeMethod.invoke(accessToCareCollector, nullAtc)).isNull();
+  public void healthService() {
+    // Valid Service
     assertThat(
-            waitTimeMethod.invoke(
-                accessToCareCollector,
+            accessToCareMapper.healthService(
                 AccessToCareEntry.builder().apptTypeName("CARDIOLOGY").build()))
+        .isEqualTo(Cardiology);
+    assertThat(
+            accessToCareMapper.healthService(
+                AccessToCareEntry.builder().apptTypeName("Cardiology").build()))
+        .isEqualTo(Cardiology);
+    assertThat(
+            accessToCareMapper.healthService(
+                AccessToCareEntry.builder().apptTypeName("MENTAL HEALTH INDIVIDUAL").build()))
+        .isEqualTo(MentalHealth);
+    assertThat(
+            accessToCareMapper.healthService(
+                AccessToCareEntry.builder().apptTypeName("Mental Health Individual").build()))
+        .isEqualTo(MentalHealth);
+    // Invalid Service
+    final AccessToCareEntry nullAtc = null;
+    assertThat(accessToCareMapper.healthService(nullAtc)).isNull();
+    assertThat(
+            accessToCareMapper.healthService(
+                AccessToCareEntry.builder().apptTypeName("NO SUCH SERVICE").build()))
         .isNull();
-  }
-
-  @Test
-  @SneakyThrows
-  public void waitTimeNumbers() {
-    Method waitTimeNumberMethod =
-        AccessToCareCollector.class.getDeclaredMethod("waitTimeNumber", BigDecimal.class);
-    waitTimeNumberMethod.setAccessible(true);
-    BigDecimal waitTimeNumber = null;
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(accessToCareCollector, waitTimeNumber))
-        .isNull();
-    waitTimeNumber = new BigDecimal(999);
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(accessToCareCollector, waitTimeNumber))
-        .isNull();
-    waitTimeNumber = new BigDecimal("160");
-    assertThat((BigDecimal) waitTimeNumberMethod.invoke(accessToCareCollector, waitTimeNumber))
-        .isEqualTo(waitTimeNumber);
   }
 }

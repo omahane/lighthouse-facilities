@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +32,11 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@AllArgsConstructor(onConstructor = @__(@Autowired))
-public class CmsOverlayCollector {
-  private final CmsOverlayRepository cmsOverlayRepository;
+public class CmsOverlayCollector extends BaseCmsOverlayHandler {
+
+  public CmsOverlayCollector(@Autowired CmsOverlayRepository cmsOverlayRepository) {
+    super(cmsOverlayRepository);
+  }
 
   /** Method for determining whether Covid service is contained within detailed services. */
   public static boolean containsCovidService(List<DatamartDetailedService> detailedServices) {

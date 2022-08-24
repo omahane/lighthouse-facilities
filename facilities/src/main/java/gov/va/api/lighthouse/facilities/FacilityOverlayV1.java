@@ -5,28 +5,26 @@ import static gov.va.api.lighthouse.facilities.FacilityOverlayHelper.filterOutIn
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import java.util.function.Function;
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
+import java.util.function.BiFunction;
+
+import lombok.*;
 
 @Data
 @Builder
-public class FacilityOverlayV1 implements Function<HasFacilityPayload, Facility> {
+@Value
+public class FacilityOverlayV1 implements BiFunction<HasFacilityPayload, String, Facility> {
   private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private String linkerUrl;
 
   @Override
   @SneakyThrows
-  public Facility apply(HasFacilityPayload entity) {
-    DatamartFacility df = DATAMART_MAPPER.readValue(entity.facility(), DatamartFacility.class);
-    Facility facility = FacilityTransformerV1.toFacility(filterOutInvalidDetailedServices(df));
-
-    facility
-        .attributes()
-        .parent(FacilityTransformerV1.toFacilityParent(df.attributes().parentId(), linkerUrl));
-
+  public Facility apply(HasFacilityPayload entity, @NonNull String linkerUrl) {
+    Facility facility =
+        FacilityTransformerV1.toFacility(
+            filterOutInvalidDetailedServices(
+                DATAMART_MAPPER.readValue(entity.facility(), DatamartFacility.class)),
+            linkerUrl);
     return facility;
   }
 }

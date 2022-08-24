@@ -158,12 +158,24 @@ public class ServiceTypeTest {
   @Test
   @SneakyThrows
   void isRecognizedServiceEnum() {
+    // Uppercase service name
     Arrays.stream(BenefitsService.values())
         .parallel()
         .forEach(bs -> assertThat(BenefitsService.isRecognizedServiceEnum(bs.name())).isTrue());
     Arrays.stream(HealthService.values())
         .parallel()
         .forEach(hs -> assertThat(HealthService.isRecognizedServiceEnum(hs.name())).isTrue());
+    Arrays.stream(OtherService.values())
+        .parallel()
+        .forEach(os -> assertThat(OtherService.isRecognizedServiceEnum(os.name())).isTrue());
+
+    // Lowercase service name
+    Arrays.stream(BenefitsService.values())
+        .parallel()
+        .forEach(
+            bs ->
+                assertThat(BenefitsService.isRecognizedServiceEnum(uncapitalize(bs.name())))
+                    .isTrue());
     Arrays.stream(HealthService.values())
         .parallel()
         .forEach(
@@ -172,7 +184,10 @@ public class ServiceTypeTest {
                     .isTrue());
     Arrays.stream(OtherService.values())
         .parallel()
-        .forEach(os -> assertThat(OtherService.isRecognizedServiceEnum(os.name())).isTrue());
+        .forEach(
+            os ->
+                assertThat(OtherService.isRecognizedServiceEnum(uncapitalize(os.name()))).isTrue());
+
     assertThat(HealthService.isRecognizedCovid19ServiceName("COVID-19 vaccines")).isTrue();
     assertThat(
             HealthService.isRecognizedCovid19ServiceName(
@@ -210,13 +225,17 @@ public class ServiceTypeTest {
     List<gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService> otherV0 =
         List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService.OnlineScheduling);
     List<OtherService> otherV1 = List.of(OtherService.OnlineScheduling);
+
+    // OtherService uppercase name
     otherV0.parallelStream()
         .forEach(os -> assertThat(otherV1.contains(OtherService.fromString(os.name()))).isTrue());
+    // OtherService lowercase name
     otherV0.parallelStream()
         .forEach(
             os ->
                 assertThat(otherV1.contains(OtherService.fromString(uncapitalize(os.name()))))
                     .isTrue());
+
     otherV0.parallelStream()
         .forEach(
             os ->

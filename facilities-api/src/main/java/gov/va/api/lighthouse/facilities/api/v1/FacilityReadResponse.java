@@ -26,6 +26,7 @@ public final class FacilityReadResponse implements CanBeEmpty {
   Facility facility;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return facility() == null || facility().isEmpty();

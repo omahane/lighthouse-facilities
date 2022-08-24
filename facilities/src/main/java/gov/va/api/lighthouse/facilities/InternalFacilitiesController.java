@@ -8,6 +8,8 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_cemetery;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet_center;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.isBlank;
 import static java.util.stream.Collectors.toCollection;
@@ -21,9 +23,8 @@ import gov.va.api.health.autoconfig.logging.Loggable;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
-import gov.va.api.lighthouse.facilities.api.ServiceType;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
@@ -144,12 +145,12 @@ public class InternalFacilitiesController {
    * Determine the total collection of service types by combining health, benefits, and other
    * services types. This is guaranteed to return a non-null, but potentially empty collection.
    */
-  static Set<ServiceType> serviceTypesOf(DatamartFacility datamartFacility) {
+  static Set<Service<? extends TypedService>> serviceTypesOf(DatamartFacility datamartFacility) {
     var services = datamartFacility.attributes().services();
     if (services == null) {
       return Set.of();
     }
-    var allServices = new HashSet<ServiceType>();
+    var allServices = new HashSet<Service<? extends TypedService>>();
     if (services.health() != null) {
       allServices.addAll(services.health());
     }
@@ -268,14 +269,22 @@ public class InternalFacilitiesController {
         DatamartFacility df =
             DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
         if (df.attributes().services().health() != null) {
-          List<DatamartFacility.HealthService> healthServicesWithoutCovid19Vaccine =
-              df.attributes().services().health().stream()
-                  .filter(hs -> !hs.equals(HealthService.Covid19Vaccine))
+          List<Service<HealthService>> healthServicesWithoutCovid19Vaccine =
+              df.attributes().services().health().parallelStream()
+                  .filter(hs -> !hs.serviceId().equals(HealthService.Covid19Vaccine.serviceId()))
                   .collect(Collectors.toList());
           Collections.sort(healthServicesWithoutCovid19Vaccine);
           df.attributes().services().health(healthServicesWithoutCovid19Vaccine);
 
-          if (facilityEntity.services() != null) {
+          if (ObjectUtils.isNotEmpty(facilityEntity.services())) {
+            // Remove Covid-19 expressed in service object format
+            facilityEntity
+                .services()
+                .removeIf(
+                    svcJson ->
+                        svcJson.contains(
+                            "\"serviceId\":\"" + HealthService.Covid19Vaccine.serviceId() + "\""));
+            // Remove Covid-19 expressed in prior non-object service format
             facilityEntity.services().remove("Covid19Vaccine");
           }
 

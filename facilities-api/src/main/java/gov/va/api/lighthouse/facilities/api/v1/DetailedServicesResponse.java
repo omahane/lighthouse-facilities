@@ -28,6 +28,7 @@ public class DetailedServicesResponse implements CanBeEmpty {
   @Valid @NotNull DetailedServicesMetadata meta;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(data())
@@ -55,6 +56,7 @@ public class DetailedServicesResponse implements CanBeEmpty {
     Pagination pagination;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return pagination() == null || pagination().isEmpty();

@@ -37,6 +37,7 @@ public final class NearbyResponse implements CanBeEmpty {
   Meta meta;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(data()) && (meta() == null || meta().isEmpty());
@@ -63,6 +64,7 @@ public final class NearbyResponse implements CanBeEmpty {
     Integer maxTime;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(minTime()) && ObjectUtils.isEmpty(maxTime());
@@ -86,6 +88,7 @@ public final class NearbyResponse implements CanBeEmpty {
     String bandVersion;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return StringUtils.isBlank(bandVersion());
@@ -112,6 +115,7 @@ public final class NearbyResponse implements CanBeEmpty {
     @Valid @NotNull NearbyAttributes attributes;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return StringUtils.isBlank(id())

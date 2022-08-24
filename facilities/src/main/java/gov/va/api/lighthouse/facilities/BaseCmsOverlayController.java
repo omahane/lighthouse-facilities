@@ -7,6 +7,8 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
+import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,7 +87,10 @@ public abstract class BaseCmsOverlayController {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
+              // Filter out services with unrecognized service ids
               .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              // Filter out services with invalid service types
+              .filter(ds -> ds.serviceInfo().serviceType() != null)
               .collect(Collectors.toList()));
     }
     return overlay;
@@ -150,11 +155,15 @@ public abstract class BaseCmsOverlayController {
   @SneakyThrows
   protected DatamartDetailedService getOverlayDetailedService(
       @NonNull String facilityId, @NonNull String serviceId) {
-    List<DatamartDetailedService> detailedServices =
+    Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
-            .collect(Collectors.toList());
-    return detailedServices.isEmpty() ? null : detailedServices.get(0);
+            .findFirst();
+    if (detailedService.isPresent()) {
+      return detailedService.get();
+    } else {
+      throw new ExceptionsUtils.NotFound(serviceId, facilityId);
+    }
   }
 
   @SneakyThrows
@@ -167,8 +176,24 @@ public abstract class BaseCmsOverlayController {
     return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
   }
 
-  /** Determine whether specified service id matches that for service. */
-  protected abstract boolean isRecognizedServiceId(String serviceId);
+  /** Obtain typed service for specified service id. */
+  protected Optional<? extends TypedService> getTypedServiceForServiceId(
+      @NonNull String serviceId) {
+    return DatamartFacility.HealthService.isRecognizedServiceId(serviceId)
+        ? DatamartFacility.HealthService.fromServiceId(serviceId)
+        : DatamartFacility.BenefitsService.isRecognizedServiceId(serviceId)
+            ? DatamartFacility.BenefitsService.fromServiceId(serviceId)
+            : DatamartFacility.OtherService.isRecognizedServiceId(serviceId)
+                ? DatamartFacility.OtherService.fromServiceId(serviceId)
+                : Optional.empty();
+  }
+
+  /** Determine whether specified service id matches that for V1 service. */
+  protected boolean isRecognizedServiceId(String serviceId) {
+    return Facility.HealthService.isRecognizedServiceId(serviceId)
+        || Facility.BenefitsService.isRecognizedServiceId(serviceId)
+        || Facility.OtherService.isRecognizedServiceId(serviceId);
+  }
 
   @SneakyThrows
   protected void updateCmsOverlayData(

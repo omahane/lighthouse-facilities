@@ -102,7 +102,15 @@ public class DatamartJacksonSerializersTest {
                     .services(
                         DatamartFacility.Services.builder()
                             .benefits(
-                                List.of(DatamartFacility.BenefitsService.TransitionAssistance))
+                                List.of(
+                                    DatamartFacility.Service
+                                        .<DatamartFacility.BenefitsService>builder()
+                                        .serviceType(
+                                            DatamartFacility.BenefitsService.TransitionAssistance)
+                                        .name(
+                                            DatamartFacility.BenefitsService.TransitionAssistance
+                                                .name())
+                                        .build()))
                             .build())
                     .build())
             .build();
@@ -112,6 +120,8 @@ public class DatamartJacksonSerializersTest {
     JsonNode rootNode = objectMapper.readTree(output);
     JsonNode servicesNode = rootNode.path("attributes").path("services");
     String services = servicesNode.toString();
-    assertThat(services).isEqualTo("{\"benefits\":[\"TransitionAssistance\"]}");
+    assertThat(services)
+        .isEqualTo(
+            "{\"benefits\":[{\"name\":\"TransitionAssistance\",\"serviceId\":\"transitionAssistance\"}]}");
   }
 }

@@ -416,6 +416,6 @@ public class SerializerExceptionsTest {
         new ServicesSerializer(),
         mock(JsonGenerator.class),
         mock(SerializerProvider.class),
-        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$Services.other()\" because \"value\" is null");
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$Services.health()\" because \"value\" is null");
   }
 }

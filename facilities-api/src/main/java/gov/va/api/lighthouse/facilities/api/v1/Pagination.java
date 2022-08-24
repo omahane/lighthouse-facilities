@@ -42,6 +42,7 @@ public final class Pagination implements CanBeEmpty {
   Integer totalEntries;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(currentPage())

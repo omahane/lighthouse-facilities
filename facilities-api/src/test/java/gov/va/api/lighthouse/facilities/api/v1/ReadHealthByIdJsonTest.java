@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,10 +21,12 @@ public class ReadHealthByIdJsonTest {
   }
 
   private FacilityReadResponse sample() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_402GA";
     return FacilityReadResponse.builder()
         .facility(
             Facility.builder()
-                .id("vha_402GA")
+                .id(facilityId)
                 .type(Facility.Type.va_facilities)
                 .attributes(
                     Facility.FacilityAttributes.builder()
@@ -68,10 +73,45 @@ public class ReadHealthByIdJsonTest {
                             Facility.Services.builder()
                                 .health(
                                     List.of(
-                                        Facility.HealthService.EmergencyCare,
-                                        Facility.HealthService.PrimaryCare,
-                                        Facility.HealthService.MentalHealth,
-                                        Facility.HealthService.Dermatology))
+                                        Facility.Service.<Facility.HealthService>builder()
+                                            .serviceType(Facility.HealthService.EmergencyCare)
+                                            .name(Facility.HealthService.EmergencyCare.name())
+                                            .link(
+                                                buildTypedServiceLink(
+                                                    linkerUrl,
+                                                    facilityId,
+                                                    Facility.HealthService.EmergencyCare
+                                                        .serviceId()))
+                                            .build(),
+                                        Facility.Service.<Facility.HealthService>builder()
+                                            .serviceType(Facility.HealthService.PrimaryCare)
+                                            .name(Facility.HealthService.PrimaryCare.name())
+                                            .link(
+                                                buildTypedServiceLink(
+                                                    linkerUrl,
+                                                    facilityId,
+                                                    Facility.HealthService.PrimaryCare.serviceId()))
+                                            .build(),
+                                        Facility.Service.<Facility.HealthService>builder()
+                                            .serviceType(Facility.HealthService.MentalHealth)
+                                            .name(Facility.HealthService.MentalHealth.name())
+                                            .link(
+                                                buildTypedServiceLink(
+                                                    linkerUrl,
+                                                    facilityId,
+                                                    Facility.HealthService.MentalHealth
+                                                        .serviceId()))
+                                            .build(),
+                                        Facility.Service.<Facility.HealthService>builder()
+                                            .serviceType(Facility.HealthService.Dermatology)
+                                            .name(Facility.HealthService.Dermatology.name())
+                                            .link(
+                                                buildTypedServiceLink(
+                                                    linkerUrl,
+                                                    facilityId,
+                                                    Facility.HealthService.Dermatology.serviceId()))
+                                            .build()))
+                                .link(buildServicesLink(linkerUrl, facilityId))
                                 .lastUpdated(LocalDate.parse("2020-02-24"))
                                 .build())
                         .satisfaction(

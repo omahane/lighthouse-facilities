@@ -63,6 +63,7 @@ public final class PageLinks implements CanBeEmpty {
   String last;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return isBlank(related())

@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -33,10 +34,12 @@ public class CmsOverlay implements CanBeEmpty {
   HealthCareSystem healthCareSystem;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return (operatingStatus() == null || operatingStatus().isEmpty())
-        && ObjectUtils.isEmpty(detailedServices());
+        && ObjectUtils.isEmpty(detailedServices())
+        && (healthCareSystem() == null || healthCareSystem().isEmpty());
   }
 
   @Data
@@ -44,8 +47,7 @@ public class CmsOverlay implements CanBeEmpty {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @Schema(description = "Describes the Health Care System for a facility.", nullable = true)
-  public static final class HealthCareSystem {
-
+  public static final class HealthCareSystem implements CanBeEmpty {
     @Schema(
         description = "Health care system name",
         example = "VA Pittsburgh health care",
@@ -63,6 +65,7 @@ public class CmsOverlay implements CanBeEmpty {
         example = "https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/",
         nullable = true)
     @JsonProperty("covidUrl")
+    @JsonAlias("covid_url")
     String covidUrl;
 
     @Schema(
@@ -70,6 +73,17 @@ public class CmsOverlay implements CanBeEmpty {
         example = "555-555-5555 x123",
         nullable = true)
     @JsonProperty("vaHealthConnectPhone")
+    @JsonAlias("va_health_connect_phone")
     String healthConnectPhone;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @Override
+    @JsonIgnore
+    public boolean isEmpty() {
+      return StringUtils.isEmpty(name())
+          && StringUtils.isEmpty(url())
+          && StringUtils.isEmpty(covidUrl())
+          && StringUtils.isEmpty(healthConnectPhone());
+    }
   }
 }

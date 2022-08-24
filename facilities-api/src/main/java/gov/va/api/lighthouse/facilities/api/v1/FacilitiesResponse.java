@@ -34,6 +34,7 @@ public final class FacilitiesResponse implements CanBeEmpty {
   @Valid @NotNull FacilitiesMetadata meta;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(data())
@@ -62,6 +63,7 @@ public final class FacilitiesResponse implements CanBeEmpty {
     BigDecimal distance;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(id()) && ObjectUtils.isEmpty(distance());
@@ -86,6 +88,7 @@ public final class FacilitiesResponse implements CanBeEmpty {
     List<@Valid @NotNull Distance> distances;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (pagination() == null || pagination().isEmpty()) && ObjectUtils.isEmpty(distances());

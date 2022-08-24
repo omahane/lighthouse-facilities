@@ -13,6 +13,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.time.LocalDate;
 import java.util.AbstractMap;
@@ -54,13 +55,18 @@ public class CmsOverlayCollector {
         HashMap::new);
   }
 
-  private AbstractMap.SimpleEntry<String, HealthService> filterCovid19ServiceFromCmsOverlayServices(
-      CmsOverlayEntity cmsOverlayEntity) {
-    Optional<HealthService> opt =
+  private AbstractMap.SimpleEntry<String, Service<HealthService>>
+      filterCovid19ServiceFromCmsOverlayServices(CmsOverlayEntity cmsOverlayEntity) {
+    Optional<Service<HealthService>> opt =
         cmsOverlayEntity.overlayServices().stream()
             .filter(s -> EnumUtils.isValidEnum(HealthService.class, capitalize(s)))
             .map(s -> HealthService.fromString(s))
             .filter(s -> s.equals(HealthService.Covid19Vaccine))
+            .map(
+                s ->
+                    Service.<HealthService>builder()
+                        .serviceType(HealthService.Covid19Vaccine)
+                        .build())
             .findFirst();
     if (opt.isPresent()) {
       return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), opt.get());
@@ -69,8 +75,8 @@ public class CmsOverlayCollector {
   }
 
   /** Return a map of facilities that have covid 19 vaccines. This is a V0 utility function. */
-  public HashMap<String, HealthService> getCovid19VaccineServices() {
-    HashMap<String, HealthService> cmsOverlayServices =
+  public HashMap<String, Service<HealthService>> getCovid19VaccineServices() {
+    HashMap<String, Service<HealthService>> cmsOverlayServices =
         Streams.stream(cmsOverlayRepository.findAll())
             .map(this::filterCovid19ServiceFromCmsOverlayServices)
             .filter(Objects::nonNull)
@@ -143,9 +149,8 @@ public class CmsOverlayCollector {
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
     datamartFacilities.stream()
         .filter(df -> overlayEntityMap.containsKey(df.id()))
-        .filter(
-            df ->
-                df.attributes().waitTimes() != null && df.attributes().waitTimes().health() != null)
+        .filter(df -> df.attributes().waitTimes() != null)
+        .filter(df -> df.attributes().waitTimes().health() != null)
         .forEach(
             datamartFacility -> {
               WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();

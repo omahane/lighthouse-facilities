@@ -42,7 +42,7 @@
       "other" : [ ],
       "health" : [
         "primaryCare",
-        "mentalHealth",
+        "mentalHealthCare",
         "womensHealth",
         "audiology",
         "cardiology",
@@ -53,7 +53,7 @@
         "optometry",
         "orthopedics",
         "urology",
-        "dental"
+        "dentalServices"
       ],
       "last_updated" : "2020-03-16"
     },
@@ -124,7 +124,7 @@
           "established" : 6.796
         },
         {
-          "service" : "mentalHealth",
+          "service" : "mentalHealthCare",
           "new" : 5.028089,
           "established" : 7.345443
         }

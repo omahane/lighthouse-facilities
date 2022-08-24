@@ -382,11 +382,26 @@
         },
         "services" : {
           "health" : [
-            "emergencyCare",
-            "gynecology",
-            "mentalHealth",
-            "primaryCare",
-            "womensHealth"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth"
+            }
           ],
           "lastUpdated" : "2020-03-09"
         },
@@ -447,9 +462,18 @@
         },
         "services" : {
           "health" : [
-            "emergencyCare",
-            "mentalHealth",
-            "primaryCare"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            }
           ],
           "lastUpdated" : "2020-03-09"
         },

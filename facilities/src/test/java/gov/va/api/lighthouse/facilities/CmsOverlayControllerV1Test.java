@@ -1,11 +1,13 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,12 +53,16 @@ public class CmsOverlayControllerV1Test {
 
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
+  private String baseUrl;
+
+  private String basePath;
+
   CmsOverlayControllerV1 controller() {
     return CmsOverlayControllerV1.builder()
         .facilityRepository(mockFacilityRepository)
         .cmsOverlayRepository(mockCmsOverlayRepository)
-        .baseUrl("http://foo/")
-        .basePath("bp")
+        .baseUrl(baseUrl)
+        .basePath(basePath)
         .build();
   }
 
@@ -202,7 +209,6 @@ public class CmsOverlayControllerV1Test {
     assertThatThrownBy(() -> controller().getDetailedService("vha_000", "cardiology"))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
         .hasMessage("The record identified by vha_000 could not be found");
-    ;
   }
 
   @Test
@@ -493,59 +499,61 @@ public class CmsOverlayControllerV1Test {
         .isThrownBy(() -> serviceIdFromServiceNameMethod.invoke(controller(), null));
   }
 
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+  }
+
   @Test
   @SneakyThrows
   void typedServiceForServiceId() {
-    Method typedServiceForServiceIdMethod =
-        CmsOverlayControllerV1.class.getDeclaredMethod("getTypedServiceForServiceId", String.class);
-    typedServiceForServiceIdMethod.setAccessible(true);
     // Valid service ids
-    Arrays.stream(Facility.BenefitsService.values())
+    Arrays.stream(DatamartFacility.BenefitsService.values())
         .parallel()
         .forEach(
             bs -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), bs.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(bs.serviceId()))
                     .isEqualTo(Optional.of(bs));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
-    Arrays.stream(Facility.HealthService.values())
+    Arrays.stream(DatamartFacility.HealthService.values())
         .parallel()
         .forEach(
             hs -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), hs.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(hs.serviceId()))
                     .isEqualTo(Optional.of(hs));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
-    Arrays.stream(Facility.OtherService.values())
+    Arrays.stream(DatamartFacility.OtherService.values())
         .parallel()
         .forEach(
             os -> {
               try {
-                assertThat(typedServiceForServiceIdMethod.invoke(controller(), os.serviceId()))
+                assertThat(controller().getTypedServiceForServiceId(os.serviceId()))
                     .isEqualTo(Optional.of(os));
               } catch (final Throwable t) {
                 fail(t.getMessage(), t);
               }
             });
     // Invalid service ids
-    assertThat(typedServiceForServiceIdMethod.invoke(controller(), "noSuchId"))
-        .isEqualTo(Optional.empty());
-    assertThat(typedServiceForServiceIdMethod.invoke(controller(), "   "))
-        .isEqualTo(Optional.empty());
-    assertThatIllegalArgumentException()
+    assertThat(controller().getTypedServiceForServiceId("noSuchId")).isEqualTo(Optional.empty());
+    assertThat(controller().getTypedServiceForServiceId("   ")).isEqualTo(Optional.empty());
+    assertThatNullPointerException()
         .describedAs("serviceId is marked non-null but is null")
-        .isThrownBy(() -> typedServiceForServiceIdMethod.invoke(controller(), null));
+        .isThrownBy(() -> controller().getTypedServiceForServiceId(null));
   }
 
   @Test
   @SneakyThrows
   void updateFacilityWithOverlayData() {
+    final var linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
     DatamartCmsOverlay overlay = overlay();
     overlay.operatingStatus(
         DatamartFacility.OperatingStatus.builder()
@@ -594,7 +602,8 @@ public class CmsOverlayControllerV1Test {
     Facility facility =
         FacilityTransformerV1.toFacility(
             DatamartFacilitiesJacksonConfig.createMapper()
-                .readValue(updatedFacilityEntity.facility(), DatamartFacility.class));
+                .readValue(updatedFacilityEntity.facility(), DatamartFacility.class),
+            linkerUrl);
     assertThat(facility.attributes().activeStatus()).isEqualTo(Facility.ActiveStatus.T);
     assertThat(facility.attributes().operatingStatus())
         .usingRecursiveComparison()

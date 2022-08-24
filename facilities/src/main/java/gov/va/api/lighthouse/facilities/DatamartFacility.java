@@ -2,15 +2,19 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartServicesDeserializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -24,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Data
 @Builder
@@ -88,7 +93,9 @@ public class DatamartFacility {
 
     /** Determine whether specified service name represents benefits service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(bs -> bs.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents benefits service. */
@@ -160,7 +167,7 @@ public class DatamartFacility {
     @JsonProperty("criticalCare")
     CriticalCare("criticalCare"),
     @JsonProperty("dental")
-    Dental("dentalServices"),
+    Dental("dental"),
     @JsonProperty("dermatology")
     Dermatology("dermatology"),
     @JsonProperty("diabetic")
@@ -200,7 +207,7 @@ public class DatamartFacility {
     @JsonProperty("medicalRecords")
     MedicalRecords("medicalRecords"),
     @JsonProperty("mentalHealth")
-    MentalHealth("mentalHealthCare"),
+    MentalHealth("mentalHealth"),
     @JsonProperty("militarySexualTrauma")
     MilitarySexualTrauma("militarySexualTrauma"),
     @JsonProperty("minorityCare")
@@ -326,10 +333,14 @@ public class DatamartFacility {
 
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
-      return Arrays.stream(values())
-          .parallel()
-          .filter(hs -> hs.serviceId().equals(serviceId))
-          .findFirst();
+      return "dentalServices".equals(serviceId)
+          ? Optional.of(Dental)
+          : "mentalHealthCare".equals(serviceId)
+              ? Optional.of(MentalHealth)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
     }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
@@ -367,7 +378,9 @@ public class DatamartFacility {
 
     /** Determine whether specified service id represents health service. */
     public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+      return "dentalServices".equals(serviceId)
+          || "mentalHealthCare".equals(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
     }
 
     @Override
@@ -406,7 +419,9 @@ public class DatamartFacility {
 
     /** Determine whether specified service name represents other service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(os -> os.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents other service. */
@@ -722,15 +737,80 @@ public class DatamartFacility {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonDeserialize(using = DatamartServicesDeserializer.class)
   public static final class Services {
-    List<OtherService> other;
+    List<Service<OtherService>> other;
 
-    List<HealthService> health;
+    List<Service<HealthService>> health;
 
-    List<BenefitsService> benefits;
+    List<Service<BenefitsService>> benefits;
 
     @JsonProperty("last_updated")
     LocalDate lastUpdated;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId"})
+  @AllArgsConstructor
+  public static final class Service<T extends TypedService> implements Comparable<Service<T>> {
+    @JsonIgnore @NotNull T serviceType;
+
+    String name;
+
+    @NonNull String serviceId;
+
+    @Override
+    public int compareTo(@NotNull Service<T> service) {
+      return serviceId().compareTo(service.serviceId());
+    }
+
+    /** Custom builder for setting ServiceType and serviceId attributes for Service. */
+    public static class ServiceBuilder<T extends TypedService> {
+      @NonNull private T serviceType;
+
+      @NonNull private String serviceId;
+
+      private String name;
+
+      /** Update both serviceType and serviceId attributes based on serviceId. */
+      @SuppressWarnings("unchecked")
+      public ServiceBuilder<T> serviceId(@NonNull String serviceId) {
+        // Determine whether service id is recognized
+        final Optional<?> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          this.serviceType = (T) typedService.get();
+          if (isEmpty(name)) {
+            this.name = serviceType.name();
+          }
+        } else {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
+        }
+        return this;
+      }
+
+      /** Update both serviceType and serviceId attributes based on ServiceType. */
+      public ServiceBuilder<T> serviceType(@NonNull T serviceType) {
+        this.serviceType = serviceType;
+        this.serviceId = serviceType.serviceId();
+        if (isEmpty(name)) {
+          this.name = serviceType.name();
+        }
+        return this;
+      }
+    }
   }
 
   @Data

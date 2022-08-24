@@ -132,6 +132,7 @@ public class DetailedService implements CanBeEmpty {
   String walkInsAccepted;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return (serviceInfo() == null || serviceInfo().isEmpty())
@@ -200,7 +201,7 @@ public class DetailedService implements CanBeEmpty {
   @JsonPropertyOrder({"name", "serviceId", "serviceType"})
   @Schema(description = "Service information.")
   public static final class ServiceInfo implements CanBeEmpty {
-    @Schema(description = "Service identifier.", example = "covid19Vaccine", nullable = true)
+    @Schema(description = "Service identifier.", example = "covid19Vaccine")
     @JsonAlias("{service_id, service_api_id}")
     @NonNull
     String serviceId;
@@ -213,6 +214,7 @@ public class DetailedService implements CanBeEmpty {
     TypeOfService serviceType;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(serviceId()) && isBlank(name()) && ObjectUtils.isEmpty(serviceType());
@@ -226,61 +228,56 @@ public class DetailedService implements CanBeEmpty {
       private TypeOfService serviceType;
 
       /**
-       * Method used to set service info name and attempt to infer service id based on provided
-       * service name.
+       * Method used to set service info name and attempt to infer service id and type based on
+       * provided service name.
        */
       public ServiceInfoBuilder name(String name) {
+        // Update service name
         this.name = name;
-        if (HealthService.isRecognizedEnumOrCovidService(name)) {
-          final HealthService healthService = HealthService.fromString(name);
-          this.serviceId = healthService.serviceId();
-          this.serviceType = healthService.serviceType();
-        } else if (BenefitsService.isRecognizedServiceEnum(name)) {
-          final BenefitsService benefitsService = BenefitsService.fromString(name);
-          this.serviceId = benefitsService.serviceId();
-          this.serviceType = benefitsService.serviceType();
-        } else if (OtherService.isRecognizedServiceEnum(name)) {
-          final OtherService otherService = OtherService.fromString(name);
-          this.serviceId = otherService.serviceId();
-          this.serviceType = otherService.serviceType();
+        // Update service id and type
+        final TypedService typedService =
+            HealthService.isRecognizedEnumOrCovidService(name)
+                ? HealthService.fromString(name)
+                : BenefitsService.isRecognizedServiceEnum(name)
+                    ? BenefitsService.fromString(name)
+                    : OtherService.isRecognizedServiceEnum(name)
+                        ? OtherService.fromString(name)
+                        : null;
+        if (typedService != null) {
+          this.serviceId = typedService.serviceId();
+          this.serviceType = typedService.serviceType();
+        } else if (StringUtils.isEmpty(serviceId)) {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
         }
         return this;
       }
 
       /**
-       * Method used to set service id and infer service name based on provided service id given it
-       * is recognized as valid.
+       * Method used to set service id and infer service name and type based on provided service id
+       * given it is recognized as valid.
        */
       public ServiceInfoBuilder serviceId(String serviceId) {
-        this.serviceId = serviceId;
-        if (HealthService.isRecognizedServiceId(serviceId)) {
-          final Optional<HealthService> healthService = HealthService.fromServiceId(serviceId);
-          if (healthService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = healthService.get().name();
-            }
-            this.serviceType = healthService.get().serviceType();
+        // Determine whether service id is recognized
+        final Optional<? extends TypedService> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          if (StringUtils.isEmpty(name)) {
+            this.name = typedService.get().name();
           }
-        } else if (BenefitsService.isRecognizedServiceId(serviceId)) {
-          final Optional<BenefitsService> benefitsService =
-              BenefitsService.fromServiceId(serviceId);
-          if (benefitsService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = benefitsService.get().name();
-            }
-            this.serviceType = benefitsService.get().serviceType();
-          }
-        } else if (OtherService.isRecognizedServiceId(serviceId)) {
-          final Optional<OtherService> otherService = OtherService.fromServiceId(serviceId);
-          if (otherService.isPresent()) {
-            if (StringUtils.isEmpty(name)) {
-              this.name = otherService.get().name();
-            }
-            this.serviceType = otherService.get().serviceType();
-          }
+          this.serviceType = typedService.get().serviceType();
         } else {
           // Unrecognized service id
           this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
         }
         return this;
       }
@@ -391,6 +388,7 @@ public class DetailedService implements CanBeEmpty {
     String wingFloorOrRoomNumber;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(address1())
@@ -432,6 +430,7 @@ public class DetailedService implements CanBeEmpty {
     String type;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(extension()) && isBlank(label()) && isBlank(number()) && isBlank(type());
@@ -480,6 +479,7 @@ public class DetailedService implements CanBeEmpty {
     DetailedServiceAddress serviceLocationAddress;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(additionalHoursInfo())
@@ -509,6 +509,7 @@ public class DetailedService implements CanBeEmpty {
     String emailLabel;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(emailAddress()) && isBlank(emailLabel());
@@ -563,6 +564,7 @@ public class DetailedService implements CanBeEmpty {
     String sunday;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(monday())

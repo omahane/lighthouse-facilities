@@ -44,10 +44,22 @@
       ],
       "services" : {
         "health" : [
-          "emergencyCare",
-          "primaryCare",
-          "mentalHealth",
-          "dermatology"
+          {
+            "name" : "EmergencyCare",
+            "serviceId" : "emergencyCare"
+          },
+          {
+            "name" : "PrimaryCare",
+            "serviceId" : "primaryCare"
+          },
+          {
+            "name" : "MentalHealth",
+            "serviceId" : "mentalHealth"
+          },
+          {
+            "name" : "Dermatology",
+            "serviceId" : "dermatology"
+          }
         ],
         "lastUpdated" : "2020-02-24"
       },

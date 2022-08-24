@@ -370,24 +370,24 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .build();
   }
 
-    @Test
-    public void facilityRoundtrip2() {
-        final Facility facility = facility(linkerUrl, facilityId);
-        Facility actual =  FacilityTransformerV1.toFacility(FacilityTransformerV1.toVersionAgnostic(facility), linkerUrl);
-        actual
-                .attributes()
-                .parent(
-                        Facility.Parent.builder()
-                                .id("vha_123")
-                                .link(
-                                        SystemDefinition.systemDefinition().url()
-                                                + SystemDefinition.systemDefinition().apiPath()
-                                                + "v1/facilities/vha_123")
-                                .build());
-        assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(facility);
-    }
+  @Test
+  public void facilityRoundtrip2() {
+    final Facility facility = facility(linkerUrl, facilityId);
+    Facility actual =
+        FacilityTransformerV1.toFacility(
+            FacilityTransformerV1.toVersionAgnostic(facility), linkerUrl);
+    actual
+        .attributes()
+        .parent(
+            Facility.Parent.builder()
+                .id("vha_123")
+                .link(
+                    SystemDefinition.systemDefinition().url()
+                        + SystemDefinition.systemDefinition().apiPath()
+                        + "v1/facilities/vha_123")
+                .build());
+    assertThat(actual).usingRecursiveComparison().isEqualTo(facility);
+  }
 
   private DatamartDetailedService getHealthDetailedService(
       @NonNull DatamartFacility.HealthService healthService, boolean isActive) {
@@ -594,10 +594,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
 
     assertThat(
             FacilityTransformerV1.toFacility(
-                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df)),linkerUrl))
-            .usingRecursiveComparison()
-            .ignoringFields("attributes.parent")
-            .isEqualTo(facility);;
+                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df)),
+                linkerUrl))
+        .usingRecursiveComparison()
+        .ignoringFields("attributes.parent")
+        .isEqualTo(facility);
+    ;
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
@@ -663,56 +665,55 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             linkerUrl,
             facilityId);
     Facility facilityWithoutWholeHealth =
-            facility(
-                    emptyList(),
-                    List.of(
-                            Facility.Service.<Facility.HealthService>builder()
-                                    .serviceType(Facility.HealthService.PrimaryCare)
-                                    .name(Facility.HealthService.PrimaryCare.name())
-                                    .link(
-                                            buildTypedServiceLink(
-                                                    linkerUrl, facilityId, Facility.HealthService.PrimaryCare.serviceId()))
-                                    .build(),
-                            Facility.Service.<Facility.HealthService>builder()
-                                    .serviceType(Facility.HealthService.UrgentCare)
-                                    .name(Facility.HealthService.UrgentCare.name())
-                                    .link(
-                                            buildTypedServiceLink(
-                                                    linkerUrl, facilityId, Facility.HealthService.UrgentCare.serviceId()))
-                                    .build(),
-                            Facility.Service.<Facility.HealthService>builder()
-                                    .serviceType(Facility.HealthService.EmergencyCare)
-                                    .name(Facility.HealthService.EmergencyCare.name())
-                                    .link(
-                                            buildTypedServiceLink(
-                                                    linkerUrl,
-                                                    facilityId,
-                                                    Facility.HealthService.EmergencyCare.serviceId()))
-                                    .build(),
-                            Facility.Service.<Facility.HealthService>builder()
-                                    .serviceType(Facility.HealthService.MentalHealth)
-                                    .name(Facility.HealthService.MentalHealth.name())
-                                    .link(
-                                            buildTypedServiceLink(
-                                                    linkerUrl, facilityId, Facility.HealthService.MentalHealth.serviceId()))
-                                    .build(),
-                            Facility.Service.<Facility.HealthService>builder()
-                                    .serviceType(Facility.HealthService.Dental)
-                                    .name(Facility.HealthService.Dental.name())
-                                    .link(
-                                            buildTypedServiceLink(
-                                                    linkerUrl, facilityId, Facility.HealthService.Dental.serviceId()))
-                                    .build()),
-                    emptyList(),
-                    linkerUrl,
-                    facilityId);
+        facility(
+            emptyList(),
+            List.of(
+                Facility.Service.<Facility.HealthService>builder()
+                    .serviceType(Facility.HealthService.PrimaryCare)
+                    .name(Facility.HealthService.PrimaryCare.name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl, facilityId, Facility.HealthService.PrimaryCare.serviceId()))
+                    .build(),
+                Facility.Service.<Facility.HealthService>builder()
+                    .serviceType(Facility.HealthService.UrgentCare)
+                    .name(Facility.HealthService.UrgentCare.name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl, facilityId, Facility.HealthService.UrgentCare.serviceId()))
+                    .build(),
+                Facility.Service.<Facility.HealthService>builder()
+                    .serviceType(Facility.HealthService.EmergencyCare)
+                    .name(Facility.HealthService.EmergencyCare.name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            Facility.HealthService.EmergencyCare.serviceId()))
+                    .build(),
+                Facility.Service.<Facility.HealthService>builder()
+                    .serviceType(Facility.HealthService.MentalHealth)
+                    .name(Facility.HealthService.MentalHealth.name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl, facilityId, Facility.HealthService.MentalHealth.serviceId()))
+                    .build(),
+                Facility.Service.<Facility.HealthService>builder()
+                    .serviceType(Facility.HealthService.Dental)
+                    .name(Facility.HealthService.Dental.name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl, facilityId, Facility.HealthService.Dental.serviceId()))
+                    .build()),
+            emptyList(),
+            linkerUrl,
+            facilityId);
     assertThat(
-            FacilityTransformerV1.toFacility(
-                    FacilityTransformerV0.toVersionAgnostic(
-                            FacilityTransformerV0.toFacility(
-                                    FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
-                    linkerUrl));
-
+        FacilityTransformerV1.toFacility(
+            FacilityTransformerV0.toVersionAgnostic(
+                FacilityTransformerV0.toFacility(
+                    FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
+            linkerUrl));
     DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth);
     assertThat(df).hasFieldOrProperty("attributes.parentId");
     // Assert that there is no parent for V0 Facility when it is transformed from datamartFacility
@@ -722,10 +723,10 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                     .hasFieldOrProperty("attributes.parent"))
         .isInstanceOf(AssertionError.class)
         .hasMessageContaining("\"attributes.parent\"");
-
     assertThat(
             FacilityTransformerV1.toFacility(
-                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df)),linkerUrl))
+                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df)),
+                linkerUrl))
         .usingRecursiveComparison()
         .ignoringFields("attributes.parent")
         .isEqualTo(facilityWithoutWholeHealth);
@@ -1025,7 +1026,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void transformDatamartFacility() {
     Facility expected = facility(linkerUrl, facilityId);
     DatamartFacility datamartFacility = datamartFacility();
-    Facility actual = FacilityTransformerV1.toFacility(datamartFacility,linkerUrl);
+    Facility actual = FacilityTransformerV1.toFacility(datamartFacility, linkerUrl);
     actual
         .attributes()
         .parent(

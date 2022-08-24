@@ -41,6 +41,7 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .name(df.attributes().name())
                     .phone(toFacilityPhone(df.attributes().phone()))
                     .website(df.attributes().website())
+                    .parent(toFacilityParent(df.attributes().parentId(),linkerUrl))
                     .classification(df.attributes().classification())
                     .timeZone(df.attributes().timeZone())
                     .mobile(df.attributes().mobile())

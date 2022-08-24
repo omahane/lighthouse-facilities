@@ -1,14 +1,13 @@
 package gov.va.api.lighthouse.facilities.api.v0;
 
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
-
 import java.util.List;
+import lombok.NonNull;
 
 public class DetailedServiceUtils {
-  public static DetailedService getDetailedService(String name) {
+  public static DetailedService getDetailedService(@NonNull Facility.HealthService healthService) {
     return DetailedService.builder()
-        .name(name)
-        .serviceId(uncapitalize(name))
+        .serviceId(healthService.serviceId())
+        .name(healthService.name())
         .active(true)
         .changed(null)
         .descriptionFacility("Most advanced healthcare facility nationally.")

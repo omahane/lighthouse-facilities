@@ -1,25 +1,25 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import gov.va.api.lighthouse.facilities.api.ServiceType;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartAddressDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartFacilityAttributesDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartHoursDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartOperatingStatusDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartPatientSatisfactionDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartPhoneDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartSatisfactionDeserializer;
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.deserializers.DatamartServicesDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartWaitTimesDeserializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -28,10 +28,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Data
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DatamartFacility {
@@ -46,23 +48,70 @@ public class DatamartFacility {
     T
   }
 
-  public enum BenefitsService implements ServiceType {
-    ApplyingForBenefits,
-    BurialClaimAssistance,
-    DisabilityClaimAssistance,
-    eBenefitsRegistrationAssistance,
-    EducationAndCareerCounseling,
-    EducationClaimAssistance,
-    FamilyMemberClaimAssistance,
-    HomelessAssistance,
-    InsuranceClaimAssistanceAndFinancialCounseling,
-    IntegratedDisabilityEvaluationSystemAssistance,
-    Pensions,
-    PreDischargeClaimAssistance,
-    TransitionAssistance,
-    UpdatingDirectDepositInformation,
-    VAHomeLoanAssistance,
-    VocationalRehabilitationAndEmploymentAssistance
+  public enum BenefitsService implements TypedService {
+    ApplyingForBenefits("applyingForBenefits"),
+    BurialClaimAssistance("burialClaimAssistance"),
+    DisabilityClaimAssistance("disabilityClaimAssistance"),
+    eBenefitsRegistrationAssistance("eBenefitsRegistrationAssistance"),
+    EducationAndCareerCounseling("educationAndCareerCounseling"),
+    EducationClaimAssistance("educationClaimAssistance"),
+    FamilyMemberClaimAssistance("familyMemberClaimAssistance"),
+    HomelessAssistance("homelessAssistance"),
+    InsuranceClaimAssistanceAndFinancialCounseling(
+        "insuranceClaimAssistanceAndFinancialCounseling"),
+    IntegratedDisabilityEvaluationSystemAssistance(
+        "integratedDisabilityEvaluationSystemAssistance"),
+    Pensions("pensions"),
+    PreDischargeClaimAssistance("preDischargeClaimAssistance"),
+    TransitionAssistance("transitionAssistance"),
+    UpdatingDirectDepositInformation("updatingDirectDepositInformation"),
+    VAHomeLoanAssistance("vaHomeLoanAssistance"),
+    VocationalRehabilitationAndEmploymentAssistance(
+        "vocationalRehabilitationAndEmploymentAssistance");
+
+    private final String serviceId;
+
+    BenefitsService(@NotNull String serviceId) {
+      this.serviceId = serviceId;
+    }
+
+    /** Obtain service for unique service id. */
+    public static Optional<BenefitsService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(bs -> bs.serviceId().equals(serviceId))
+          .findFirst();
+    }
+
+    /** Ensure that Jackson can create BenefitsService enum regardless of capitalization. */
+    @JsonCreator
+    public static BenefitsService fromString(String name) {
+      return eBenefitsRegistrationAssistance.name().equalsIgnoreCase(name)
+          ? eBenefitsRegistrationAssistance
+          : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified service name represents benefits service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(bs -> bs.name().equalsIgnoreCase(serviceName));
+    }
+
+    /** Determine whether specified service id represents benefits service. */
+    public static boolean isRecognizedServiceId(String serviceId) {
+      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.serviceId().equals(serviceId));
+    }
+
+    @Override
+    public String serviceId() {
+      return serviceId;
+    }
+
+    @Override
+    public TypeOfService serviceType() {
+      return TypeOfService.Benefits;
+    }
   }
 
   public enum FacilityType {
@@ -72,229 +121,323 @@ public class DatamartFacility {
     vet_center
   }
 
-  public enum HealthService implements ServiceType {
+  public enum HealthService implements TypedService {
     @JsonProperty("adaptiveSports")
-    AdaptiveSports,
+    AdaptiveSports("adaptiveSports"),
     @JsonProperty("addiction")
-    Addiction,
+    Addiction("addiction"),
     @JsonProperty("adviceNurse")
-    AdviceNurse,
+    AdviceNurse("adviceNurse"),
     @JsonProperty("allergy")
-    Allergy,
+    Allergy("allergy"),
     @JsonProperty("amputation")
-    Amputation,
+    Amputation("amputation"),
     @JsonProperty("anesthesia")
-    Anesthesia,
+    Anesthesia("anesthesia"),
     @JsonProperty("audiology")
-    Audiology,
+    Audiology("audiology"),
     @JsonProperty("bariatricSurgery")
-    BariatricSurgery,
+    BariatricSurgery("bariatricSurgery"),
     @JsonProperty("billing")
-    Billing,
+    Billing("billing"),
     @JsonProperty("vision")
-    Vision,
+    Vision("vision"),
     @JsonProperty("cancer")
-    Cancer,
+    Cancer("cancer"),
     @JsonProperty("cardiology")
-    Cardiology,
+    Cardiology("cardiology"),
     @JsonProperty("cardiovascularSurgery")
-    CardiovascularSurgery,
+    CardiovascularSurgery("cardiovascularSurgery"),
     @JsonProperty("caregiverSupport")
-    CaregiverSupport,
+    CaregiverSupport("caregiverSupport"),
     @JsonProperty("cashier")
-    Cashier,
+    Cashier("cashier"),
     @JsonProperty("chiropractic")
-    Chiropractic,
+    Chiropractic("chiropractic"),
     @JsonProperty("colonSurgery")
-    ColonSurgery,
+    ColonSurgery("colonSurgery"),
     @JsonProperty("communityEngagement")
-    CommunityEngagement,
+    CommunityEngagement("communityEngagement"),
     @JsonProperty("complementaryHealth")
-    ComplementaryHealth,
+    ComplementaryHealth("complementaryHealth"),
     @JsonProperty("familyCounseling")
-    FamilyCounseling,
+    FamilyCounseling("familyCounseling"),
     @JsonProperty("covid19Vaccine")
-    Covid19Vaccine,
+    Covid19Vaccine("covid19Vaccine"),
     @JsonProperty("criticalCare")
-    CriticalCare,
+    CriticalCare("criticalCare"),
     @JsonProperty("dental")
-    Dental,
-    // DentalServices is a V0 holdover
-    DentalServices,
+    Dental("dental"),
     @JsonProperty("dermatology")
-    Dermatology,
+    Dermatology("dermatology"),
     @JsonProperty("diabetic")
-    Diabetic,
+    Diabetic("diabetic"),
     @JsonProperty("emergencyCare")
-    EmergencyCare,
+    EmergencyCare("emergencyCare"),
     @JsonProperty("endocrinology")
-    Endocrinology,
+    Endocrinology("endocrinology"),
     @JsonProperty("gastroenterology")
-    Gastroenterology,
+    Gastroenterology("gastroenterology"),
     @JsonProperty("genomicMedicine")
-    GenomicMedicine,
+    GenomicMedicine("genomicMedicine"),
     @JsonProperty("geriatrics")
-    Geriatrics,
+    Geriatrics("geriatrics"),
     @JsonProperty("griefCounseling")
-    GriefCounseling,
+    GriefCounseling("griefCounseling"),
     @JsonProperty("gynecology")
-    Gynecology,
+    Gynecology("gynecology"),
     @JsonProperty("hematology")
-    Hematology,
+    Hematology("hematology"),
     @JsonProperty("hiv")
-    Hiv,
+    Hiv("hiv"),
     @JsonProperty("homeless")
-    Homeless,
+    Homeless("homeless"),
     @JsonProperty("hospitalMedicine")
-    HospitalMedicine,
+    HospitalMedicine("hospitalMedicine"),
     @JsonProperty("infectiousDisease")
-    InfectiousDisease,
+    InfectiousDisease("infectiousDisease"),
     @JsonProperty("internalMedicine")
-    InternalMedicine,
+    InternalMedicine("internalMedicine"),
     @JsonProperty("domesticAbuseSupport")
-    DomesticAbuseSupport,
+    DomesticAbuseSupport("domesticAbuseSupport"),
     @JsonProperty("laboratory")
-    Laboratory,
+    Laboratory("laboratory"),
     @JsonProperty("lgbtq")
-    Lgbtq,
+    Lgbtq("lgbtq"),
     @JsonProperty("medicalRecords")
-    MedicalRecords,
+    MedicalRecords("medicalRecords"),
     @JsonProperty("mentalHealth")
-    MentalHealth,
-    // MentalHealthCare is a V0 holdover
-    MentalHealthCare,
+    MentalHealth("mentalHealth"),
     @JsonProperty("militarySexualTrauma")
-    MilitarySexualTrauma,
+    MilitarySexualTrauma("militarySexualTrauma"),
     @JsonProperty("minorityCare")
-    MinorityCare,
+    MinorityCare("minorityCare"),
     @JsonProperty("weightManagement")
-    WeightManagement,
+    WeightManagement("weightManagement"),
     @JsonProperty("myHealtheVetCoordinator")
-    MyHealtheVetCoordinator,
+    MyHealtheVetCoordinator("myHealtheVetCoordinator"),
     @JsonProperty("nephrology")
-    Nephrology,
+    Nephrology("nephrology"),
     @JsonProperty("neurology")
-    Neurology,
+    Neurology("neurology"),
     @JsonProperty("neurosurgery")
-    Neurosurgery,
+    Neurosurgery("neurosurgery"),
     @JsonProperty("nutrition")
-    Nutrition,
+    Nutrition("nutrition"),
     @JsonProperty("ophthalmology")
-    Ophthalmology,
+    Ophthalmology("ophthalmology"),
     @JsonProperty("optometry")
-    Optometry,
+    Optometry("optometry"),
     @JsonProperty("orthopedics")
-    Orthopedics,
+    Orthopedics("orthopedics"),
     @JsonProperty("otolaryngology")
-    Otolaryngology,
+    Otolaryngology("otolaryngology"),
     @JsonProperty("outpatientSurgery")
-    OutpatientSurgery,
+    OutpatientSurgery("outpatientSurgery"),
     @JsonProperty("painManagement")
-    PainManagement,
+    PainManagement("painManagement"),
     @JsonProperty("hospice")
-    Hospice,
+    Hospice("hospice"),
     @JsonProperty("patientAdvocates")
-    PatientAdvocates,
+    PatientAdvocates("patientAdvocates"),
     @JsonProperty("pharmacy")
-    Pharmacy,
+    Pharmacy("pharmacy"),
     @JsonProperty("physicalMedicine")
-    PhysicalMedicine,
+    PhysicalMedicine("physicalMedicine"),
     @JsonProperty("physicalTherapy")
-    PhysicalTherapy,
+    PhysicalTherapy("physicalTherapy"),
     @JsonProperty("plasticSurgery")
-    PlasticSurgery,
+    PlasticSurgery("plasticSurgery"),
     @JsonProperty("podiatry")
-    Podiatry,
+    Podiatry("podiatry"),
     @JsonProperty("polytrauma")
-    Polytrauma,
+    Polytrauma("polytrauma"),
     @JsonProperty("primaryCare")
-    PrimaryCare,
+    PrimaryCare("primaryCare"),
     @JsonProperty("psychiatry")
-    Psychiatry,
+    Psychiatry("psychiatry"),
     @JsonProperty("psychology")
-    Psychology,
+    Psychology("psychology"),
     @JsonProperty("ptsd")
-    Ptsd,
+    Ptsd("ptsd"),
     @JsonProperty("pulmonaryMedicine")
-    PulmonaryMedicine,
+    PulmonaryMedicine("pulmonaryMedicine"),
     @JsonProperty("radiationOncology")
-    RadiationOncology,
+    RadiationOncology("radiationOncology"),
     @JsonProperty("radiology")
-    Radiology,
+    Radiology("radiology"),
     @JsonProperty("recreationTherapy")
-    RecreationTherapy,
+    RecreationTherapy("recreationTherapy"),
     @JsonProperty("registerForCare")
-    RegisterForCare,
+    RegisterForCare("registerForCare"),
     @JsonProperty("registryExams")
-    RegistryExams,
+    RegistryExams("registryExams"),
     @JsonProperty("rehabilitation")
-    Rehabilitation,
+    Rehabilitation("rehabilitation"),
     @JsonProperty("prosthetics")
-    Prosthetics,
+    Prosthetics("prosthetics"),
     @JsonProperty("transitionCounseling")
-    TransitionCounseling,
+    TransitionCounseling("transitionCounseling"),
     @JsonProperty("rheumatology")
-    Rheumatology,
+    Rheumatology("rheumatology"),
     @JsonProperty("sleepMedicine")
-    SleepMedicine,
+    SleepMedicine("sleepMedicine"),
     @JsonProperty("smoking")
-    Smoking,
+    Smoking("smoking"),
     @JsonProperty("socialWork")
-    SocialWork,
-    // SpecialtyCare is a V0 holdover. V1 contains specific instances of its specialized care.
-    SpecialtyCare,
+    SocialWork("socialWork"),
+    @JsonProperty("specialtyCare")
+    SpecialtyCare("specialtyCare"),
     @JsonProperty("spinalInjury")
-    SpinalInjury,
+    SpinalInjury("spinalInjury"),
     @JsonProperty("suicidePrevention")
-    SuicidePrevention,
+    SuicidePrevention("suicidePrevention"),
     @JsonProperty("surgery")
-    Surgery,
+    Surgery("surgery"),
     @JsonProperty("surgicalOncology")
-    SurgicalOncology,
+    SurgicalOncology("surgicalOncology"),
     @JsonProperty("telehealth")
-    Telehealth,
+    Telehealth("telehealth"),
     @JsonProperty("thoracicSurgery")
-    ThoracicSurgery,
+    ThoracicSurgery("thoracicSurgery"),
     @JsonProperty("transplantSurgery")
-    TransplantSurgery,
+    TransplantSurgery("transplantSurgery"),
     @JsonProperty("travelReimbursement")
-    TravelReimbursement,
+    TravelReimbursement("travelReimbursement"),
     @JsonProperty("urgentCare")
-    UrgentCare,
+    UrgentCare("urgentCare"),
     @JsonProperty("urology")
-    Urology,
+    Urology("urology"),
     @JsonProperty("vascularSurgery")
-    VascularSurgery,
+    VascularSurgery("vascularSurgery"),
     @JsonProperty("veteranConnections")
-    VeteranConnections,
+    VeteranConnections("veteranConnections"),
     @JsonProperty("employmentPrograms")
-    EmploymentPrograms,
+    EmploymentPrograms("employmentPrograms"),
     @JsonProperty("mobility")
-    Mobility,
+    Mobility("mobility"),
     @JsonProperty("wholeHealth")
-    WholeHealth,
+    WholeHealth("wholeHealth"),
     @JsonProperty("womensHealth")
-    WomensHealth,
+    WomensHealth("womensHealth"),
     @JsonProperty("workshops")
-    Workshops,
+    Workshops("workshops"),
     @JsonProperty("wound")
-    Wound;
+    Wound("wound");
+
+    private final String serviceId;
+
+    HealthService(@NotNull String serviceId) {
+      this.serviceId = serviceId;
+    }
+
+    /** Obtain service for unique service id. */
+    public static Optional<HealthService> fromServiceId(String serviceId) {
+      return "dentalServices".equals(serviceId)
+          ? Optional.of(Dental)
+          : "mentalHealthCare".equals(serviceId)
+              ? Optional.of(MentalHealth)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
+    }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
     @JsonCreator
     public static HealthService fromString(String name) {
-      return "COVID-19 vaccines".equalsIgnoreCase(name)
-          ? HealthService.Covid19Vaccine
+      return CMS_OVERLAY_SERVICE_NAME_COVID_19.equalsIgnoreCase(name)
+          ? Covid19Vaccine
           : "MentalHealthCare".equalsIgnoreCase(name)
-              ? HealthService.MentalHealth
-              : "DentalServices".equalsIgnoreCase(name)
-                  ? HealthService.Dental
-                  : valueOf(capitalize(name));
+              ? MentalHealth
+              : "DentalServices".equalsIgnoreCase(name) ? Dental : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified service name represents Covid-19 health service. */
+    public static boolean isRecognizedCovid19ServiceName(String serviceName) {
+      return CMS_OVERLAY_SERVICE_NAME_COVID_19.equals(serviceName)
+          || Covid19Vaccine.name().equals(serviceName);
+    }
+
+    /**
+     * Determine whether specified service name represents health service based on enum name or
+     * alternate Covid-19 service name.
+     */
+    public static boolean isRecognizedEnumOrCovidService(String serviceName) {
+      return isRecognizedCovid19ServiceName(serviceName) || isRecognizedServiceEnum(serviceName);
+    }
+
+    /** Determine whether specified service name represents health service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return "DentalServices".equalsIgnoreCase(serviceName)
+          || "MentalHealthCare".equalsIgnoreCase(serviceName)
+          || Arrays.stream(values())
+              .parallel()
+              .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
+    }
+
+    /** Determine whether specified service id represents health service. */
+    public static boolean isRecognizedServiceId(String serviceId) {
+      return "dentalServices".equals(serviceId)
+          || "mentalHealthCare".equals(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+    }
+
+    @Override
+    public String serviceId() {
+      return serviceId;
+    }
+
+    @Override
+    public TypeOfService serviceType() {
+      return TypeOfService.Health;
     }
   }
 
-  public enum OtherService implements ServiceType {
-    OnlineScheduling
+  public enum OtherService implements TypedService {
+    OnlineScheduling("onlineScheduling");
+
+    private final String serviceId;
+
+    OtherService(@NotNull String serviceId) {
+      this.serviceId = serviceId;
+    }
+
+    /** Obtain service for unique service id. */
+    public static Optional<OtherService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(os -> os.serviceId().equals(serviceId))
+          .findFirst();
+    }
+
+    /** Ensure that Jackson can create OtherService enum regardless of capitalization. */
+    @JsonCreator
+    public static OtherService fromString(String name) {
+      return valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified service name represents other service. */
+    public static boolean isRecognizedServiceEnum(String serviceName) {
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(os -> os.name().equalsIgnoreCase(serviceName));
+    }
+
+    /** Determine whether specified service id represents other service. */
+    public static boolean isRecognizedServiceId(String serviceId) {
+      return Arrays.stream(values()).parallel().anyMatch(os -> os.serviceId().equals(serviceId));
+    }
+
+    @Override
+    public String serviceId() {
+      return serviceId;
+    }
+
+    @Override
+    public TypeOfService serviceType() {
+      return TypeOfService.Other;
+    }
   }
 
   public enum Type {
@@ -311,7 +454,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartAddressDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Address {
     @JsonProperty("address_1")
     String address1;
@@ -332,6 +475,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Addresses {
     @Valid Address mailing;
 
@@ -341,6 +485,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "name",
     "facility_type",
@@ -362,7 +507,6 @@ public class DatamartFacility {
     "detailed_services",
     "visn"
   })
-  @JsonDeserialize(using = DatamartFacilityAttributesDeserializer.class)
   public static final class FacilityAttributes {
     @NotNull String name;
 
@@ -428,7 +572,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartHoursDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Hours {
     String sunday;
 
@@ -485,7 +629,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartOperatingStatusDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class OperatingStatus {
     @NotNull
     @JsonProperty(required = true)
@@ -494,12 +638,31 @@ public class DatamartFacility {
     @JsonProperty(value = "additional_info", required = false)
     @Size(max = 300)
     String additionalInfo;
+
+    @JsonProperty(value = "supplemental_status", required = false)
+    List<@Valid SupplementalStatus> supplementalStatuses;
   }
 
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartPatientSatisfactionDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  public static final class SupplementalStatus {
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String id;
+
+    @Valid
+    @NotNull
+    @JsonProperty(required = true)
+    String label;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class PatientSatisfaction {
     @JsonProperty("primary_care_urgent")
     BigDecimal primaryCareUrgent;
@@ -517,6 +680,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class PatientWaitTime {
     @NotNull HealthService service;
 
@@ -530,7 +694,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartPhoneDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Phone {
     String fax;
 
@@ -549,12 +713,15 @@ public class DatamartFacility {
 
     @JsonProperty("enrollment_coordinator")
     String enrollmentCoordinator;
+
+    @JsonProperty("health_connect")
+    String healthConnect;
   }
 
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartSatisfactionDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class Satisfaction {
     @Valid PatientSatisfaction health;
 
@@ -565,13 +732,14 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonDeserialize(using = DatamartServicesDeserializer.class)
   public static final class Services {
-    List<OtherService> other;
+    List<Service<OtherService>> other;
 
-    List<HealthService> health;
+    List<Service<HealthService>> health;
 
-    List<BenefitsService> benefits;
+    List<Service<BenefitsService>> benefits;
 
     @JsonProperty("last_updated")
     LocalDate lastUpdated;
@@ -580,7 +748,71 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartWaitTimesDeserializer.class)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId"})
+  @AllArgsConstructor
+  public static final class Service<T extends TypedService> implements Comparable<Service<T>> {
+    @JsonIgnore @NotNull T serviceType;
+
+    String name;
+
+    @NonNull String serviceId;
+
+    @Override
+    public int compareTo(@NotNull Service<T> service) {
+      return serviceId().compareTo(service.serviceId());
+    }
+
+    /** Custom builder for setting ServiceType and serviceId attributes for Service. */
+    public static class ServiceBuilder<T extends TypedService> {
+      @NonNull private T serviceType;
+
+      @NonNull private String serviceId;
+
+      private String name;
+
+      /** Update both serviceType and serviceId attributes based on serviceId. */
+      @SuppressWarnings("unchecked")
+      public ServiceBuilder<T> serviceId(@NonNull String serviceId) {
+        // Determine whether service id is recognized
+        final Optional<?> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          this.serviceType = (T) typedService.get();
+          if (isEmpty(name)) {
+            this.name = serviceType.name();
+          }
+        } else {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
+        }
+        return this;
+      }
+
+      /** Update both serviceType and serviceId attributes based on ServiceType. */
+      public ServiceBuilder<T> serviceType(@NonNull T serviceType) {
+        this.serviceType = serviceType;
+        this.serviceId = serviceType.serviceId();
+        if (isEmpty(name)) {
+          this.name = serviceType.name();
+        }
+        return this;
+      }
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   public static final class WaitTimes {
     @Valid List<PatientWaitTime> health;
 

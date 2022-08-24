@@ -1,12 +1,15 @@
 package gov.va.api.lighthouse.facilities;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static gov.va.api.lighthouse.facilities.ControllersV0.convertToDatamartServices;
 import static gov.va.api.lighthouse.facilities.ControllersV0.page;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateServices;
+import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV0.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -50,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class FacilitiesControllerV0 {
-  private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
+  private static final ObjectMapper MAPPER_V0 = createMapper();
 
   private static final FacilityOverlayV0 FACILITY_OVERLAY = FacilityOverlayV0.builder().build();
 
@@ -64,10 +67,7 @@ public class FacilitiesControllerV0 {
       @Value("${facilities.url}") String baseUrl,
       @Value("${facilities.base-path}") String basePath) {
     this.facilityRepository = facilityRepository;
-    String url = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-    String path = basePath.replaceAll("/$", "");
-    path = path.isEmpty() ? path : path + "/";
-    linkerUrl = url + path + "v0/";
+    linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
   }
 
   @SneakyThrows
@@ -128,21 +128,19 @@ public class FacilitiesControllerV0 {
       throw new ExceptionsUtils.InvalidParameter("bbox", bbox);
     }
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> services = validateServices(rawServices);
+    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
+
     // lng lat lng lat
     List<FacilityEntity> allEntities =
         facilityRepository.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .boundingBox(
-                    FacilityRepository.BoundingBoxSpecification.builder()
-                        .minLongitude(bbox.get(0).min(bbox.get(2)))
-                        .maxLongitude(bbox.get(0).max(bbox.get(2)))
-                        .minLatitude(bbox.get(1).min(bbox.get(3)))
-                        .maxLatitude(bbox.get(1).max(bbox.get(3)))
-                        .build())
-                .facilityType(getFacilityTypeSpec(facilityType))
-                .services(getServicesSpec(services))
-                .mobile(getMobileSpec(rawMobile))
+            FacilityRepository.BoundingBoxSpecification.builder()
+                .minLongitude(bbox.get(0).min(bbox.get(2)))
+                .maxLongitude(bbox.get(0).max(bbox.get(2)))
+                .minLatitude(bbox.get(1).min(bbox.get(3)))
+                .maxLatitude(bbox.get(1).max(bbox.get(3)))
+                .facilityType(facilityType)
+                .services(datamartServices)
+                .mobile(rawMobile)
                 .build());
     double centerLng = (bbox.get(0).doubleValue() + bbox.get(2).doubleValue()) / 2;
     double centerLat = (bbox.get(1).doubleValue() + bbox.get(3).doubleValue()) / 2;
@@ -172,19 +170,14 @@ public class FacilitiesControllerV0 {
       List<String> rawServices,
       Boolean rawMobile) {
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> services = validateServices(rawServices);
+    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
     List<FacilityEntity> entities =
         facilityRepository.findAll(
-            FacilityRepository.FacilitySpecificationHelper.builder()
-                .ids(
-                    ids == null
-                        ? null
-                        : FacilityRepository.TypeServicesIdsSpecification.builder()
-                            .ids(entityIds(ids))
-                            .build())
-                .facilityType(getFacilityTypeSpec(facilityType))
-                .services(getServicesSpec(services))
-                .mobile(getMobileSpec(rawMobile))
+            FacilityRepository.TypeServicesIdsSpecification.builder()
+                .ids(entityIds(ids))
+                .facilityType(facilityType)
+                .services(datamartServices)
+                .mobile(rawMobile)
                 .build());
     double lng = longitude.doubleValue();
     double lat = latitude.doubleValue();
@@ -214,13 +207,13 @@ public class FacilitiesControllerV0 {
     checkArgument(perPage >= 1);
     String state = rawState.trim().toUpperCase(Locale.US);
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> services = validateServices(rawServices);
+    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
     return facilityRepository.findAll(
-        FacilityRepository.FacilitySpecificationHelper.builder()
-            .state(FacilityRepository.StateSpecification.builder().state(state).build())
-            .facilityType(getFacilityTypeSpec(facilityType))
-            .services(getServicesSpec(services))
-            .mobile(getMobileSpec(rawMobile))
+        FacilityRepository.StateSpecification.builder()
+            .state(state)
+            .facilityType(facilityType)
+            .services(datamartServices)
+            .mobile(rawMobile)
             .build(),
         PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
   }
@@ -235,14 +228,14 @@ public class FacilitiesControllerV0 {
     checkArgument(page >= 1);
     checkArgument(perPage >= 1);
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> services = validateServices(rawServices);
+    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
     String zip = rawZip.substring(0, Math.min(rawZip.length(), 5));
     return facilityRepository.findAll(
-        FacilityRepository.FacilitySpecificationHelper.builder()
-            .zip(FacilityRepository.ZipSpecification.builder().zip(zip).build())
-            .facilityType(getFacilityTypeSpec(facilityType))
-            .services(getServicesSpec(services))
-            .mobile(getMobileSpec(rawMobile))
+        FacilityRepository.ZipSpecification.builder()
+            .zip(zip)
+            .facilityType(facilityType)
+            .services(datamartServices)
+            .mobile(rawMobile)
             .build(),
         PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
   }
@@ -416,25 +409,6 @@ public class FacilitiesControllerV0 {
                     .map(e -> geoFacility(facility(e)))
                     .collect(toList()))
         .build();
-  }
-
-  private FacilityRepository.FacilityTypeSpecification getFacilityTypeSpec(
-      FacilityEntity.Type facilityType) {
-    return facilityType == null
-        ? null
-        : FacilityRepository.FacilityTypeSpecification.builder().facilityType(facilityType).build();
-  }
-
-  private FacilityRepository.MobileSpecification getMobileSpec(Boolean mobile) {
-    return mobile == null
-        ? null
-        : FacilityRepository.MobileSpecification.builder().mobile(mobile).build();
-  }
-
-  private FacilityRepository.ServicesSpecification getServicesSpec(Set<ServiceType> services) {
-    return services.isEmpty()
-        ? null
-        : FacilityRepository.ServicesSpecification.builder().services(services).build();
   }
 
   /** Get facilities by bounding box. */

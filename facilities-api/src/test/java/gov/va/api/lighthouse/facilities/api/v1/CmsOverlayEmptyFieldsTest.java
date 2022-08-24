@@ -4,7 +4,6 @@ import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
 import static gov.va.api.lighthouse.facilities.api.v1.DetailedServiceUtils.getDetailedService;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -70,9 +69,9 @@ public class CmsOverlayEmptyFieldsTest {
 
   private List<DetailedService> getDetailedServices() {
     return List.of(
-        getDetailedService(Facility.HealthService.Cardiology.name()),
-        getDetailedService(Facility.HealthService.CaregiverSupport.name()),
-        getDetailedService(Facility.HealthService.EmergencyCare.name()));
+        getDetailedService(Facility.HealthService.Cardiology),
+        getDetailedService(Facility.HealthService.CaregiverSupport),
+        getDetailedService(Facility.HealthService.EmergencyCare));
   }
 
   private Facility.OperatingStatus getOperatingStatus() {
@@ -109,8 +108,12 @@ public class CmsOverlayEmptyFieldsTest {
                 .detailedServices(
                     List.of(
                         DetailedService.builder()
-                            .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
-                            .name("test")
+                            .serviceInfo(
+                                DetailedService.ServiceInfo.builder()
+                                    .serviceId(Facility.HealthService.Cardiology.serviceId())
+                                    .name(Facility.HealthService.Cardiology.name())
+                                    .serviceType(Facility.HealthService.Cardiology.serviceType())
+                                    .build())
                             .build()))
                 .build()
                 .isEmpty())

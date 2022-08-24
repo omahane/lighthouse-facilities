@@ -1,22 +1,26 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
+import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.FacilityEntity;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -44,8 +48,12 @@ public class CmsOverlayCollectorTest {
   void loadCovidOverlay() {
     DatamartDetailedService covidService =
         DatamartDetailedService.builder()
-            .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
-            .serviceId(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             .active(true)
             .path("replace_this_path")
             .build();
@@ -92,8 +100,12 @@ public class CmsOverlayCollectorTest {
     assertThat(cmsOverlays.isEmpty()).isFalse();
     DatamartDetailedService updatedCovidService =
         DatamartDetailedService.builder()
-            .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-            .serviceId(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
+            .serviceInfo(
+                DatamartDetailedService.ServiceInfo.builder()
+                    .serviceId(DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                    .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                    .build())
             // .path("https://www.va.gov/durham-health-care/programs/covid-19-vaccines/")
             .path("replace_this_path")
             .build();
@@ -105,6 +117,43 @@ public class CmsOverlayCollectorTest {
     assertThat(cmsOverlays.get(pk.toIdString()))
         .usingRecursiveComparison()
         .isEqualTo(updatedOverlay);
+  }
+
+  @Test
+  @SneakyThrows
+  void loadOverlayDetailedServices() {
+    var id = "vha_561";
+    CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
+    when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
+    when(mockEntity.overlayServices())
+        .thenReturn(
+            Set.of(
+                "Covid19Vaccine", "ColonSurgery", "CriticalCare", "PrimaryCare", "EmergencyCare"));
+    when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
+    HashMap<String, DatamartFacility.HealthService> expectedFacilityCovid19Map = new HashMap<>();
+    expectedFacilityCovid19Map.put(id, DatamartFacility.HealthService.Covid19Vaccine);
+    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    assertThat(collector.getCovid19VaccineServices().get(id))
+        .isEqualTo(
+            DatamartFacility.Service.<DatamartFacility.HealthService>builder()
+                .serviceType(DatamartFacility.HealthService.Covid19Vaccine)
+                .name(DatamartFacility.HealthService.Covid19Vaccine.name())
+                .build());
+  }
+
+  @Test
+  @SneakyThrows
+  void loadOverlayDetailedServicesWithNoCovid19Vaccine() {
+    var id = "vha_561";
+    CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
+    when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
+    when(mockEntity.overlayServices())
+        .thenReturn(Set.of("ColonSurgery", "CriticalCare", "PrimaryCare", "EmergencyCare"));
+    when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
+    HashMap<String, DatamartFacility.HealthService> expectedFacilityCovid19Map = new HashMap<>();
+    expectedFacilityCovid19Map.put(id, DatamartFacility.HealthService.Covid19Vaccine);
+    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    assertThat(collector.getCovid19VaccineServices().get(id)).isNull();
   }
 
   @Test
@@ -139,25 +188,124 @@ public class CmsOverlayCollectorTest {
 
   @Test
   @SneakyThrows
+  void updateCmsServicesWithAtcWaitTimes() {
+    String id = "vha_402";
+    List<PatientWaitTime> patientWaitTimes =
+        List.of(
+            PatientWaitTime.builder()
+                .service(DatamartFacility.HealthService.Cardiology)
+                .newPatientWaitTime(BigDecimal.valueOf(34.4))
+                .establishedPatientWaitTime(BigDecimal.valueOf(3.25))
+                .build(),
+            PatientWaitTime.builder()
+                .service(DatamartFacility.HealthService.Urology)
+                .newPatientWaitTime(BigDecimal.valueOf(23.6))
+                .establishedPatientWaitTime(BigDecimal.valueOf(20.0))
+                .build());
+    List<DatamartFacility> datamartFacilities =
+        List.of(
+            DatamartFacility.builder()
+                .id(id)
+                .attributes(
+                    DatamartFacility.FacilityAttributes.builder()
+                        .waitTimes(
+                            DatamartFacility.WaitTimes.builder()
+                                .health(patientWaitTimes)
+                                .effectiveDate(LocalDate.parse("2020-03-09"))
+                                .build())
+                        .build())
+                .build());
+    CmsOverlayEntity cmsOverlayEntity =
+        CmsOverlayEntity.builder()
+            .id(FacilityEntity.Pk.fromIdString(id))
+            .cmsServices(
+                "[\n"
+                    + "\t {\n"
+                    + "      \"name\":\"Cardiology\",\n"
+                    + "\t  \"serviceId\": \"cardiology\",\n"
+                    + "      \"active\":true,\n"
+                    + "      \"description_facility\":\"This is not null\",\n"
+                    + "      \"health_service_api_id\":null,\n"
+                    + "      \"appointment_leadin\":\"Your VA health care team will contact you if you...more text\",\n"
+                    + "      \"online_scheduling_available\": \"True\",\n"
+                    + "      \"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\",\n"
+                    + "      \"appointment_phones\": [\n"
+                    + "        {\n"
+                    + "          \"type\": \"tel\",\n"
+                    + "          \"label\": \"Main phone\",\n"
+                    + "          \"number\": \"555-555-1212\",\n"
+                    + "          \"extension\": \"123\" \n"
+                    + "        }\n"
+                    + "      ],\n"
+                    + "      \"referral_required\": \"False\",\n"
+                    + "      \"service_locations\": null,\n"
+                    + "      \"walk_ins_accepted\": \"True\"\n"
+                    + "    }\n"
+                    + "  ]")
+            .build();
+    when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(cmsOverlayEntity));
+    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    collector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
+    List<CmsOverlayEntity> cmsOverlayEntities =
+        (List<CmsOverlayEntity>) mockCmsOverlayRepository.findAll();
+    // assert that cms Cardiology has wait times from atc applied
+    cmsOverlayEntities.stream()
+        .forEach(
+            updatedCmsOverlayEntity -> {
+              List<DatamartDetailedService> datamartDetailedServices =
+                  CmsOverlayHelper.getDetailedServices(updatedCmsOverlayEntity.cmsServices());
+              datamartDetailedServices.stream()
+                  .filter(dds -> dds.serviceInfo().serviceId().equals("cardiology"))
+                  .forEach(
+                      dds -> {
+                        assertThat(dds.waitTime())
+                            .usingRecursiveComparison()
+                            .isEqualTo(
+                                DatamartDetailedService.PatientWaitTime.builder()
+                                    .newPatientWaitTime(BigDecimal.valueOf(34.4))
+                                    .establishedPatientWaitTime(BigDecimal.valueOf(3.25))
+                                    .effectiveDate(LocalDate.parse("2020-03-09"))
+                                    .build());
+                      });
+            });
+  }
+
+  @Test
+  @SneakyThrows
   void verifyContainsCovidService() {
     assertThat(
             new CmsOverlayCollector(mockCmsOverlayRepository)
                 .containsCovidService(
                     List.of(
                         DatamartDetailedService.builder()
-                            .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                                    .build())
                             .build(),
                         DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Cardiology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Cardiology.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Cardiology.serviceId())
+                                    .name(DatamartFacility.HealthService.Cardiology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Cardiology.serviceType())
+                                    .build())
                             .build(),
                         DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Dermatology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Dermatology.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Dermatology.serviceId())
+                                    .name(DatamartFacility.HealthService.Dermatology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Dermatology.serviceType())
+                                    .build())
                             .build())))
         .isTrue();
   }
@@ -169,19 +317,33 @@ public class CmsOverlayCollectorTest {
                 .containsCovidService(
                     List.of(
                         DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Optometry.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Optometry.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(DatamartFacility.HealthService.Optometry.serviceId())
+                                    .name(DatamartFacility.HealthService.Optometry.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Optometry.serviceType())
+                                    .build())
                             .build(),
                         DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Cardiology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Cardiology.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Cardiology.serviceId())
+                                    .name(DatamartFacility.HealthService.Cardiology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Cardiology.serviceType())
+                                    .build())
                             .build(),
                         DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Dermatology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Dermatology.name()))
+                            .serviceInfo(
+                                DatamartDetailedService.ServiceInfo.builder()
+                                    .serviceId(
+                                        DatamartFacility.HealthService.Dermatology.serviceId())
+                                    .name(DatamartFacility.HealthService.Dermatology.name())
+                                    .serviceType(
+                                        DatamartFacility.HealthService.Dermatology.serviceType())
+                                    .build())
                             .build())))
         .isFalse();
     assertThat(new CmsOverlayCollector(mockCmsOverlayRepository).containsCovidService(null))

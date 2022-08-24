@@ -44,20 +44,73 @@
         ],
         "services" : {
           "health" : [
-            "emergencyCare",
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/emergencyCare"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/womensHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/gynecology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_520BZ/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_520BZ/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -67,67 +120,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 28.0,
-              "established" : 5.804166
-            },
-            {
-              "service" : "audiology",
-              "new" : 32.102564,
-              "established" : 9.998473
-            },
-            {
-              "service" : "optometry",
-              "new" : 40.747311,
-              "established" : 3.594955
-            },
-            {
-              "service" : "cardiology",
-              "new" : 14.642857,
-              "established" : 0.704545
-            },
-            {
-              "service" : "gynecology",
-              "new" : 27.733333,
-              "established" : 1.343629
-            },
-            {
-              "service" : "dermatology",
-              "new" : 25.632352,
-              "established" : 3.5
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 8.3125,
-              "established" : 2.121951
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 18.125786,
-              "established" : 6.182568
-            },
-            {
-              "service" : "womensHealth",
-              "new" : 23.727272,
-              "established" : 1.043824
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 28.5,
-              "established" : 3.32
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 24.329113,
-              "established" : 5.850568
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -178,20 +172,73 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology",
-            "ophthalmology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516/services/mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth",
+              "link" : "http://localhost/v1/facilities/vha_516/services/womensHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/gynecology"
+            },
+            {
+              "name" : "Ophthalmology",
+              "serviceId" : "ophthalmology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/ophthalmology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_516/services/optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics",
+              "link" : "http://localhost/v1/facilities/vha_516/services/orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology",
+              "link" : "http://localhost/v1/facilities/vha_516/services/urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_516/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -203,72 +250,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 7.638157,
-              "established" : 3.8031
-            },
-            {
-              "service" : "audiology",
-              "new" : 1.944954,
-              "established" : 0.666156
-            },
-            {
-              "service" : "optometry",
-              "new" : 30.300283,
-              "established" : 11.530419
-            },
-            {
-              "service" : "cardiology",
-              "new" : 10.117948,
-              "established" : 5.128846
-            },
-            {
-              "service" : "gynecology",
-              "new" : 22.230769,
-              "established" : 6.069291
-            },
-            {
-              "service" : "dermatology",
-              "new" : 62.035928,
-              "established" : 15.388888
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 41.289617,
-              "established" : 14.45742
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 20.578274,
-              "established" : 3.628475
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 13.0,
-              "established" : 13.992223
-            },
-            {
-              "service" : "womensHealth",
-              "new" : 29.3,
-              "established" : 6.356418
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 21.274691,
-              "established" : 9.6
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 6.910526,
-              "established" : 5.242883
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -319,19 +302,68 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/womensHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/gynecology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_516BZ/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516BZ/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -341,67 +373,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 22.711538,
-              "established" : 5.216138
-            },
-            {
-              "service" : "audiology",
-              "new" : 1.419028,
-              "established" : 0.109022
-            },
-            {
-              "service" : "optometry",
-              "new" : 109.418269,
-              "established" : 11.285505
-            },
-            {
-              "service" : "cardiology",
-              "new" : 30.144508,
-              "established" : 9.215291
-            },
-            {
-              "service" : "gynecology",
-              "new" : 12.6,
-              "established" : 0.586206
-            },
-            {
-              "service" : "dermatology",
-              "new" : 1.48387,
-              "established" : 0.0
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 41.890109,
-              "established" : 7.988826
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 30.183544,
-              "established" : 2.410745
-            },
-            {
-              "service" : "womensHealth",
-              "new" : 0.0,
-              "established" : 0.0
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 36.958904,
-              "established" : 9.378048
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 9.0,
-              "established" : 7.243732
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -453,14 +426,43 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_516GA/services/gynecology"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516GA/services/",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -470,46 +472,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "audiology",
-              "new" : 1.166233,
-              "established" : 0.078571
-            },
-            {
-              "service" : "cardiology",
-              "new" : 11.666666,
-              "established" : 1.384615
-            },
-            {
-              "service" : "gynecology",
-              "new" : 11.25,
-              "established" : 3.125
-            },
-            {
-              "service" : "dermatology",
-              "new" : 8.0,
-              "established" : 0.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 11.425196,
-              "established" : 4.318085
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 29.0
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 12.132352,
-              "established" : 9.596405
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -560,9 +524,18 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516GB/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516GB/services/mentalHealth"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516GB/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -572,22 +545,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "primaryCare",
-              "new" : 46.4,
-              "established" : 4.336886
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 13.090909,
-              "established" : 4.79562
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -639,16 +598,53 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology",
-            "optometry",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/gynecology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/optometry"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_516GD/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516GD/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -658,52 +654,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "audiology",
-              "new" : 0.863509,
-              "established" : 0.466666
-            },
-            {
-              "service" : "optometry",
-              "new" : 80.103703,
-              "established" : 14.488584
-            },
-            {
-              "service" : "cardiology",
-              "new" : 6.0,
-              "established" : 25.9
-            },
-            {
-              "service" : "gynecology",
-              "new" : 26.333333,
-              "established" : 0.0
-            },
-            {
-              "service" : "dermatology",
-              "new" : 0.111111,
-              "established" : 0.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 24.032608,
-              "established" : 7.157208
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 20.6,
-              "established" : 0.0
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 7.925,
-              "established" : 14.698347
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -754,11 +706,28 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "dermatology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516GH/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516GH/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516GH/services/audiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_516GH/services/dermatology"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516GH/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -768,32 +737,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "audiology",
-              "new" : 45.625,
-              "established" : 4.272727
-            },
-            {
-              "service" : "dermatology",
-              "new" : 1.0,
-              "established" : 0.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 5.487804,
-              "established" : 1.047904
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 10.230769,
-              "established" : 2.875647
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -844,11 +789,28 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_516GC/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_516GC/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_516GC/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_516GC/services/cardiology"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_516GC/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -858,32 +820,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "audiology",
-              "new" : 5.118226,
-              "established" : 0.423868
-            },
-            {
-              "service" : "cardiology",
-              "new" : 4.5,
-              "established" : 9.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 25.434782,
-              "established" : 4.10828
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 9.52,
-              "established" : 10.416135
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -934,16 +872,53 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology",
-            "ophthalmology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/cardiology"
+            },
+            {
+              "name" : "Ophthalmology",
+              "serviceId" : "ophthalmology",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/ophthalmology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_573A4/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_573A4/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -953,52 +928,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 29.416666,
-              "established" : 3.532019
-            },
-            {
-              "service" : "audiology",
-              "new" : 44.5,
-              "established" : 19.653846
-            },
-            {
-              "service" : "optometry",
-              "new" : 116.414634,
-              "established" : 8.121673
-            },
-            {
-              "service" : "cardiology",
-              "new" : 12.75,
-              "established" : 7.981481
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 25.263157,
-              "established" : 7.392592
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 13.947368,
-              "established" : 5.84
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 9.923076,
-              "established" : 1.160714
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 6.9375,
-              "established" : 1.36132
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -1050,12 +981,33 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "dermatology",
-            "gynecology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_573GD/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_573GD/services/mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth",
+              "link" : "http://localhost/v1/facilities/vha_573GD/services/womensHealth"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_573GD/services/dermatology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology",
+              "link" : "http://localhost/v1/facilities/vha_573GD/services/gynecology"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_573GD/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -1065,35 +1017,8 @@
           },
           "effectiveDate" : "2019-06-20"
         },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "gynecology",
-              "established" : 27.142857
-            },
-            {
-              "service" : "dermatology",
-              "new" : 12.90909,
-              "established" : 3.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 20.6875,
-              "established" : 3.155615
-            },
-            {
-              "service" : "womensHealth",
-              "established" : 27.142857
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 8.644444,
-              "established" : 4.832985
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
-        },
         "mobile" : false,
+        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },

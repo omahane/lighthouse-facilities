@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService.ApplyingForBenefits;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.PrimaryCare;
 import static gov.va.api.lighthouse.facilities.api.v0.NearbyResponse.Type.NearbyFacility;
@@ -277,7 +278,10 @@ public class NearbyTest {
 
   @Test
   void empty() {
-    facilityRepository.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    final var baseUrl = "http://foo/";
+    final var basePath = "bp";
+    final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)

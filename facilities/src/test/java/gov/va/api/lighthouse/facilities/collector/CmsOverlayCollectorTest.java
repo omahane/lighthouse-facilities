@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,7 +44,6 @@ public class CmsOverlayCollectorTest {
     DatamartDetailedService covidService =
         DatamartDetailedService.builder()
             .name(CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19)
-            .serviceId(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
             .active(true)
             .path("replace_this_path")
             .build();
@@ -93,7 +91,6 @@ public class CmsOverlayCollectorTest {
     DatamartDetailedService updatedCovidService =
         DatamartDetailedService.builder()
             .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-            .serviceId(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
             // .path("https://www.va.gov/durham-health-care/programs/covid-19-vaccines/")
             .path("replace_this_path")
             .build();
@@ -146,19 +143,9 @@ public class CmsOverlayCollectorTest {
                     List.of(
                         DatamartDetailedService.builder()
                             .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
                             .build(),
-                        DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Cardiology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Cardiology.name()))
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Dermatology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Dermatology.name()))
-                            .build())))
+                        DatamartDetailedService.builder().name("Cardiology").build(),
+                        DatamartDetailedService.builder().name("Dermatology").build())))
         .isTrue();
   }
 
@@ -168,21 +155,9 @@ public class CmsOverlayCollectorTest {
             new CmsOverlayCollector(mockCmsOverlayRepository)
                 .containsCovidService(
                     List.of(
-                        DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Optometry.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Optometry.name()))
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Cardiology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Cardiology.name()))
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .name(DatamartFacility.HealthService.Dermatology.name())
-                            .serviceId(
-                                uncapitalize(DatamartFacility.HealthService.Dermatology.name()))
-                            .build())))
+                        DatamartDetailedService.builder().name("Optometry").build(),
+                        DatamartDetailedService.builder().name("Cardiology").build(),
+                        DatamartDetailedService.builder().name("Dermatology").build())))
         .isFalse();
     assertThat(new CmsOverlayCollector(mockCmsOverlayRepository).containsCovidService(null))
         .isFalse();

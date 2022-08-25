@@ -210,26 +210,26 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
   /** Transform DatamartFacility health service to version 0 facility health service. */
   private static Facility.HealthService transformFacilityHealthService(
       @NonNull DatamartFacility.HealthService datamartFacilityHealthService) {
-    return datamartFacilityHealthService.equals(DatamartFacility.HealthService.MentalHealth)
-        ? Facility.HealthService.MentalHealthCare
-        : datamartFacilityHealthService.equals(DatamartFacility.HealthService.Dental)
-            ? Facility.HealthService.DentalServices
-            : containsValueOfName(
-                    Facility.HealthService.values(), datamartFacilityHealthService.name())
-                ? Facility.HealthService.valueOf(datamartFacilityHealthService.name())
+    return containsValueOfName(
+            Facility.HealthService.values(), datamartFacilityHealthService.name())
+        ? Facility.HealthService.valueOf(datamartFacilityHealthService.name())
+        : datamartFacilityHealthService.equals(DatamartFacility.HealthService.MentalHealth)
+            ? Facility.HealthService.MentalHealthCare
+            : datamartFacilityHealthService.equals(DatamartFacility.HealthService.Dental)
+                ? Facility.HealthService.DentalServices
                 : null;
   }
 
   /** Transform version 0 facility health service to DatamartFacility health service. */
   private static DatamartFacility.HealthService transformFacilityHealthService(
       @NonNull Facility.HealthService facilityHealthService) {
-    return facilityHealthService.equals(Facility.HealthService.MentalHealthCare)
-        ? DatamartFacility.HealthService.MentalHealth
-        : facilityHealthService.equals(Facility.HealthService.DentalServices)
-            ? DatamartFacility.HealthService.Dental
-            : containsValueOfName(
-                    DatamartFacility.HealthService.values(), facilityHealthService.name())
-                ? DatamartFacility.HealthService.valueOf(facilityHealthService.name())
+    return containsValueOfName(
+            DatamartFacility.HealthService.values(), facilityHealthService.name())
+        ? DatamartFacility.HealthService.valueOf(facilityHealthService.name())
+        : facilityHealthService.equals(Facility.HealthService.MentalHealthCare)
+            ? DatamartFacility.HealthService.MentalHealth
+            : facilityHealthService.equals(Facility.HealthService.DentalServices)
+                ? DatamartFacility.HealthService.Dental
                 : null;
   }
 

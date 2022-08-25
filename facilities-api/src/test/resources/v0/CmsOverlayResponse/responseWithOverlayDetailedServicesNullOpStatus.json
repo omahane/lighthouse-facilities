@@ -2,7 +2,6 @@
   "overlay" : {
     "detailed_services" : [
       {
-        "serviceId" : "cardiology",
         "name" : "Cardiology",
         "description_facility" : "Most advanced healthcare facility nationally.",
         "appointment_leadin" : "Your VA health care team will contact you if you...more text",
@@ -59,7 +58,6 @@
         "path" : "replaceable path here"
       },
       {
-        "serviceId" : "caregiverSupport",
         "name" : "CaregiverSupport",
         "description_facility" : "Most advanced healthcare facility nationally.",
         "appointment_leadin" : "Your VA health care team will contact you if you...more text",
@@ -116,7 +114,6 @@
         "path" : "replaceable path here"
       },
       {
-        "serviceId" : "emergencyCare",
         "name" : "EmergencyCare",
         "description_facility" : "Most advanced healthcare facility nationally.",
         "appointment_leadin" : "Your VA health care team will contact you if you...more text",

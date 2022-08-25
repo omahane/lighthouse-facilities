@@ -40,7 +40,7 @@ public class CmsOverlayResponseEmptyFieldsTest {
         getExpectedJson(
             "v0/CmsOverlayResponse/responseWithOverlayDetailedServicesNullOpStatus.json");
     // Null operating status
-    CmsOverlayResponse responseWithOverlayDetailedServicesEmptyOperatingStatus =
+    CmsOverlayResponse responseWithOVerlayDetailedServicesEmptyOperatingStatus =
         CmsOverlayResponse.builder()
             .overlay(
                 CmsOverlay.builder()
@@ -51,7 +51,7 @@ public class CmsOverlayResponseEmptyFieldsTest {
     assertThat(
             createMapper()
                 .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(responseWithOverlayDetailedServicesEmptyOperatingStatus))
+                .writeValueAsString(responseWithOVerlayDetailedServicesEmptyOperatingStatus))
         .isEqualToIgnoringWhitespace(jsonOverlayWithEmptyOperatingStatus);
   }
 

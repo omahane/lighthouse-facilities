@@ -19,7 +19,6 @@ public class DetailedServiceSerializer extends NonEmptySerializer<DetailedServic
   @SneakyThrows
   public void serialize(DetailedService value, JsonGenerator jgen, SerializerProvider provider) {
     jgen.writeStartObject();
-    writeNonEmpty(jgen, "serviceId", value.serviceId());
     writeNonEmpty(jgen, "name", value.name());
     writeNonEmpty(jgen, "appointmentLeadIn", value.appointmentLeadIn());
     writeNonEmpty(jgen, "appointmentPhones", value.phoneNumbers());

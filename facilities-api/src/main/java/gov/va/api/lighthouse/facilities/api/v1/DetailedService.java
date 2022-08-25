@@ -9,9 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import gov.va.api.lighthouse.facilities.api.v1.deserializers.DetailedServiceDeserializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAddressSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAppointmentPhoneNumberSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailContactSerializer;
@@ -25,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import org.apache.commons.lang3.ObjectUtils;
 
 @Data
@@ -40,7 +37,6 @@ import org.apache.commons.lang3.ObjectUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "serviceId",
   "name",
   "descriptionFacility",
   "appointmentLeadIn",
@@ -50,15 +46,8 @@ import org.apache.commons.lang3.ObjectUtils;
   "walkInsAccepted",
   "serviceLocations"
 })
-@JsonDeserialize(using = DetailedServiceDeserializer.class)
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService implements CanBeEmpty {
-  @JsonIgnore public static final String INVALID_SVC_ID = "INVALID_ID";
-
-  @Schema(description = "Service id.", example = "covid19Vaccine")
-  @NonNull
-  String serviceId;
-
   @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
   String name;
 
@@ -125,8 +114,7 @@ public class DetailedService implements CanBeEmpty {
   /** Empty elements will be omitted from JSON serialization. */
   @JsonIgnore
   public boolean isEmpty() {
-    return isBlank(serviceId())
-        && isBlank(name())
+    return isBlank(name())
         && isBlank(changed())
         && isBlank(descriptionFacility())
         && isBlank(appointmentLeadIn())

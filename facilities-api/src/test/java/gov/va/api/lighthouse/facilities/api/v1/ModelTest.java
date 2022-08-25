@@ -9,6 +9,7 @@ import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Attributes;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Geometry;
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
 import gov.va.api.lighthouse.facilities.api.v0.GenericError;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityType;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
@@ -74,6 +75,7 @@ public class ModelTest {
                             .satisfaction(satisfaction())
                             .waitTimes(waitTimes())
                             .mobile(false)
+                            .activeStatus(ActiveStatus.T)
                             .visn("20")
                             .build())
                     .build())
@@ -116,6 +118,7 @@ public class ModelTest {
                 .satisfaction(satisfaction())
                 .waitTimes(waitTimes())
                 .mobile(false)
+                .activeStatus(ActiveStatus.T)
                 .operatingStatus(operatingStatus())
                 .visn("20")
                 .build())

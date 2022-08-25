@@ -3,18 +3,15 @@ package gov.va.api.lighthouse.facilities.tests;
 import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
-import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatusCode;
@@ -38,9 +35,6 @@ public class CmsOverlayIT {
   private static final String DETAILED_SERVICE_JSON_BODY =
       "{    \"detailed_services\":["
           + "{"
-          + "\"serviceId\":\""
-          + uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name())
-          + "\","
           + "\"name\":\"COVID-19 vaccines\","
           + "\"active\":true,"
           + "\"changed\": \"2021-02-04T22:36:49+00:00\","
@@ -209,7 +203,6 @@ public class CmsOverlayIT {
     return List.of(
         DetailedService.builder()
             .name("COVID-19 vaccines")
-            .serviceId(uncapitalize(Facility.HealthService.Covid19Vaccine.name()))
             .descriptionFacility("I'm a facility service!")
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
@@ -300,7 +293,7 @@ public class CmsOverlayIT {
                     Method.GET,
                     svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
                     "vba_1234",
-                    "covid19Vaccine"))
+                    "COVID-19%20vaccines"))
         .expect(404);
     // 406 - Request Format Unavailable
     ExpectedResponse.of(
@@ -310,7 +303,7 @@ public class CmsOverlayIT {
                     Method.GET,
                     svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
                     "vha_558GA",
-                    "covid19Vaccine"))
+                    "COVID-19%20vaccines"))
         .expect(406);
   }
 

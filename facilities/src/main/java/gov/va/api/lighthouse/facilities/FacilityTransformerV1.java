@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,14 +10,6 @@ import lombok.experimental.UtilityClass;
 /** Utility class for transforming DatamartFacility to version 1 facility object and back. */
 @UtilityClass
 public final class FacilityTransformerV1 extends BaseVersionedTransformer {
-  private static OperatingStatus determineOperatingStatusFromActiveStatus(
-      DatamartFacility.ActiveStatus activeStatus) {
-    if (activeStatus == DatamartFacility.ActiveStatus.T) {
-      return OperatingStatus.builder().code(Facility.OperatingStatusCode.CLOSED).build();
-    }
-    return OperatingStatus.builder().code(Facility.OperatingStatusCode.NORMAL).build();
-  }
-
   /** Transform persisted DatamartFacility to version 1 facility. */
   static Facility toFacility(@NonNull DatamartFacility df) {
     return Facility.builder()
@@ -39,38 +30,17 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .timeZone(df.attributes().timeZone())
                     .mobile(df.attributes().mobile())
                     .services(transformFacilityServices(df.attributes().services()))
+                    .activeStatus(transformFacilityActiveStatus(df.attributes().activeStatus()))
                     .visn(df.attributes().visn())
                     .satisfaction(transformFacilitySatisfaction(df.attributes().satisfaction()))
                     .waitTimes(transformFacilityWaitTimes(df.attributes().waitTimes()))
-                    .operatingStatus(
-                        toFacilityOperatingStatus(
-                            df.attributes().operatingStatus(), df.attributes().activeStatus()))
+                    .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
                     .operationalHoursSpecialInstructions(
                         transformOperationalHoursSpecialInstructions(
                             df.attributes().operationalHoursSpecialInstructions()))
                     .build()
                 : null)
         .build();
-  }
-
-  /** Transform DatamartFacility operating status to version 1 facility operating status. */
-  public static Facility.OperatingStatus toFacilityOperatingStatus(
-      DatamartFacility.OperatingStatus datamartFacilityOperatingStatus,
-      DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
-    return (datamartFacilityOperatingStatus != null)
-        ? Facility.OperatingStatus.builder()
-            .code(
-                (datamartFacilityOperatingStatus.code() != null)
-                    ? containsValueOfName(
-                            Facility.OperatingStatusCode.values(),
-                            datamartFacilityOperatingStatus.code().name())
-                        ? Facility.OperatingStatusCode.valueOf(
-                            datamartFacilityOperatingStatus.code().name())
-                        : null
-                    : null)
-            .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
-            .build()
-        : determineOperatingStatusFromActiveStatus(datamartFacilityActiveStatus);
   }
 
   /** Transform DatamartFacility operating status to version 1 facility operating status. */
@@ -112,6 +82,7 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .timeZone(f.attributes().timeZone())
                     .mobile(f.attributes().mobile())
                     .services(transformFacilityServices(f.attributes().services()))
+                    .activeStatus(transformFacilityActiveStatus(f.attributes().activeStatus()))
                     .visn(f.attributes().visn())
                     .satisfaction(transformFacilitySatisfaction(f.attributes().satisfaction()))
                     .waitTimes(transformFacilityWaitTimes(f.attributes().waitTimes()))
@@ -155,6 +126,26 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
     } else {
       return null;
     }
+  }
+
+  /** Transform DatamartFacility active status to version 1 facility active status. */
+  private static Facility.ActiveStatus transformFacilityActiveStatus(
+      DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
+    return (datamartFacilityActiveStatus != null)
+        ? containsValueOfName(Facility.ActiveStatus.values(), datamartFacilityActiveStatus.name())
+            ? Facility.ActiveStatus.valueOf(datamartFacilityActiveStatus.name())
+            : null
+        : null;
+  }
+
+  /** Transform version 1 facility active status to DatamartFacility active status. */
+  private static DatamartFacility.ActiveStatus transformFacilityActiveStatus(
+      Facility.ActiveStatus facilityActiveStatus) {
+    return (facilityActiveStatus != null)
+        ? containsValueOfName(DatamartFacility.ActiveStatus.values(), facilityActiveStatus.name())
+            ? DatamartFacility.ActiveStatus.valueOf(facilityActiveStatus.name())
+            : null
+        : null;
   }
 
   /** Transform DatamartFacility address to version 1 facility address. */
@@ -230,27 +221,19 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
   /** Transform DatamartFacility health service to version 1 facility health service. */
   private static Facility.HealthService transformFacilityHealthService(
       @NonNull DatamartFacility.HealthService datamartFacilityHealthService) {
-    return datamartFacilityHealthService.equals(DatamartFacility.HealthService.MentalHealthCare)
-        ? Facility.HealthService.MentalHealth
-        : datamartFacilityHealthService.equals(DatamartFacility.HealthService.DentalServices)
-            ? Facility.HealthService.Dental
-            : containsValueOfName(
-                    Facility.HealthService.values(), datamartFacilityHealthService.name())
-                ? Facility.HealthService.valueOf(datamartFacilityHealthService.name())
-                : null;
+    return containsValueOfName(
+            Facility.HealthService.values(), datamartFacilityHealthService.name())
+        ? Facility.HealthService.valueOf(datamartFacilityHealthService.name())
+        : null;
   }
 
   /** Transform version 1 facility health service to DatamartFacility health service. */
   private static DatamartFacility.HealthService transformFacilityHealthService(
       @NonNull Facility.HealthService facilityHealthService) {
-    return facilityHealthService.equals(Facility.HealthService.MentalHealth)
-        ? DatamartFacility.HealthService.MentalHealth
-        : facilityHealthService.equals(Facility.HealthService.Dental)
-            ? DatamartFacility.HealthService.Dental
-            : containsValueOfName(
-                    DatamartFacility.HealthService.values(), facilityHealthService.name())
-                ? DatamartFacility.HealthService.valueOf(facilityHealthService.name())
-                : null;
+    return containsValueOfName(
+            DatamartFacility.HealthService.values(), facilityHealthService.name())
+        ? DatamartFacility.HealthService.valueOf(facilityHealthService.name())
+        : null;
   }
 
   /** Transform DatamartFacility hours to version 1 facility hours. */

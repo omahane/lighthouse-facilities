@@ -20,7 +20,6 @@ public interface FacilitiesSearchApi {
   @Operation(
       summary = "Query facilities by location or IDs, with optional filters",
       description =
-<<<<<<< HEAD
           "Query facilities using bounding box, latitude and longitude, state, visn, zip code, "
               + "facility type, facility ids, available services, and mobile status. "
               + "To bulk download all facilities, simply query without any parameters. "
@@ -38,26 +37,6 @@ public interface FacilitiesSearchApi {
               + "When requesting multiple facilities by ID, the API will return "
               + "as many results as it can find matches for given other included parameters, "
               + "omitting ids where there is no match. "
-=======
-          "Query facilities by bounding box, latitude and longitude, state, visn, or zip code, "
-              + "or include no parameters to bulk download all facilities. "
-              + "Bounding box is specified as four `bbox[]` parameters, long1, lat1, long2, lat2. "
-              + "(Relative order is unimportant.)"
-              + "\n\n"
-              + "A query by latitude and longitude returns all facilities in the system, "
-              + "sorted by distance from that location. Providing an optional radius in miles to "
-              + "this query will narrow the scope of the returned facilities to those falling "
-              + "within the specified radius from that location."
-              + "\n\n"
-              + "All location queries support filtering by facility type, available services, and"
-              + " mobile status."
-              + "\n\n"
-              + "One can also retrieve facilities by ID using a comma-separated "
-              + "list like `?ids=id1,id2`. "
-              + "When requesting multiple facilities by ID, the API will return "
-              + "as many results as it can find matches for, omitting IDs where "
-              + "there is no match. "
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               + "It will not return an HTTP error code if it is unable to match a requested ID. "
               + "Clients may supply IDs up to the limit their HTTP client enforces for "
               + "URI path lengths. (Usually 2048 characters.)"
@@ -68,7 +47,6 @@ public interface FacilitiesSearchApi {
               + "\n\n"
               + "### Parameter combinations\n"
               + "You may optionally specify `page` and `per_page` with any query. "
-<<<<<<< HEAD
               + "You can query with any combination of the following: "
               + "\n\n"
               + "- `bbox[]`"
@@ -90,25 +68,6 @@ public interface FacilitiesSearchApi {
               + "- `services[]`"
               + "\n\n"
               + "- `mobile`"
-=======
-              + "You must specify one of the following parameter combinations: "
-              + "\n\n"
-              + "- `bbox[]`, with the option of any combination of `type`, `services[]`, or"
-              + " `mobile`"
-              + "\n\n"
-              + "- `ids`"
-              + "\n\n"
-              + "- `lat` and `long`, with the option "
-              + "of any combination of `radius`, `ids`, `type`, `services[]`, or `mobile`"
-              + "\n\n"
-              + "- `state`, with the option of any combination of `type`, `services[]`, or"
-              + " `mobile`"
-              + "\n\n"
-              + "- `visn`"
-              + "\n\n"
-              + "- `zip`, with the option of any combination of `type`, `services[]`, or"
-              + " `mobile`"
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               + "\n\n"
               + " Invalid combinations will return `400 Bad Request`. ",
       tags = {"facilities"},
@@ -154,24 +113,12 @@ public interface FacilitiesSearchApi {
               schema = @Schema(implementation = ApiError.class)))
   FacilitiesResponse getFacilitiesByLocation(
       @Parameter(
-<<<<<<< HEAD
               name = "facilityIds",
               description = "List of comma-separated facility IDs",
               in = ParameterIn.QUERY,
               style = ParameterStyle.FORM,
               explode = Explode.FALSE,
               examples = @ExampleObject(name = "facilityIds", value = "[\"vha_688\",\"vha_644\"]"))
-=======
-              name = "ids",
-              description =
-                  "List of comma-separated facility IDs to retrieve in a single request. "
-                      + "Can be combined with lat and long parameters to retrieve facilities "
-                      + "sorted by distance from a location.",
-              in = ParameterIn.QUERY,
-              style = ParameterStyle.FORM,
-              explode = Explode.FALSE,
-              examples = @ExampleObject(name = "ids", value = "[\"vha_688\",\"vha_644\"]"))
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
           List<String> id,
       @Parameter(
               name = "zip",
@@ -197,12 +144,8 @@ public interface FacilitiesSearchApi {
               in = ParameterIn.QUERY,
               description =
                   "Latitude of point to search for facilities, "
-<<<<<<< HEAD
                       + "in WGS84 coordinate reference system."
                       + "Must be accompanied by a valid longitude.",
-=======
-                      + "in WGS84 coordinate reference system.",
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               schema = @Schema(type = "number", format = "float"),
               examples = @ExampleObject(name = "coordinates", value = "56.7"))
           BigDecimal lat,
@@ -211,12 +154,8 @@ public interface FacilitiesSearchApi {
               in = ParameterIn.QUERY,
               description =
                   "Longitude of point to search for facilities, "
-<<<<<<< HEAD
                       + "in WGS84 coordinate reference system."
                       + "Must be accompanied by a valid latitude.",
-=======
-                      + "in WGS84 coordinate reference system.",
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               style = ParameterStyle.FORM,
               explode = Explode.TRUE,
               schema = @Schema(type = "number", format = "float"),
@@ -227,12 +166,8 @@ public interface FacilitiesSearchApi {
               in = ParameterIn.QUERY,
               description =
                   "Optional radial distance from specified latitude and longitude to "
-<<<<<<< HEAD
                       + "filter facilities search in WGS84 coordinate reference system."
                       + "Must be accompanied by a valid latitude and longitude.",
-=======
-                      + "filter facilities search in WGS84 coordinate reference system.",
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               style = ParameterStyle.FORM,
               explode = Explode.TRUE,
               schema = @Schema(type = "number", format = "float"),
@@ -262,11 +197,7 @@ public interface FacilitiesSearchApi {
           String visn,
       @Parameter(
               name = "type",
-<<<<<<< HEAD
               description = "Type of facility location",
-=======
-              description = "Optional facility type search filter",
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               in = ParameterIn.QUERY,
               schema =
                   @Schema(
@@ -275,11 +206,7 @@ public interface FacilitiesSearchApi {
           String type,
       @Parameter(
               name = "services[]",
-<<<<<<< HEAD
               description = "List of services a facility offers",
-=======
-              description = "Optional facility service search filter",
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               in = ParameterIn.QUERY,
               style = ParameterStyle.FORM,
               explode = Explode.TRUE)
@@ -287,14 +214,9 @@ public interface FacilitiesSearchApi {
       @Parameter(
               name = "mobile",
               in = ParameterIn.QUERY,
-<<<<<<< HEAD
               description = "Boolean flag to include or exclude mobile facilities",
               schema = @Schema(type = "Boolean"),
               examples = @ExampleObject(name = "mobile", value = "True"))
-=======
-              description = "Optional facility mobile search filter",
-              schema = @Schema(type = "Boolean"))
->>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
           Boolean mobile,
       @Parameter(
               name = "page",

@@ -26,19 +26,19 @@ public abstract class BaseCmsOverlayController {
             ? Collections.emptyList()
             : List.of(
                 mapper.readValue(cmsOverlayEntity.cmsServices(), DatamartDetailedService[].class));
-    final List<String> overlayServiceIds =
-        ds.stream().map(DatamartDetailedService::serviceId).collect(Collectors.toList());
+    final List<String> overlayServiceNames =
+        ds.stream().map(DatamartDetailedService::name).collect(Collectors.toList());
     final List<DatamartDetailedService> finalDetailedServices = new ArrayList<>();
     finalDetailedServices.addAll(
         currentDetailedServices.parallelStream()
             .filter(
                 currentDetailedService ->
-                    !overlayServiceIds.contains(currentDetailedService.serviceId()))
+                    !overlayServiceNames.contains(currentDetailedService.name()))
             .collect(Collectors.toList()));
     finalDetailedServices.addAll(
         ds.parallelStream().filter(d -> d.active()).collect(Collectors.toList()));
     updateServiceUrlPaths(id, finalDetailedServices);
-    finalDetailedServices.sort(Comparator.comparing(DatamartDetailedService::serviceId));
+    finalDetailedServices.sort(Comparator.comparing(DatamartDetailedService::name));
     return finalDetailedServices;
   }
 
@@ -50,7 +50,7 @@ public abstract class BaseCmsOverlayController {
           detailedServices.parallelStream().filter(d -> d.active()).collect(Collectors.toList()));
     }
     updateServiceUrlPaths(id, activeServices);
-    activeServices.sort(Comparator.comparing(DatamartDetailedService::serviceId));
+    activeServices.sort(Comparator.comparing(DatamartDetailedService::name));
     return activeServices;
   }
 
@@ -61,7 +61,7 @@ public abstract class BaseCmsOverlayController {
       @NonNull String facilityId, @NonNull String serviceId) {
     List<DatamartDetailedService> detailedServices =
         getOverlayDetailedServices(facilityId).parallelStream()
-            .filter(ds -> ds.serviceId().equals(serviceId))
+            .filter(ds -> ds.name().equalsIgnoreCase(serviceId))
             .collect(Collectors.toList());
     return detailedServices.isEmpty() ? null : detailedServices.get(0);
   }

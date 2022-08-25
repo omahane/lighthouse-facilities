@@ -9,7 +9,7 @@
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities</artifactId>
-  <version>3.0.110-SNAPSHOT</version>
+  <version>3.0.117-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <commons-csv.version>1.8</commons-csv.version>
@@ -17,7 +17,7 @@
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <guava.version>[30.0-jre,)</guava.version>
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
-    <swagger-maven-plugin.version>2.1.13</swagger-maven-plugin.version>
+    <swagger-maven-plugin.version>2.1.1</swagger-maven-plugin.version>
     <timezonemap.version>LATEST</timezonemap.version>
   </properties>
   <dependencies>
@@ -72,35 +72,17 @@
         <version>${swagger-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>v0-facilities-swag</id>
+            <id>facilities-swag</id>
             <phase>compile</phase>
             <goals>
               <goal>resolve</goal>
             </goals>
             <configuration>
               <resourceClasses>
-                <resourceClass>gov.va.api.lighthouse.facilities.api.v0.FacilitiesService</resourceClass>
+                <resourceClass>gov.va.api.lighthouse.facilities.api.FacilitiesService</resourceClass>
               </resourceClasses>
               <outputFileName>openapi</outputFileName>
-              <contextId>openapi_v0</contextId>
-              <outputPath>${project.build.outputDirectory}/v0</outputPath>
-              <outputFormat>JSON</outputFormat>
-              <prettyPrint>true</prettyPrint>
-            </configuration>
-          </execution>
-          <execution>
-            <id>v1-facilities-swag</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>resolve</goal>
-            </goals>
-            <configuration>
-              <resourceClasses>
-                <resourceClass>gov.va.api.lighthouse.facilities.api.v1.FacilitiesService</resourceClass>
-              </resourceClasses>
-              <outputFileName>openapi</outputFileName>
-              <contextId>openapi_v1</contextId>
-              <outputPath>${project.build.outputDirectory}/v1</outputPath>
+              <outputPath>${project.build.outputDirectory}</outputPath>
               <outputFormat>JSON</outputFormat>
               <prettyPrint>true</prettyPrint>
             </configuration>

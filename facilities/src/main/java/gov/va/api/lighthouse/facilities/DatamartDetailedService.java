@@ -6,19 +6,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceAddressDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceEmailContactDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceHoursDeserializer;
-import gov.va.api.lighthouse.facilities.deserializers.DatamartDetailedServiceLocationDeserializer;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Data
 @Builder
@@ -31,7 +24,6 @@ import lombok.NonNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "serviceId",
   "name",
   "description_facility",
   "appointment_leadin",
@@ -41,12 +33,7 @@ import lombok.NonNull;
   "walk_ins_accepted",
   "service_locations"
 })
-@JsonDeserialize(using = DatamartDetailedServiceDeserializer.class)
 public class DatamartDetailedService {
-  @JsonIgnore public static final String INVALID_SVC_ID = "INVALID_ID";
-
-  @NonNull String serviceId;
-
   String name;
 
   boolean active;
@@ -91,7 +78,6 @@ public class DatamartDetailedService {
     "zip_code",
     "country_code"
   })
-  @JsonDeserialize(using = DatamartDetailedServiceAddressDeserializer.class)
   public static final class DetailedServiceAddress {
     @JsonProperty("address_line1")
     String address1;
@@ -143,7 +129,6 @@ public class DatamartDetailedService {
     "facility_service_hours",
     "additional_hours_info"
   })
-  @JsonDeserialize(using = DatamartDetailedServiceLocationDeserializer.class)
   public static final class DetailedServiceLocation {
     @JsonProperty("additional_hours_info")
     String additionalHoursInfo;
@@ -165,7 +150,6 @@ public class DatamartDetailedService {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  @JsonDeserialize(using = DatamartDetailedServiceEmailContactDeserializer.class)
   public static final class DetailedServiceEmailContact {
     @JsonProperty("email_address")
     String emailAddress;
@@ -178,7 +162,6 @@ public class DatamartDetailedService {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonPropertyOrder({"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"})
-  @JsonDeserialize(using = DatamartDetailedServiceHoursDeserializer.class)
   public static final class DetailedServiceHours {
     @JsonProperty("Monday")
     String monday;

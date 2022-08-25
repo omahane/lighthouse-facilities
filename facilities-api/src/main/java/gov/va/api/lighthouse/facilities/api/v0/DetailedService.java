@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import gov.va.api.lighthouse.facilities.api.v0.deserializers.DetailedServiceDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.Valid;
@@ -16,7 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Data
 @Builder
@@ -29,7 +26,6 @@ import lombok.NonNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonPropertyOrder({
-  "serviceId",
   "name",
   "description_facility",
   "appointment_leadin",
@@ -39,15 +35,8 @@ import lombok.NonNull;
   "walk_ins_accepted",
   "service_locations"
 })
-@JsonDeserialize(using = DetailedServiceDeserializer.class)
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService {
-  @JsonIgnore public static final String INVALID_SVC_ID = "INVALID_ID";
-
-  @Schema(description = "Service id.", example = "covid19Vaccine")
-  @NonNull
-  String serviceId;
-
   @Schema(description = "Service name.", example = "COVID-19 vaccines", nullable = true)
   String name;
 

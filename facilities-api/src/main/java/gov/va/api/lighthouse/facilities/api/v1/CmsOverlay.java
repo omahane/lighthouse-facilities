@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import gov.va.api.lighthouse.facilities.api.v1.deserializers.CmsOverlayDeserializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.CmsOverlaySerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
@@ -20,7 +18,6 @@ import org.apache.commons.lang3.ObjectUtils;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = CmsOverlaySerializer.class)
-@JsonDeserialize(using = CmsOverlayDeserializer.class)
 @Schema(description = "Data provided by CMS to Facilities to be applied on top of known data.")
 public class CmsOverlay implements CanBeEmpty {
   @Valid Facility.OperatingStatus operatingStatus;

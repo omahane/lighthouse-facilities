@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HomeControllerV1 {
+public class HomeController {
   private final Resource openapi;
 
   private final String linkBase;
@@ -24,8 +23,8 @@ public class HomeControllerV1 {
   private final BuildProperties buildProperties;
 
   @Builder
-  HomeControllerV1(
-      @Value("classpath:/v1/openapi.json") Resource openapi,
+  HomeController(
+      @Value("classpath:/openapi.json") Resource openapi,
       @Value("${facilities.base-path}") String basePath,
       @Autowired BuildProperties buildProperties) {
     this.openapi = openapi;
@@ -34,7 +33,7 @@ public class HomeControllerV1 {
     this.buildProperties = buildProperties;
   }
 
-  @GetMapping(value = "v1/metadata", produces = "application/json")
+  @GetMapping(value = "/metadata", produces = "application/json")
   Metadata metadata() {
     return Metadata.builder()
         .meta(
@@ -45,7 +44,7 @@ public class HomeControllerV1 {
                             .version(buildProperties.getVersion())
                             .internalOnly(false)
                             .status("Current Version")
-                            .path(linkBase + "docs/v1/api")
+                            .path(linkBase + "docs/v0/api")
                             .healthcheck(linkBase + "actuator/health")
                             .build()))
                 .build())
@@ -61,10 +60,10 @@ public class HomeControllerV1 {
 
   @SneakyThrows
   @GetMapping(
-      value = {"/", "/docs/v1/api", "/v1/facilities/openapi.json"},
+      value = {"/", "/docs/v0/api", "/v0/facilities/openapi.json"},
       produces = "application/json")
   Object openapiJson() {
-    return JacksonConfig.createMapper().readValue(openapiContent(), Object.class);
+    return openapiContent();
   }
 
   @Builder

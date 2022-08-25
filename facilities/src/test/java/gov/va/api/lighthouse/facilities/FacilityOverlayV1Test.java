@@ -1,15 +1,13 @@
 package gov.va.api.lighthouse.facilities;
 
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.DatamartFacility.ActiveStatus;
-import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatusCode;
 import java.util.HashSet;
@@ -29,14 +27,14 @@ public class FacilityOverlayV1Test {
     assertStatus(
         ActiveStatus.T,
         op(OperatingStatusCode.CLOSED, null),
-        emptyList(),
+        null,
         entity(
             fromActiveStatus(ActiveStatus.T),
             overlay(op(OperatingStatusCode.NORMAL, "neato"), false)));
     assertStatus(
         ActiveStatus.T,
         op(OperatingStatusCode.CLOSED, null),
-        emptyList(),
+        null,
         entity(
             fromActiveStatus(ActiveStatus.T),
             overlay(op(OperatingStatusCode.NOTICE, "neato"), false)));
@@ -62,6 +60,7 @@ public class FacilityOverlayV1Test {
       List<Facility.HealthService> expectedHealthServices,
       FacilityEntity entity) {
     Facility facility = FacilityOverlayV1.builder().build().apply(entity);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(expectedActiveStatus);
     assertThat(facility.attributes().operatingStatus()).isEqualTo(expectedOperatingStatus);
     assertThat(facility.attributes().services().health()).isEqualTo(expectedHealthServices);
   }
@@ -76,14 +75,13 @@ public class FacilityOverlayV1Test {
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        emptyList(),
+        null,
         entity(fromActiveStatus(null), overlay(null, false)));
   }
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
     return DetailedService.builder()
-        .serviceId(uncapitalize(Facility.HealthService.Covid19Vaccine.name()))
-        .name(Facility.HealthService.Covid19Vaccine.name())
+        .name("Covid19Vaccine")
         .active(cmsServiceActiveValue)
         .changed("2021-02-04T22:36:49+00:00")
         .descriptionFacility("Facility description for vaccine availability for COVID-19")
@@ -151,7 +149,7 @@ public class FacilityOverlayV1Test {
       detailedServices = new HashSet<>();
       for (DetailedService service : overlay.detailedServices()) {
         if (service.active()) {
-          detailedServices.add(service.serviceId());
+          detailedServices.add(service.name());
         }
       }
     }
@@ -167,11 +165,9 @@ public class FacilityOverlayV1Test {
   }
 
   private Facility fromActiveStatus(ActiveStatus status) {
-    DatamartFacility df =
-        DatamartFacility.builder()
-            .attributes(FacilityAttributes.builder().activeStatus(status).build())
-            .build();
-    return (FacilityTransformerV1.toFacility(df));
+    return Facility.builder()
+        .attributes(FacilityAttributes.builder().activeStatus(status).build())
+        .build();
   }
 
   private OperatingStatus op(OperatingStatusCode code, String info) {
@@ -183,17 +179,17 @@ public class FacilityOverlayV1Test {
     assertStatus(
         ActiveStatus.A,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        emptyList(),
+        null,
         entity(fromActiveStatus(ActiveStatus.A), null));
     assertStatus(
         ActiveStatus.T,
         OperatingStatus.builder().code(OperatingStatusCode.CLOSED).build(),
-        emptyList(),
+        null,
         entity(fromActiveStatus(ActiveStatus.T), null));
     assertStatus(
         null,
         OperatingStatus.builder().code(OperatingStatusCode.NORMAL).build(),
-        emptyList(),
+        null,
         entity(fromActiveStatus(null), null));
   }
 

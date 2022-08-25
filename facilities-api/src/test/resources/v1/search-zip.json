@@ -116,6 +116,7 @@
           "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
+        "activeStatus" : "A",
         "visn" : "8"
       }
     }

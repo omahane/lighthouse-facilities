@@ -83,7 +83,6 @@ public class SearchByZipJsonTest {
                                 Facility.Phone.builder()
                                     .fax("321-637-3515")
                                     .main("321-637-3788")
-                                    .healthConnect("512-325-1255")
                                     .pharmacy("877-646-4550")
                                     .afterHours("877-741-3400")
                                     .patientAdvocate("407-631-1187")

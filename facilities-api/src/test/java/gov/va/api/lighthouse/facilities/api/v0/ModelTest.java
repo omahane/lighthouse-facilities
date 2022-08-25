@@ -220,7 +220,6 @@ public class ModelTest {
         .mentalHealthClinic("7412589630")
         .enrollmentCoordinator("1594782360")
         .main("(123)456-7890")
-        .healthConnect("512-325-1255")
         .fax("(456)678-1230")
         .pharmacy("789-456-1230")
         .afterHours("(123)456-7890")

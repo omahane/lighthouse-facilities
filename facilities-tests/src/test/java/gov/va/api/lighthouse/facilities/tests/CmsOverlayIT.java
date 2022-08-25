@@ -12,7 +12,6 @@ import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.OperatingStatusCode;
@@ -36,7 +35,6 @@ public class CmsOverlayIT {
   private static final String DETAILED_SERVICE_JSON_BODY =
       "{    \"detailed_services\":["
           + "{"
-          + "\"service_id\":\"covid19Vaccine\","
           + "\"name\":\"COVID-19 vaccines\","
           + "\"active\":true,"
           + "\"changed\": \"2021-02-04T22:36:49+00:00\","
@@ -44,7 +42,7 @@ public class CmsOverlayIT {
           + "\"health_service_api_id\":\"12435\","
           + "\"appointment_leadin\":\"Your VA health care team will contact you if you...more text\","
           + "\"online_scheduling_available\": \"Unknown\","
-          + "\"path\": \"https://www.va.gov\\/bay-pines-health-care\\/programs\\/covid-19-vaccines\\/\","
+          + "\"path\": \"\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines\","
           + "\"appointment_phones\": [  "
           + "{"
           + "\"extension\": \"123\","
@@ -204,11 +202,10 @@ public class CmsOverlayIT {
   private List<DetailedService> detailedServices() {
     return List.of(
         DetailedService.builder()
-            .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
             .name("COVID-19 vaccines")
+            .descriptionFacility("I'm a facility service!")
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
-            .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
             .phoneNumbers(
                 List.of(
                     DetailedService.AppointmentPhoneNumber.builder()
@@ -284,7 +281,7 @@ public class CmsOverlayIT {
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
     // Note: Performing a GET request to /v1/facilities/%/services/%/ through Postman produces an
-    // HTTP 400 error as expected.
+    //       HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services/%/"))
@@ -318,7 +315,7 @@ public class CmsOverlayIT {
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
     // Note: Performing a GET request to /v1/facilities/%/services through Postman produces an
-    // HTTP 400 error as expected.
+    //       HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services"))
@@ -345,13 +342,6 @@ public class CmsOverlayIT {
         OperatingStatus.builder()
             .code(OperatingStatusCode.NOTICE)
             .additionalInfo("Update1")
-            .build();
-    CmsOverlay.HealthCareSystem healthCareSystem =
-        CmsOverlay.HealthCareSystem.builder()
-            .name("Example Health Care System Name")
-            .url("https://www.va.gov/example/locations/facility")
-            .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
-            .healthConnectPhone("123-456-7890 x123")
             .build();
     var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
@@ -424,7 +414,6 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .ignoringFields("serviceId")
         .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
@@ -436,84 +425,7 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().operatingStatus()).isEqualTo(ops);
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
-        .ignoringFields("serviceId")
         .isEqualTo(detailedServices());
-    ExpectedResponse.of(
-            requestSpecification()
-                .contentType("application/json")
-                .body(
-                    MAPPER.writeValueAsString(
-                        CmsOverlay.builder().healthCareSystem(healthCareSystem).build()))
-                .request(
-                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
-        .expect(200);
-    cmsOverlay =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(
-                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
-            .expect(200)
-            .expectValid(CmsOverlayResponse.class);
-    assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
-    assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(healthCareSystem);
-    assertThat(cmsOverlay.overlay().detailedServices())
-        .usingRecursiveComparison()
-        .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
-    facility =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
-            .expect(200)
-            .expectValid(FacilityReadResponse.class)
-            .facility();
-    assertThat(facility.attributes().phone().healthConnect()).isNull();
-    ExpectedResponse.of(
-            requestSpecificationInternal()
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
-        .expect(200);
-    facility =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
-            .expect(200)
-            .expectValid(FacilityReadResponse.class)
-            .facility();
-    assertThat(facility.attributes().phone().healthConnect())
-        .isEqualTo(healthCareSystem.healthConnectPhone());
-    ExpectedResponse.of(
-        requestSpecificationInternal()
-            .request(
-                Method.DELETE,
-                svcInternal.urlWithApiPath()
-                    + "internal/management/facilities/"
-                    + id
-                    + "/cms-overlay/system"));
-    cmsOverlay =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(
-                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
-            .expect(200)
-            .expectValid(CmsOverlayResponse.class);
-    assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
-    assertThat(cmsOverlay.overlay().healthCareSystem()).isNull();
-    assertThat(cmsOverlay.overlay().detailedServices())
-        .usingRecursiveComparison()
-        .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
-    ExpectedResponse.of(
-            requestSpecificationInternal()
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
-        .expect(200);
-    facility =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
-            .expect(200)
-            .expectValid(FacilityReadResponse.class)
-            .facility();
-    assertThat(facility.attributes().phone().healthConnect()).isNull();
   }
 
   @Test
@@ -539,75 +451,6 @@ public class CmsOverlayIT {
             .expect(200)
             .expectValid(CmsOverlayResponse.class);
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
-  }
-
-  @Test
-  @SneakyThrows
-  void updateFacilityOperatingStatus() {
-    OperatingStatus ops =
-        OperatingStatus.builder()
-            .code(OperatingStatusCode.CLOSED)
-            .additionalInfo("Update1")
-            .build();
-    var id = systemDefinition().ids().facility();
-    SystemDefinitions.Service svc = systemDefinition().facilities();
-    SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
-    // Clean up overlay before test
-    ExpectedResponse.of(
-        requestSpecificationInternal()
-            .request(
-                Method.DELETE,
-                svcInternal.urlWithApiPath()
-                    + "internal/management/facilities/"
-                    + id
-                    + "/cms-overlay"));
-    // POST overlay to populate the operating status on the facility
-    ExpectedResponse.of(
-            requestSpecification()
-                .contentType("application/json")
-                .body(MAPPER.writeValueAsString(CmsOverlay.builder().operatingStatus(ops).build()))
-                .request(
-                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
-        .expect(200);
-    // Delete the overlay
-    ExpectedResponse.of(
-        requestSpecificationInternal()
-            .request(
-                Method.DELETE,
-                svcInternal.urlWithApiPath()
-                    + "internal/management/facilities/"
-                    + id
-                    + "/cms-overlay/operating_status"));
-    // GET facility and check to make sure that the operating status was populate from the overlay
-    // correctly, should be
-    // set to CLOSED
-    var facility =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
-            .expect(200)
-            .expectValid(FacilityReadResponse.class)
-            .facility();
-    assertThat(facility.attributes().operatingStatus().code())
-        .isEqualTo(OperatingStatusCode.CLOSED);
-    // Reload
-    ExpectedResponse.of(
-            requestSpecificationInternal()
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
-        .expect(200);
-    // After reload, ensure that the operating status was updated from CLOSED to NORMAL. Since we
-    // are testing with a facility that has a pod (VAST's ActiveStatus equivalent) of A, the
-    // operating status should
-    // be updated to NORMAL
-    facility =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id))
-            .expect(200)
-            .expectValid(FacilityReadResponse.class)
-            .facility();
-    assertThat(facility.attributes().operatingStatus().code())
-        .isEqualTo(OperatingStatusCode.NORMAL);
   }
 
   @Test

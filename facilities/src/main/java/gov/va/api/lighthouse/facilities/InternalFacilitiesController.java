@@ -3,13 +3,10 @@ package gov.va.api.lighthouse.facilities;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
-import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_benefits_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_cemetery;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet_center;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.isBlank;
 import static java.util.stream.Collectors.toCollection;
@@ -24,7 +21,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
-import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
@@ -38,12 +35,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,7 +84,8 @@ public class InternalFacilitiesController {
 
   private static final Pattern ZIP_PATTERN = Pattern.compile(ZIP_REGEX);
 
-  private static final ObjectMapper DATAMART_MAPPER = createMapper();
+  private static final ObjectMapper DATAMART_MAPPER =
+      DatamartFacilitiesJacksonConfig.createMapper();
 
   private final FacilitiesCollector collector;
 
@@ -128,7 +124,7 @@ public class InternalFacilitiesController {
 
   /** Populate the given record with facility data _EXCEPT_ of the PK. */
   @SneakyThrows
-  public static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
+  static FacilityEntity populate(FacilityEntity record, DatamartFacility datamartFacility) {
     checkArgument(record.id() != null);
     record.latitude(datamartFacility.attributes().latitude().doubleValue());
     record.longitude(datamartFacility.attributes().longitude().doubleValue());
@@ -145,12 +141,12 @@ public class InternalFacilitiesController {
    * Determine the total collection of service types by combining health, benefits, and other
    * services types. This is guaranteed to return a non-null, but potentially empty collection.
    */
-  static Set<Service<? extends TypedService>> serviceTypesOf(DatamartFacility datamartFacility) {
+  static Set<ServiceType> serviceTypesOf(DatamartFacility datamartFacility) {
     var services = datamartFacility.attributes().services();
     if (services == null) {
       return Set.of();
     }
-    var allServices = new HashSet<Service<? extends TypedService>>();
+    var allServices = new HashSet<ServiceType>();
     if (services.health() != null) {
       allServices.addAll(services.health());
     }
@@ -208,7 +204,6 @@ public class InternalFacilitiesController {
    * Delete an overlay if thisNodeOnly is not specified or partial overlay identified by
    * thisNodeOnly.
    */
-  @SneakyThrows
   @DeleteMapping(value = {"/facilities/{id}/cms-overlay", "/facilities/{id}/cms-overlay/{node}"})
   ResponseEntity<Void> deleteCmsOverlayById(
       @PathVariable("id") String id,
@@ -222,7 +217,6 @@ public class InternalFacilitiesController {
       log.info("Deleting cms overlay for id: {}", sanitize(id));
       overlayEntity.cmsOperatingStatus(null);
       overlayEntity.cmsServices(null);
-      overlayEntity.healthCareSystem(null);
     } else if (thisNodeOnly.equalsIgnoreCase("operating_status")) {
       if (overlayEntity.cmsOperatingStatus() == null) {
         log.info("CmsOverlay {} does not have an operating_status, ignoring request", sanitize(id));
@@ -237,26 +231,16 @@ public class InternalFacilitiesController {
       }
       log.info("Deleting detailed_services node from overlay for id: {}", sanitize(id));
       overlayEntity.cmsServices(null);
-    } else if (thisNodeOnly.equalsIgnoreCase("system")) {
-      if (overlayEntity.healthCareSystem() == null) {
-        log.info("CmsOverlay {} does not have health care system, ignoring request", sanitize(id));
-        return ResponseEntity.accepted().build();
-      }
-      log.info("Deleting health care system node from overlay for id: {}", sanitize(id));
-      overlayEntity.healthCareSystem(null);
     } else {
       log.info("CmsOverlay field {} does not exist.", sanitize(thisNodeOnly));
       throw new ExceptionsUtils.NotFound(thisNodeOnly);
     }
-    if (overlayEntity.cmsOperatingStatus() == null
-        && overlayEntity.cmsServices() == null
-        && overlayEntity.healthCareSystem() == null) {
+    if (overlayEntity.cmsOperatingStatus() == null && overlayEntity.cmsServices() == null) {
       cmsOverlayRepository.delete(overlayEntity);
     } else {
       cmsOverlayRepository.save(overlayEntity);
     }
     FacilityEntity facilityEntity = facilityEntityById(id).orElse(null);
-
     if (facilityEntity != null) {
       facilityEntity
           .cmsOperatingStatus(overlayEntity.cmsOperatingStatus())
@@ -264,39 +248,11 @@ public class InternalFacilitiesController {
       if (overlayEntity.cmsServices() == null) {
         facilityEntity.overlayServices(new HashSet<>());
       }
-
-      if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("detailed_services")) {
-        DatamartFacility df =
-            DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
-        if (df.attributes().services().health() != null) {
-          List<Service<HealthService>> healthServicesWithoutCovid19Vaccine =
-              df.attributes().services().health().parallelStream()
-                  .filter(hs -> !hs.serviceId().equals(HealthService.Covid19Vaccine.serviceId()))
-                  .collect(Collectors.toList());
-          Collections.sort(healthServicesWithoutCovid19Vaccine);
-          df.attributes().services().health(healthServicesWithoutCovid19Vaccine);
-
-          if (ObjectUtils.isNotEmpty(facilityEntity.services())) {
-            // Remove Covid-19 expressed in service object format
-            facilityEntity
-                .services()
-                .removeIf(
-                    svcJson ->
-                        svcJson.contains(
-                            "\"serviceId\":\"" + HealthService.Covid19Vaccine.serviceId() + "\""));
-            // Remove Covid-19 expressed in prior non-object service format
-            facilityEntity.services().remove("Covid19Vaccine");
-          }
-
-          facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(df));
-        }
-      }
       facilityRepository.save(facilityEntity);
     }
     return ResponseEntity.ok().build();
   }
 
-  /** Delete facility belonging to specified id. */
   @DeleteMapping(value = "/facilities/{id}")
   ResponseEntity<String> deleteFacilityById(@PathVariable("id") String id) {
     Optional<FacilityEntity> entity = facilityEntityById(id);
@@ -439,30 +395,10 @@ public class InternalFacilitiesController {
     facilityRepository.delete(entity);
   }
 
-  /** Reload all facility information. */
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
     var response = ReloadResponse.start();
-    var collectedFacilities =
-        collector.collectFacilities().stream()
-            .map(
-                df -> {
-                  if (ObjectUtils.isNotEmpty(df.attributes().detailedServices())) {
-                    // Filter out non-Covid services
-                    df.attributes()
-                        .detailedServices(
-                            df.attributes().detailedServices().parallelStream()
-                                .filter(
-                                    dds ->
-                                        dds.serviceInfo() != null
-                                            && dds.serviceInfo()
-                                                .serviceId()
-                                                .equals(HealthService.Covid19Vaccine.serviceId()))
-                                .collect(Collectors.toList()));
-                  }
-                  return df;
-                })
-            .collect(Collectors.toList());
+    var collectedFacilities = collector.collectFacilities();
     response.totalFacilities(collectedFacilities.size());
     return process(response, collectedFacilities);
   }

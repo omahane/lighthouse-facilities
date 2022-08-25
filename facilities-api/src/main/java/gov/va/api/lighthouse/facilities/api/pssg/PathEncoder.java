@@ -143,22 +143,20 @@ public class PathEncoder {
      * Encoding only needs to support the latest version. Should a format change be required in the
      * future, it can replace this format encoding, but decoding will still need to handle both.
      */
-    if (band.geometry() != null) {
-      buffer.putInt(band.geometry().rings().size());
-      band.geometry()
-          .rings()
-          .forEach(
-              ring -> {
-                buffer.putInt(ring.size());
-                ring.forEach(
-                    coords -> {
-                      int scaledLong = scale(coords.get(0));
-                      int scaledLat = scale(coords.get(1));
-                      buffer.putInt(scaledLong);
-                      buffer.putInt(scaledLat);
-                    });
-              });
-    }
+    buffer.putInt(band.geometry().rings().size());
+    band.geometry()
+        .rings()
+        .forEach(
+            ring -> {
+              buffer.putInt(ring.size());
+              ring.forEach(
+                  coords -> {
+                    int scaledLong = scale(coords.get(0));
+                    int scaledLat = scale(coords.get(1));
+                    buffer.putInt(scaledLong);
+                    buffer.putInt(scaledLat);
+                  });
+            });
     return compress(buffer.array());
   }
 
@@ -169,10 +167,7 @@ public class PathEncoder {
 
   /** Compute the amount of uncompressed space that will be required to serialize the band. */
   private int sizeOf(PssgDriveTimeBand band) {
-    int sizeOfRings =
-        band.geometry() == null
-            ? 0
-            : band.geometry().rings().stream().mapToInt(this::sizeOfRing).sum();
+    int sizeOfRings = band.geometry().rings().stream().mapToInt(this::sizeOfRing).sum();
     // magic-token + version +  number-rings + sizeOfRings
     return BYTES_PER_INT + BYTES_PER_INT + BYTES_PER_INT + sizeOfRings;
   }

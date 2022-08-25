@@ -1,15 +1,9 @@
 package gov.va.api.lighthouse.facilities;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.capitalize;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
-import gov.va.api.lighthouse.facilities.api.TypedService;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
@@ -37,7 +31,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.springframework.data.domain.Sort;
 
 @Data
@@ -48,8 +41,6 @@ import org.springframework.data.domain.Sort;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class FacilityEntity implements HasFacilityPayload {
-  private static final ObjectMapper DATAMART_MAPPER = createMapper();
-
   /**
    * API V0 searches by {type}_{facilityId}. We might want to change that in the future, so we are
    * keeping those two pieces of information separate. However, the two (type + facility) are
@@ -125,11 +116,12 @@ public class FacilityEntity implements HasFacilityPayload {
       double latitude,
       double longitude,
       String facility,
+      //      String facilityV1,
       String cmsOperatingStatus,
       String cmsServices,
       Set<ServiceType> overlayServiceTypes,
       Integer version,
-      Set<TypedService> servicesTypes,
+      Set<ServiceType> servicesTypes,
       Long missingTimestamp,
       Instant lastUpdated,
       String visn,
@@ -140,22 +132,12 @@ public class FacilityEntity implements HasFacilityPayload {
         state,
         latitude,
         longitude,
-        servicesTypes.stream()
-            .map(
-                typedSvc -> {
-                  try {
-                    return DATAMART_MAPPER.writeValueAsString(typedSvc);
-                  } catch (final JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                  }
-                })
-            .collect(toSet()),
+        servicesTypes.stream().map(Object::toString).collect(toSet()),
         facility,
+        //        facilityV1,
         cmsOperatingStatus,
         cmsServices,
-        overlayServiceTypes.stream()
-            .map(svcType -> capitalize(svcType.serviceId()))
-            .collect(toSet()),
+        overlayServiceTypes.stream().map(Object::toString).collect(toSet()),
         version,
         missingTimestamp,
         lastUpdated,
@@ -169,26 +151,12 @@ public class FacilityEntity implements HasFacilityPayload {
 
   /** Populate overlay services from a type safe collection. */
   public void overlayServicesFromServiceTypes(Set<ServiceType> overlayServiceTypes) {
-    overlayServices(
-        overlayServiceTypes.stream()
-            .map(svcType -> capitalize(svcType.serviceId()))
-            .collect(toSet()));
+    overlayServices(overlayServiceTypes.stream().map(Object::toString).collect(toSet()));
   }
 
   /** Populate services from a type safe collection. */
-  @SneakyThrows
-  public void servicesFromServiceTypes(Set<Service<? extends TypedService>> serviceObjects) {
-    services(
-        serviceObjects.stream()
-            .map(
-                typedSvc -> {
-                  try {
-                    return DATAMART_MAPPER.writeValueAsString(typedSvc);
-                  } catch (final JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                  }
-                })
-            .collect(toSet()));
+  public void servicesFromServiceTypes(Set<ServiceType> serviceTypes) {
+    services(serviceTypes.stream().map(Object::toString).collect(toSet()));
   }
 
   public enum Type {

@@ -12,6 +12,14 @@
           "primaryCareUrgent" : 10
         },
         "effectiveDate" : "2022-01-13"
+      },
+      "waitTimes" : {
+        "health" : [
+          {
+            "new" : 1
+          }
+        ],
+        "effectiveDate" : "2022-01-13"
       }
     }
   }

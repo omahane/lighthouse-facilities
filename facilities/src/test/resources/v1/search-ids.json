@@ -129,18 +129,9 @@
         ],
         "services" : {
           "benefits" : [
-            {
-              "name" : "EducationAndCareerCounseling",
-              "serviceId" : "educationAndCareerCounseling",
-              "link" : "http://localhost/v1/facilities/vba_322b/services/educationAndCareerCounseling"
-            },
-            {
-              "name" : "VocationalRehabilitationAndEmploymentAssistance",
-              "serviceId" : "vocationalRehabilitationAndEmploymentAssistance",
-              "link" : "http://localhost/v1/facilities/vba_322b/services/vocationalRehabilitationAndEmploymentAssistance"
-            }
-          ],
-          "link" : "http://localhost/v1/facilities/vba_322b/services"
+            "EducationAndCareerCounseling",
+            "VocationalRehabilitationAndEmploymentAssistance"
+          ]
         },
         "operatingStatus" : {
           "code" : "NORMAL"
@@ -232,28 +223,11 @@
         ],
         "services" : {
           "health" : [
-            {
-              "name" : "EmergencyCare",
-              "serviceId" : "emergencyCare",
-              "link" : "http://localhost/v1/facilities/vha_402GA/services/emergencyCare"
-            },
-            {
-              "name" : "PrimaryCare",
-              "serviceId" : "primaryCare",
-              "link" : "http://localhost/v1/facilities/vha_402GA/services/primaryCare"
-            },
-            {
-              "name" : "MentalHealth",
-              "serviceId" : "mentalHealth",
-              "link" : "http://localhost/v1/facilities/vha_402GA/services/mentalHealth"
-            },
-            {
-              "name" : "Dermatology",
-              "serviceId" : "dermatology",
-              "link" : "http://localhost/v1/facilities/vha_402GA/services/dermatology"
-            }
+            "emergencyCare",
+            "primaryCare",
+            "mentalHealth",
+            "dermatology"
           ],
-          "link" : "http://localhost/v1/facilities/vha_402GA/services",
           "lastUpdated" : "2020-02-24"
         },
         "satisfaction" : {
@@ -263,8 +237,26 @@
           },
           "effectiveDate" : "2019-06-20"
         },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "dermatology",
+              "new" : 3.714285
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 13.727272,
+              "established" : 10.392441
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 5.75,
+              "established" : 2.634703
+            }
+          ],
+          "effectiveDate" : "2020-02-24"
+        },
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },

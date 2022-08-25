@@ -1,7 +1,5 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.TestUtils.getExpectedJson;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
@@ -136,6 +134,12 @@ public class FacilitiesEmptyFieldsTest {
                 .build()
                 .isEmpty())
         .isTrue();
+    assertThat(
+            Facility.FacilityAttributes.builder()
+                .waitTimes(Facility.WaitTimes.builder().build())
+                .build()
+                .isEmpty())
+        .isTrue();
     assertThat(Facility.FacilityAttributes.builder().instructions(emptyList()).build().isEmpty())
         .isTrue();
     // Not empty
@@ -150,12 +154,6 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.FacilityAttributes.builder().longitude(BigDecimal.ZERO).build().isEmpty())
         .isFalse();
     assertThat(Facility.FacilityAttributes.builder().website("http://foo.bar").build().isEmpty())
-        .isFalse();
-    assertThat(
-            Facility.FacilityAttributes.builder()
-                .activeStatus(Facility.ActiveStatus.A)
-                .build()
-                .isEmpty())
         .isFalse();
     assertThat(Facility.FacilityAttributes.builder().mobile(Boolean.TRUE).build().isEmpty())
         .isFalse();
@@ -195,17 +193,7 @@ public class FacilitiesEmptyFieldsTest {
             Facility.FacilityAttributes.builder()
                 .services(
                     Facility.Services.builder()
-                        .benefits(
-                            List.of(
-                                Facility.Service.<Facility.BenefitsService>builder()
-                                    .serviceType(Facility.BenefitsService.Pensions)
-                                    .name(Facility.BenefitsService.Pensions.name())
-                                    .link(
-                                        buildTypedServiceLink(
-                                            buildLinkerUrlV1("http://foo/", "bar"),
-                                            "vha_402",
-                                            Facility.HealthService.PrimaryCare.serviceId()))
-                                    .build()))
+                        .benefits(List.of(Facility.BenefitsService.Pensions))
                         .build())
                 .build()
                 .isEmpty())
@@ -218,6 +206,19 @@ public class FacilitiesEmptyFieldsTest {
                             Facility.PatientSatisfaction.builder()
                                 .primaryCareUrgent(BigDecimal.ZERO)
                                 .build())
+                        .build())
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            Facility.FacilityAttributes.builder()
+                .waitTimes(
+                    Facility.WaitTimes.builder()
+                        .health(
+                            List.of(
+                                Facility.PatientWaitTime.builder()
+                                    .service(Facility.HealthService.Cardiology)
+                                    .build()))
                         .build())
                 .build()
                 .isEmpty())
@@ -323,23 +324,23 @@ public class FacilitiesEmptyFieldsTest {
   @SneakyThrows
   void emptyPatientWaitTimes() {
     // Empty
-    assertThat(DetailedService.PatientWaitTime.builder().build().isEmpty()).isTrue();
+    assertThat(Facility.PatientWaitTime.builder().build().isEmpty()).isTrue();
     // Not empty
     assertThat(
-            DetailedService.PatientWaitTime.builder()
+            Facility.PatientWaitTime.builder()
                 .newPatientWaitTime(BigDecimal.ZERO)
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
-            DetailedService.PatientWaitTime.builder()
+            Facility.PatientWaitTime.builder()
                 .establishedPatientWaitTime(BigDecimal.ZERO)
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
-            DetailedService.PatientWaitTime.builder()
-                .effectiveDate(LocalDate.parse("2020-03-09"))
+            Facility.PatientWaitTime.builder()
+                .service(Facility.HealthService.Cardiology)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -355,7 +356,6 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.Phone.builder().enrollmentCoordinator(phoneNumber).build().isEmpty())
         .isTrue();
     assertThat(Facility.Phone.builder().main(phoneNumber).build().isEmpty()).isTrue();
-    assertThat(Facility.Phone.builder().healthConnect(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().fax(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().mentalHealthClinic(phoneNumber).build().isEmpty()).isTrue();
     assertThat(Facility.Phone.builder().patientAdvocate(phoneNumber).build().isEmpty()).isTrue();
@@ -366,7 +366,6 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.Phone.builder().enrollmentCoordinator(phoneNumber).build().isEmpty())
         .isFalse();
     assertThat(Facility.Phone.builder().main(phoneNumber).build().isEmpty()).isFalse();
-    assertThat(Facility.Phone.builder().healthConnect(phoneNumber).build().isEmpty()).isFalse();
     assertThat(Facility.Phone.builder().fax(phoneNumber).build().isEmpty()).isFalse();
     assertThat(Facility.Phone.builder().mentalHealthClinic(phoneNumber).build().isEmpty())
         .isFalse();
@@ -408,57 +407,46 @@ public class FacilitiesEmptyFieldsTest {
     assertThat(Facility.Services.builder().other(emptyList()).build().isEmpty()).isTrue();
     assertThat(Facility.Services.builder().benefits(emptyList()).build().isEmpty()).isTrue();
     // Not empty
-    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
-    final var facilityId = "vha_558GA";
     assertThat(
             Facility.Services.builder()
-                .health(
-                    List.of(
-                        Facility.Service.<Facility.HealthService>builder()
-                            .serviceType(Facility.HealthService.PrimaryCare)
-                            .name(Facility.HealthService.PrimaryCare.name())
-                            .link(
-                                buildTypedServiceLink(
-                                    linkerUrl,
-                                    facilityId,
-                                    Facility.HealthService.PrimaryCare.serviceId()))
-                            .build()))
+                .health(List.of(Facility.HealthService.PrimaryCare))
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
             Facility.Services.builder()
-                .other(
-                    List.of(
-                        Facility.Service.<Facility.OtherService>builder()
-                            .serviceType(Facility.OtherService.OnlineScheduling)
-                            .name(Facility.OtherService.OnlineScheduling.name())
-                            .link(
-                                buildTypedServiceLink(
-                                    linkerUrl,
-                                    facilityId,
-                                    Facility.OtherService.OnlineScheduling.serviceId()))
-                            .build()))
+                .other(List.of(Facility.OtherService.OnlineScheduling))
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
             Facility.Services.builder()
-                .benefits(
-                    List.of(
-                        Facility.Service.<Facility.BenefitsService>builder()
-                            .serviceType(Facility.BenefitsService.Pensions)
-                            .name(Facility.BenefitsService.Pensions.name())
-                            .link(
-                                buildTypedServiceLink(
-                                    linkerUrl,
-                                    facilityId,
-                                    Facility.BenefitsService.Pensions.serviceId()))
-                            .build()))
+                .benefits(List.of(Facility.BenefitsService.Pensions))
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(Facility.Services.builder().lastUpdated(LocalDate.now()).build().isEmpty())
+        .isFalse();
+  }
+
+  @Test
+  @SneakyThrows
+  void emptyWaitTimes() {
+    // Empty
+    assertThat(Facility.WaitTimes.builder().build().isEmpty()).isTrue();
+    assertThat(Facility.WaitTimes.builder().health(emptyList()).build().isEmpty()).isTrue();
+    // Not empty
+    assertThat(
+            Facility.WaitTimes.builder()
+                .health(
+                    List.of(
+                        Facility.PatientWaitTime.builder()
+                            .service(Facility.HealthService.Cardiology)
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(Facility.WaitTimes.builder().effectiveDate(LocalDate.now()).build().isEmpty())
         .isFalse();
   }
 
@@ -529,6 +517,15 @@ public class FacilitiesEmptyFieldsTest {
                                     .build())
                             .effectiveDate(LocalDate.parse("2022-01-13"))
                             .build())
+                    .waitTimes(
+                        Facility.WaitTimes.builder()
+                            .health(
+                                List.of(
+                                    Facility.PatientWaitTime.builder()
+                                        .newPatientWaitTime(BigDecimal.ONE)
+                                        .build()))
+                            .effectiveDate(LocalDate.parse("2022-01-13"))
+                            .build())
                     .build())
             .build();
     assertThat(createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(facility))
@@ -553,6 +550,15 @@ public class FacilitiesEmptyFieldsTest {
                                 Facility.PatientSatisfaction.builder()
                                     .primaryCareUrgent(BigDecimal.TEN)
                                     .build())
+                            .effectiveDate(LocalDate.parse("2022-01-13"))
+                            .build())
+                    .waitTimes(
+                        Facility.WaitTimes.builder()
+                            .health(
+                                List.of(
+                                    Facility.PatientWaitTime.builder()
+                                        .newPatientWaitTime(BigDecimal.ONE)
+                                        .build()))
                             .effectiveDate(LocalDate.parse("2022-01-13"))
                             .build())
                     .build())

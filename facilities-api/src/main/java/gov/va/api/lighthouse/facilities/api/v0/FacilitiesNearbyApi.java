@@ -1,8 +1,5 @@
-package gov.va.api.lighthouse.facilities.api;
+package gov.va.api.lighthouse.facilities.api.v0;
 
-import gov.va.api.lighthouse.facilities.api.v0.ApiError;
-import gov.va.api.lighthouse.facilities.api.v0.GenericError;
-import gov.va.api.lighthouse.facilities.api.v0.NearbyResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -29,6 +26,10 @@ public interface FacilitiesNearbyApi {
               + "a specified location based on address (`street_address`, "
               + "`city`, `state`, and `zip`) or coordinates (`lat` and `lng`). "
               + "Optional filter parameters include `drive_time` and `services[]`. "
+              + "\n\n"
+              + "Results of this operation are paginated. "
+              + "Responses include pagination information in the standard JSON API \"links\" and "
+              + "\"meta\" elements. "
               + "\n\n"
               + "The \"attributes\" element has information about the "
               + "drive-time band that contains the requested location for each facility "
@@ -145,5 +146,17 @@ public interface FacilitiesNearbyApi {
               in = ParameterIn.QUERY,
               style = ParameterStyle.FORM,
               explode = Explode.TRUE)
-          List<String> services);
+          List<String> services,
+      @Parameter(
+              name = "page",
+              description = "Page of results to return per paginated response.",
+              in = ParameterIn.QUERY,
+              schema = @Schema(defaultValue = "1"))
+          Integer page,
+      @Parameter(
+              name = "per_page",
+              description = "Number of results to return per paginated response.",
+              in = ParameterIn.QUERY,
+              schema = @Schema(defaultValue = "20"))
+          Integer perPage);
 }

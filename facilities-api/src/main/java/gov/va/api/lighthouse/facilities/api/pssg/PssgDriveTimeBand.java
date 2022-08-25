@@ -2,8 +2,6 @@ package gov.va.api.lighthouse.facilities.api.pssg;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +16,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 public final class PssgDriveTimeBand {
   /** The two item list of coordinates, this is the longitude (or x) value. */
   public static final int INDEX_LONGITUDE = 0;

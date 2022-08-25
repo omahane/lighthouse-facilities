@@ -1,13 +1,9 @@
 package gov.va.api.lighthouse.facilities.api.v1.serializers;
 
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v1.CanBeEmpty;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -24,6 +20,7 @@ import gov.va.api.lighthouse.facilities.api.v1.Pagination;
 import gov.va.api.lighthouse.facilities.api.v1.ReloadResponse;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -129,42 +126,14 @@ public class SerializerTest {
   @Test
   @SneakyThrows
   void serializeDetailedService() {
+    // Empty
+    DetailedService detailedService = DetailedService.builder().build();
+    assertJsonIsEmpty(detailedService);
+    detailedService = DetailedService.builder().serviceLocations(emptyList()).build();
+    assertJsonIsEmpty(detailedService);
     // Not empty
-    DetailedService detailedService =
-        DetailedService.builder()
-            .serviceInfo(
-                DetailedService.ServiceInfo.builder()
-                    .serviceId(Facility.HealthService.Cardiology.serviceId())
-                    .serviceType(Facility.HealthService.Cardiology.serviceType())
-                    .build())
-            .build();
-    assertJson(
-        detailedService,
-        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
-    detailedService =
-        DetailedService.builder()
-            .serviceInfo(
-                DetailedService.ServiceInfo.builder()
-                    .serviceId(Facility.HealthService.Cardiology.serviceId())
-                    .serviceType(Facility.HealthService.Cardiology.serviceType())
-                    .build())
-            .serviceLocations(emptyList())
-            .build();
-    assertJson(
-        detailedService,
-        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
-    detailedService =
-        DetailedService.builder()
-            .serviceInfo(
-                DetailedService.ServiceInfo.builder()
-                    .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-                    .name("COVID-19 vaccines")
-                    .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
-                    .build())
-            .build();
-    assertJson(
-        detailedService,
-        "{\"serviceInfo\":{\"name\":\"COVID-19 vaccines\",\"serviceId\":\"covid19Vaccine\",\"serviceType\":\"health\"}}");
+    detailedService = DetailedService.builder().name("COVID-19 vaccines").build();
+    assertJson(detailedService, "{\"name\":\"COVID-19 vaccines\"}");
   }
 
   @Test
@@ -212,12 +181,6 @@ public class SerializerTest {
             .emailAddress("georgea@va.gov")
             .build();
     assertJson(emailContact, "{\"emailAddress\":\"georgea@va.gov\"}");
-    emailContact =
-        DetailedService.DetailedServiceEmailContact.builder()
-            .emailAddress("")
-            .emailLabel("")
-            .build();
-    assertJson(emailContact, "{}");
   }
 
   @Test
@@ -260,36 +223,14 @@ public class SerializerTest {
     // Empty
     DetailedServiceResponse response = DetailedServiceResponse.builder().build();
     assertJsonIsEmpty(response);
+    response = DetailedServiceResponse.builder().data(DetailedService.builder().build()).build();
+    assertJsonIsEmpty(response);
     // Not empty
     response =
         DetailedServiceResponse.builder()
-            .data(
-                DetailedService.builder()
-                    .serviceInfo(
-                        DetailedService.ServiceInfo.builder()
-                            .serviceId(Facility.HealthService.Cardiology.serviceId())
-                            .serviceType(Facility.HealthService.Cardiology.serviceType())
-                            .build())
-                    .build())
+            .data(DetailedService.builder().name("COVID-19 vaccines").build())
             .build();
-    assertJson(
-        response,
-        "{\"data\":{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}}");
-    response =
-        DetailedServiceResponse.builder()
-            .data(
-                DetailedService.builder()
-                    .serviceInfo(
-                        DetailedService.ServiceInfo.builder()
-                            .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-                            .name("COVID-19 vaccines")
-                            .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
-                            .build())
-                    .build())
-            .build();
-    assertJson(
-        response,
-        "{\"data\":{\"serviceInfo\":{\"name\":\"COVID-19 vaccines\",\"serviceId\":\"covid19Vaccine\",\"serviceType\":\"health\"}}}");
+    assertJson(response, "{\"data\":{\"name\":\"COVID-19 vaccines\"}}");
   }
 
   @Test
@@ -339,26 +280,6 @@ public class SerializerTest {
     // Not empty
     distance = FacilitiesResponse.Distance.builder().distance(BigDecimal.TEN).build();
     assertJson(distance, "{\"distance\":10}");
-  }
-
-  @Test
-  void serializeEmptyDetailedService() {
-    DetailedService ds =
-        DetailedService.builder()
-            .serviceInfo(
-                DetailedService.ServiceInfo.builder()
-                    .serviceId("cardiology")
-                    .name("Cardiology")
-                    .serviceType(TypeOfService.Health)
-                    .build())
-            .waitTime(null)
-            .changed("")
-            .appointmentLeadIn("")
-            .path("")
-            .build();
-    assertJson(
-        ds,
-        "{\"serviceInfo\":{\"name\":\"Cardiology\",\"serviceId\":\"cardiology\",\"serviceType\":\"health\"}}");
   }
 
   @Test
@@ -588,14 +509,12 @@ public class SerializerTest {
   @SneakyThrows
   void serializePatientWaitTimes() {
     // Empty
-    DetailedService.PatientWaitTime waitTimes = DetailedService.PatientWaitTime.builder().build();
+    Facility.PatientWaitTime waitTimes = Facility.PatientWaitTime.builder().build();
     assertJsonIsEmpty(waitTimes);
     // Not empty
     waitTimes =
-        DetailedService.PatientWaitTime.builder()
-            .newPatientWaitTime(BigDecimal.valueOf(2.5))
-            .build();
-    assertJson(waitTimes, "{\"new\":2.5}");
+        Facility.PatientWaitTime.builder().service(Facility.HealthService.Cardiology).build();
+    assertJson(waitTimes, "{\"service\":\"cardiology\"}");
   }
 
   @Test
@@ -680,30 +599,19 @@ public class SerializerTest {
     services = Facility.Services.builder().health(emptyList()).build();
     assertJsonIsEmpty(services);
     // Not empty
-    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
-    final var facilityId = "vha_402";
     services =
-        Facility.Services.builder()
-            .benefits(
-                List.of(
-                    Facility.Service.<Facility.BenefitsService>builder()
-                        .serviceType(Facility.BenefitsService.Pensions)
-                        .name(Facility.BenefitsService.Pensions.name())
-                        .link(
-                            buildTypedServiceLink(
-                                linkerUrl,
-                                facilityId,
-                                Facility.BenefitsService.Pensions.serviceId()))
-                        .build()))
-            .link(buildServicesLink(linkerUrl, facilityId))
-            .build();
-    assertJson(
-        services,
-        "{\"benefits\":["
-            + "{\"name\":\"Pensions\","
-            + "\"serviceId\":\"pensions\","
-            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/pensions\"}"
-            + "],"
-            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services\"}");
+        Facility.Services.builder().benefits(List.of(Facility.BenefitsService.Pensions)).build();
+    assertJson(services, "{\"benefits\":[\"Pensions\"]}");
+  }
+
+  @Test
+  @SneakyThrows
+  void serializeWaitTimes() {
+    // Empty
+    Facility.WaitTimes waitTimes = Facility.WaitTimes.builder().build();
+    assertJsonIsEmpty(waitTimes);
+    // Not empty
+    waitTimes = Facility.WaitTimes.builder().effectiveDate(LocalDate.parse("2021-12-25")).build();
+    assertJson(waitTimes, "{\"effectiveDate\":\"2021-12-25\"}");
   }
 }

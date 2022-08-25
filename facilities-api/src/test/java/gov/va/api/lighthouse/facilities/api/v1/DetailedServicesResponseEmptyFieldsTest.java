@@ -47,16 +47,7 @@ public class DetailedServicesResponseEmptyFieldsTest {
     // Not empty
     assertThat(
             DetailedServicesResponse.builder()
-                .data(
-                    List.of(
-                        DetailedService.builder()
-                            .serviceInfo(
-                                DetailedService.ServiceInfo.builder()
-                                    .serviceId(Facility.HealthService.Cardiology.serviceId())
-                                    .name("test")
-                                    .serviceType(Facility.HealthService.Cardiology.serviceType())
-                                    .build())
-                            .build()))
+                .data(List.of(DetailedService.builder().name("test").build()))
                 .build()
                 .isEmpty())
         .isFalse();

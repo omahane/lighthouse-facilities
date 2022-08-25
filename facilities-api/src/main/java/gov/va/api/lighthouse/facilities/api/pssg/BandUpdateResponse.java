@@ -1,8 +1,6 @@
 package gov.va.api.lighthouse.facilities.api.pssg;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import gov.va.api.lighthouse.facilities.api.pssg.deserializers.BandUpdateResponseDeserializer;
@@ -20,7 +18,6 @@ import lombok.NonNull;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-@JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = BandUpdateResponseSerializer.class)
 @JsonDeserialize(using = BandUpdateResponseDeserializer.class)
 public final class BandUpdateResponse {

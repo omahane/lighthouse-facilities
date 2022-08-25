@@ -9,7 +9,6 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceAd
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceEmailContact;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceHours;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceLocation;
-import gov.va.api.lighthouse.facilities.api.v1.DetailedService.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
@@ -22,9 +21,11 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Hours;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.PatientSatisfaction;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Phone;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Satisfaction;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.Services;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.WaitTimes;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse.Meta;
@@ -70,6 +71,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.ReloadResponseSeriali
 import gov.va.api.lighthouse.facilities.api.v1.serializers.ReloadResponseTimingSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.SatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.ServicesSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.WaitTimesSerializer;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -90,6 +92,7 @@ final class JacksonSerializersV1 {
     mod.addSerializer(Phone.class, new PhoneSerializer());
     mod.addSerializer(Satisfaction.class, new SatisfactionSerializer());
     mod.addSerializer(Services.class, new ServicesSerializer());
+    mod.addSerializer(WaitTimes.class, new WaitTimesSerializer());
     mod.addSerializer(PageLinks.class, new PageLinksSerializer());
     mod.addSerializer(DetailedService.class, new DetailedServiceSerializer());
     mod.addSerializer(DetailedServiceAddress.class, new DetailedServiceAddressSerializer());

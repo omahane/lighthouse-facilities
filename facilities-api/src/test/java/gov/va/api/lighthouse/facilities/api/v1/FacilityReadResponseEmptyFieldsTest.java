@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +61,15 @@ public class FacilityReadResponseEmptyFieldsTest {
                                             .build())
                                     .effectiveDate(LocalDate.parse("2022-01-13"))
                                     .build())
+                            .waitTimes(
+                                Facility.WaitTimes.builder()
+                                    .health(
+                                        List.of(
+                                            Facility.PatientWaitTime.builder()
+                                                .newPatientWaitTime(BigDecimal.ONE)
+                                                .build()))
+                                    .effectiveDate(LocalDate.parse("2022-01-13"))
+                                    .build())
                             .build())
                     .build())
             .build();
@@ -88,6 +98,15 @@ public class FacilityReadResponseEmptyFieldsTest {
                                         Facility.PatientSatisfaction.builder()
                                             .primaryCareUrgent(BigDecimal.TEN)
                                             .build())
+                                    .effectiveDate(LocalDate.parse("2022-01-13"))
+                                    .build())
+                            .waitTimes(
+                                Facility.WaitTimes.builder()
+                                    .health(
+                                        List.of(
+                                            Facility.PatientWaitTime.builder()
+                                                .newPatientWaitTime(BigDecimal.ONE)
+                                                .build()))
                                     .effectiveDate(LocalDate.parse("2022-01-13"))
                                     .build())
                             .build())

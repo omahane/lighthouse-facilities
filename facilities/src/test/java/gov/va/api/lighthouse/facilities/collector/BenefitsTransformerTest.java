@@ -18,7 +18,6 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -34,66 +33,21 @@ public class BenefitsTransformerTest {
         .isEqualTo(
             facilityService(
                 List.of(
-                    Service.<BenefitsService>builder()
-                        .serviceType(ApplyingForBenefits)
-                        .name(ApplyingForBenefits.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(DisabilityClaimAssistance)
-                        .name(DisabilityClaimAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(eBenefitsRegistrationAssistance)
-                        .name(eBenefitsRegistrationAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(EducationAndCareerCounseling)
-                        .name(EducationAndCareerCounseling.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(EducationClaimAssistance)
-                        .name(EducationClaimAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(FamilyMemberClaimAssistance)
-                        .name(FamilyMemberClaimAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(HomelessAssistance)
-                        .name(HomelessAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(VAHomeLoanAssistance)
-                        .name(VAHomeLoanAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(InsuranceClaimAssistanceAndFinancialCounseling)
-                        .name(InsuranceClaimAssistanceAndFinancialCounseling.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(IntegratedDisabilityEvaluationSystemAssistance)
-                        .name(IntegratedDisabilityEvaluationSystemAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(PreDischargeClaimAssistance)
-                        .name(PreDischargeClaimAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(TransitionAssistance)
-                        .name(TransitionAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(UpdatingDirectDepositInformation)
-                        .name(UpdatingDirectDepositInformation.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(VocationalRehabilitationAndEmploymentAssistance)
-                        .name(VocationalRehabilitationAndEmploymentAssistance.name())
-                        .build(),
-                    Service.<BenefitsService>builder()
-                        .serviceType(Pensions)
-                        .name(Pensions.name())
-                        .build())));
+                    ApplyingForBenefits,
+                    DisabilityClaimAssistance,
+                    eBenefitsRegistrationAssistance,
+                    EducationAndCareerCounseling,
+                    EducationClaimAssistance,
+                    FamilyMemberClaimAssistance,
+                    HomelessAssistance,
+                    VAHomeLoanAssistance,
+                    InsuranceClaimAssistanceAndFinancialCounseling,
+                    IntegratedDisabilityEvaluationSystemAssistance,
+                    PreDischargeClaimAssistance,
+                    TransitionAssistance,
+                    UpdatingDirectDepositInformation,
+                    VocationalRehabilitationAndEmploymentAssistance,
+                    Pensions)));
   }
 
   @Test
@@ -106,7 +60,7 @@ public class BenefitsTransformerTest {
     assertThat(phoneMethod.invoke(benefitsTransformer)).isNull();
   }
 
-  private Services facilityService(List<Service<BenefitsService>> services) {
+  private Services facilityService(List<BenefitsService> services) {
     return Services.builder().benefits(services).build();
   }
 

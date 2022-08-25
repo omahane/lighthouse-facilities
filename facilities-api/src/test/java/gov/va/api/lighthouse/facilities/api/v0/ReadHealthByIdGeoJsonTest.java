@@ -66,7 +66,6 @@ public class ReadHealthByIdGeoJsonTest {
                     Facility.Phone.builder()
                         .fax("207-493-3877")
                         .main("207-493-3800")
-                        .healthConnect("312-122-4516")
                         .pharmacy("207-623-8411 x5770")
                         .afterHours("844-750-8426")
                         .patientAdvocate("207-623-5760")
@@ -126,6 +125,6 @@ public class ReadHealthByIdGeoJsonTest {
 
   @Test
   void unmarshallSample() {
-    assertReadable("/v0/read-health-geojson.json");
+    assertReadable("/read-health-geojson.json");
   }
 }

@@ -1,7 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toDetailedServices;
-import static gov.va.api.lighthouse.facilities.DetailedServiceTransformerV0.toVersionAgnosticDetailedServices;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toFacilityOperatingStatus;
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityOperatingStatus;
 
@@ -14,49 +12,17 @@ public final class CmsOverlayTransformerV0 {
   public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(toDetailedServices(dc.detailedServices()))
-        .healthCareSystem(toHeatlhCareSystem(dc.healthCareSystem()))
+        .detailedServices(DetailedServiceTransformerV0.toDetailedServices(dc.detailedServices()))
         .build();
-  }
-
-  /**
-   * Transform DatamartCmsOverlay.HealthCareSystem object to version 0 CmsOverlay.HealthCareSystem
-   * object
-   */
-  public static CmsOverlay.HealthCareSystem toHeatlhCareSystem(
-      DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
-    return (healthCareSystem != null)
-        ? CmsOverlay.HealthCareSystem.builder()
-            .name(healthCareSystem.name())
-            .url(healthCareSystem.url())
-            .covidUrl(healthCareSystem.covidUrl())
-            .healthConnectPhone(healthCareSystem.healthConnectPhone())
-            .build()
-        : null;
   }
 
   /** Transform V0 CMS overlay to version agnostic CMS overlay. */
   public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
     return DatamartCmsOverlay.builder()
         .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
-        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
-        .healthCareSystem(toVersionAgnosticHeatlhCareSystem(overlay.healthCareSystem()))
+        .detailedServices(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
+                overlay.detailedServices()))
         .build();
-  }
-
-  /**
-   * Transform version 0 CmsOverlay.HealthCareSystem object to DatamartCmsOverlay.HealthCareSystem
-   * object
-   */
-  public static DatamartCmsOverlay.HealthCareSystem toVersionAgnosticHeatlhCareSystem(
-      CmsOverlay.HealthCareSystem healthCareSystem) {
-    return (healthCareSystem != null)
-        ? DatamartCmsOverlay.HealthCareSystem.builder()
-            .name(healthCareSystem.name())
-            .url(healthCareSystem.url())
-            .covidUrl(healthCareSystem.covidUrl())
-            .healthConnectPhone(healthCareSystem.healthConnectPhone())
-            .build()
-        : null;
   }
 }

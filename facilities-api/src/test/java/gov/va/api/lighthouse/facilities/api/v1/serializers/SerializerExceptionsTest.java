@@ -105,7 +105,7 @@ public class SerializerExceptionsTest {
         new DetailedServiceSerializer(),
         mock(JsonGenerator.class),
         mock(SerializerProvider.class),
-        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.DetailedService.serviceInfo()\" because \"value\" is null");
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.DetailedService.serviceId()\" because \"value\" is null");
   }
 
   @Test
@@ -350,7 +350,7 @@ public class SerializerExceptionsTest {
         new PatientWaitTimeSerializer(),
         mock(JsonGenerator.class),
         mock(SerializerProvider.class),
-        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.DetailedService$PatientWaitTime.newPatientWaitTime()\" because \"value\" is null");
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$PatientWaitTime.service()\" because \"value\" is null");
   }
 
   @Test
@@ -416,6 +416,17 @@ public class SerializerExceptionsTest {
         new ServicesSerializer(),
         mock(JsonGenerator.class),
         mock(SerializerProvider.class),
-        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$Services.health()\" because \"value\" is null");
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$Services.other()\" because \"value\" is null");
+  }
+
+  @Test
+  @SneakyThrows
+  void waitTimesExceptions() {
+    assertNpeThrown(
+        null,
+        new WaitTimesSerializer(),
+        mock(JsonGenerator.class),
+        mock(SerializerProvider.class),
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.Facility$WaitTimes.health()\" because \"value\" is null");
   }
 }

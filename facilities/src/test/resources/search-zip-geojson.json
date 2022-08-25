@@ -35,8 +35,7 @@
           "after_hours" : "877-741-3400",
           "patient_advocate" : "407-631-1187",
           "mental_health_clinic" : "321-637-3788",
-          "enrollment_coordinator" : "321-637-3527",
-          "health_connect" : null
+          "enrollment_coordinator" : "321-637-3527"
         },
         "hours" : {
           "Friday" : "730AM-430PM",

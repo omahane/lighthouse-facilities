@@ -1,8 +1,5 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,13 +17,27 @@ public class ReadHealthByIdJsonTest {
     assertThat(f).isEqualTo(sample());
   }
 
+  private Facility.PatientWaitTime patientWaitTime(
+      Facility.HealthService service, Double newPat, Double oldPat) {
+    Facility.PatientWaitTime.PatientWaitTimeBuilder wait = Facility.PatientWaitTime.builder();
+    if (service != null) {
+      wait.service(service);
+    }
+    if (newPat != null) {
+      wait.newPatientWaitTime(BigDecimal.valueOf(newPat));
+    }
+    if (oldPat != null) {
+      wait.establishedPatientWaitTime(BigDecimal.valueOf(oldPat));
+    }
+
+    return wait.build();
+  }
+
   private FacilityReadResponse sample() {
-    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
-    final var facilityId = "vha_402GA";
     return FacilityReadResponse.builder()
         .facility(
             Facility.builder()
-                .id(facilityId)
+                .id("vha_402GA")
                 .type(Facility.Type.va_facilities)
                 .attributes(
                     Facility.FacilityAttributes.builder()
@@ -52,7 +63,6 @@ public class ReadHealthByIdJsonTest {
                             Facility.Phone.builder()
                                 .fax("207-493-3877")
                                 .main("207-493-3800")
-                                .healthConnect("312-122-4516")
                                 .pharmacy("207-623-8411 x5770")
                                 .afterHours("844-750-8426")
                                 .patientAdvocate("207-623-5760")
@@ -73,45 +83,10 @@ public class ReadHealthByIdJsonTest {
                             Facility.Services.builder()
                                 .health(
                                     List.of(
-                                        Facility.Service.<Facility.HealthService>builder()
-                                            .serviceType(Facility.HealthService.EmergencyCare)
-                                            .name(Facility.HealthService.EmergencyCare.name())
-                                            .link(
-                                                buildTypedServiceLink(
-                                                    linkerUrl,
-                                                    facilityId,
-                                                    Facility.HealthService.EmergencyCare
-                                                        .serviceId()))
-                                            .build(),
-                                        Facility.Service.<Facility.HealthService>builder()
-                                            .serviceType(Facility.HealthService.PrimaryCare)
-                                            .name(Facility.HealthService.PrimaryCare.name())
-                                            .link(
-                                                buildTypedServiceLink(
-                                                    linkerUrl,
-                                                    facilityId,
-                                                    Facility.HealthService.PrimaryCare.serviceId()))
-                                            .build(),
-                                        Facility.Service.<Facility.HealthService>builder()
-                                            .serviceType(Facility.HealthService.MentalHealth)
-                                            .name(Facility.HealthService.MentalHealth.name())
-                                            .link(
-                                                buildTypedServiceLink(
-                                                    linkerUrl,
-                                                    facilityId,
-                                                    Facility.HealthService.MentalHealth
-                                                        .serviceId()))
-                                            .build(),
-                                        Facility.Service.<Facility.HealthService>builder()
-                                            .serviceType(Facility.HealthService.Dermatology)
-                                            .name(Facility.HealthService.Dermatology.name())
-                                            .link(
-                                                buildTypedServiceLink(
-                                                    linkerUrl,
-                                                    facilityId,
-                                                    Facility.HealthService.Dermatology.serviceId()))
-                                            .build()))
-                                .link(buildServicesLink(linkerUrl, facilityId))
+                                        Facility.HealthService.EmergencyCare,
+                                        Facility.HealthService.PrimaryCare,
+                                        Facility.HealthService.MentalHealth,
+                                        Facility.HealthService.Dermatology))
                                 .lastUpdated(LocalDate.parse("2020-02-24"))
                                 .build())
                         .satisfaction(
@@ -123,8 +98,21 @@ public class ReadHealthByIdJsonTest {
                                         .build())
                                 .effectiveDate(LocalDate.parse("2019-06-20"))
                                 .build())
+                        .waitTimes(
+                            Facility.WaitTimes.builder()
+                                .health(
+                                    List.of(
+                                        patientWaitTime(
+                                            Facility.HealthService.Dermatology, 3.714285, null),
+                                        patientWaitTime(
+                                            Facility.HealthService.PrimaryCare,
+                                            13.727272,
+                                            10.392441),
+                                        patientWaitTime(
+                                            Facility.HealthService.MentalHealth, 5.75, 2.634703)))
+                                .effectiveDate(LocalDate.parse("2020-02-24"))
+                                .build())
                         .mobile(false)
-                        .activeStatus(Facility.ActiveStatus.A)
                         .visn("1")
                         .build())
                 .build())

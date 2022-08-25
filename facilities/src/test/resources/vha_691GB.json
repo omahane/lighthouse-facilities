@@ -42,7 +42,7 @@
       "other" : [ ],
       "health" : [
         "primaryCare",
-        "mentalHealthCare",
+        "mentalHealth",
         "orthopedics"
       ],
       "last_updated" : "2020-03-16"
@@ -67,7 +67,7 @@
           "established" : 9.498175
         },
         {
-          "service" : "mentalHealthCare",
+          "service" : "mentalHealth",
           "new" : 7.384615,
           "established" : 0.842696
         }

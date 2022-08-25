@@ -1,8 +1,5 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
-import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,7 +9,6 @@ import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Attributes;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand.Geometry;
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
 import gov.va.api.lighthouse.facilities.api.v0.GenericError;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityType;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
@@ -21,16 +17,10 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import lombok.NonNull;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ModelTest {
-  private String linkerUrl;
-
-  private String facilityId;
-
   private Facility.Addresses addresses() {
     return Facility.Addresses.builder()
         .mailing(
@@ -67,7 +57,7 @@ public class ModelTest {
         FacilityReadResponse.builder()
             .facility(
                 Facility.builder()
-                    .id(facilityId)
+                    .id("98")
                     .type(Type.va_facilities)
                     .attributes(
                         FacilityAttributes.builder()
@@ -80,10 +70,10 @@ public class ModelTest {
                             .address(addresses())
                             .phone(phones())
                             .hours(hours())
-                            .services(services(linkerUrl, facilityId))
+                            .services(services())
                             .satisfaction(satisfaction())
+                            .waitTimes(waitTimes())
                             .mobile(false)
-                            .activeStatus(ActiveStatus.T)
                             .visn("20")
                             .build())
                     .build())
@@ -109,7 +99,7 @@ public class ModelTest {
 
   private Facility facility() {
     return Facility.builder()
-        .id(facilityId)
+        .id("98")
         .type(Type.va_facilities)
         .attributes(
             FacilityAttributes.builder()
@@ -122,10 +112,10 @@ public class ModelTest {
                 .address(addresses())
                 .phone(phones())
                 .hours(hours())
-                .services(services(linkerUrl, facilityId))
+                .services(services())
                 .satisfaction(satisfaction())
+                .waitTimes(waitTimes())
                 .mobile(false)
-                .activeStatus(ActiveStatus.T)
                 .operatingStatus(operatingStatus())
                 .visn("20")
                 .build())
@@ -191,12 +181,15 @@ public class ModelTest {
     List<List<Double>> ring1 = PssgDriveTimeBand.newRing(2);
     ring1.add(PssgDriveTimeBand.coord(1, 2));
     ring1.add(PssgDriveTimeBand.coord(3, 4));
+
     List<List<Double>> ring2 = PssgDriveTimeBand.newRing(2);
     ring2.add(PssgDriveTimeBand.coord(5, 6));
     ring2.add(PssgDriveTimeBand.coord(7, 8));
+
     List<List<List<Double>>> rings = PssgDriveTimeBand.newListOfRings();
     rings.add(ring1);
     rings.add(ring2);
+
     roundTrip(
         PssgDriveTimeBand.builder()
             .attributes(Attributes.builder().stationNumber("No1").fromBreak(10).toBreak(20).build())
@@ -225,29 +218,23 @@ public class ModelTest {
         .build();
   }
 
-  private Facility.Services services(@NonNull String linkerUrl, @NonNull String facilityId) {
+  private Facility.Services services() {
     return Facility.Services.builder()
-        .benefits(
-            List.of(
-                Facility.Service.<Facility.BenefitsService>builder()
-                    .serviceType(Facility.BenefitsService.eBenefitsRegistrationAssistance)
-                    .name(Facility.BenefitsService.eBenefitsRegistrationAssistance.name())
-                    .link(
-                        buildTypedServiceLink(
-                            linkerUrl,
-                            facilityId,
-                            Facility.BenefitsService.eBenefitsRegistrationAssistance.serviceId()))
-                    .build()))
-        .link(buildServicesLink(linkerUrl, facilityId))
+        .benefits(List.of(Facility.BenefitsService.eBenefitsRegistrationAssistance))
         .lastUpdated(LocalDate.parse("2020-03-12"))
         .build();
   }
 
-  @BeforeEach
-  void setup() {
-    final var baseUrl = "http://foo/";
-    final var basePath = "bar";
-    linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
-    facilityId = "98";
+  private Facility.WaitTimes waitTimes() {
+    return Facility.WaitTimes.builder()
+        .health(
+            List.of(
+                Facility.PatientWaitTime.builder()
+                    .newPatientWaitTime(BigDecimal.valueOf(25))
+                    .establishedPatientWaitTime(BigDecimal.valueOf(10))
+                    .service(Facility.HealthService.Audiology)
+                    .build()))
+        .effectiveDate(LocalDate.parse("2020-03-12"))
+        .build();
   }
 }

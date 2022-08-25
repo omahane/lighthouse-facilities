@@ -69,9 +69,9 @@ public class CmsOverlayEmptyFieldsTest {
 
   private List<DetailedService> getDetailedServices() {
     return List.of(
-        getDetailedService(Facility.HealthService.Cardiology),
-        getDetailedService(Facility.HealthService.CaregiverSupport),
-        getDetailedService(Facility.HealthService.EmergencyCare));
+        getDetailedService(Facility.HealthService.Cardiology.name()),
+        getDetailedService(Facility.HealthService.CaregiverSupport.name()),
+        getDetailedService(Facility.HealthService.EmergencyCare.name()));
   }
 
   private Facility.OperatingStatus getOperatingStatus() {
@@ -105,16 +105,7 @@ public class CmsOverlayEmptyFieldsTest {
         .isFalse();
     assertThat(
             CmsOverlay.builder()
-                .detailedServices(
-                    List.of(
-                        DetailedService.builder()
-                            .serviceInfo(
-                                DetailedService.ServiceInfo.builder()
-                                    .serviceId(Facility.HealthService.Cardiology.serviceId())
-                                    .name(Facility.HealthService.Cardiology.name())
-                                    .serviceType(Facility.HealthService.Cardiology.serviceType())
-                                    .build())
-                            .build()))
+                .detailedServices(List.of(DetailedService.builder().name("test").build()))
                 .build()
                 .isEmpty())
         .isFalse();

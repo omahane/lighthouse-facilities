@@ -23,7 +23,7 @@ import lombok.Value;
 @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
 @Schema(description = "GeoJSON-complaint Feature object describing a VA Facility")
 public final class GeoFacility {
-  @Schema(description = "Top level category describing the type of facility.", example = "Feature")
+  @Schema(example = "Feature")
   @NotNull
   Type type;
 
@@ -44,18 +44,13 @@ public final class GeoFacility {
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
-  @Schema(
-      description = "Geometric data giving the physical location of a VA Facility.",
-      nullable = true)
+  @Schema(nullable = true)
   public static final class Geometry {
-    @Schema(description = "Describes the type of geometric data provided.", example = "Point")
+    @Schema(example = "Point")
     @NotNull
     GeometryType type;
 
-    @Schema(
-        description = "The latitude and longitude of the Facility's physical location.",
-        example = "[-77.0367761, 38.9004181]",
-        nullable = true)
+    @Schema(example = "[-77.0367761, 38.9004181]", nullable = true)
     @Size(min = 2, max = 2)
     List<BigDecimal> coordinates;
   }
@@ -84,66 +79,42 @@ public final class GeoFacility {
     "operating_status",
     "visn"
   })
-  @Schema(description = "Details describing a facility.", nullable = true)
   public static final class Properties {
-    @Schema(description = "Identifier representing the Facility.", example = "vha_688")
+    @Schema(example = "vha_688")
     @NotNull
     String id;
 
-    @Schema(
-        description = "Name associated with given facility.",
-        example = "Washington VA Medical Center")
+    @Schema(example = "Washington VA Medical Center", nullable = true)
     String name;
 
     @NotNull
     @JsonProperty("facility_type")
-    @Schema(
-        description =
-            "One of facility top-level type categories (e.g.) "
-                + "health, benefits, cemetery and vet center.",
-        example = "va_health_facility")
     Facility.FacilityType facilityType;
 
-    @Schema(
-        description = "Subtype of facility which can further be used to describe facility.",
-        example = "VA Medical Center (VAMC)",
-        nullable = true)
+    @Schema(example = "VA Medical Center (VAMC)", nullable = true)
     String classification;
 
-    @Schema(
-        description = "Web address of facility.",
-        example = "http://www.washingtondc.va.gov",
-        nullable = true)
+    @Schema(example = "http://www.washingtondc.va.gov", nullable = true)
     String website;
 
     @Schema(description = "Facility time zone", format = "String", example = "America/New_York")
     @JsonProperty("time_zone")
     String timeZone;
 
-    @Schema(description = "Collection of addresses associated with a facility.", nullable = true)
+    @Schema(nullable = true)
     @Valid
     Facility.Addresses address;
 
-    @Schema(
-        description = "Phone number contact for facility.",
-        example = "1-800-827-1000",
-        nullable = true)
+    @Schema(nullable = true)
     @Valid
     Facility.Phone phone;
 
-    @Schema(
-        description = "Operating hours for facility.",
-        example = "\"monday\": \"9:30AM-4:00PM\",",
-        nullable = true)
+    @Schema(nullable = true)
     @Valid
     Facility.Hours hours;
 
     @Schema(
-        description = "Additional information about facility operating hours.",
-        example =
-            "[\"More hours are available for some services.\","
-                + "\"If you need to talk to someone, call the Vet Center at 1-877-927-8387.\","
-                + "\"Vet Center hours are dependent upon outreach assignments.\" ]",
+        example = "Administrative hours are Monday-Friday 8:00 a.m. to 4:30 p.m.",
         nullable = true)
     @JsonProperty("operational_hours_special_instructions")
     String operationalHoursSpecialInstructions;
@@ -164,9 +135,7 @@ public final class GeoFacility {
     @Schema(example = "false", nullable = true)
     Boolean mobile;
 
-    @Schema(
-        description = "This field is deprecated and replaced with \"operating_status\".",
-        nullable = true)
+    @Schema(nullable = true)
     @JsonProperty("active_status")
     Facility.ActiveStatus activeStatus;
 

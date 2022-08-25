@@ -43,10 +43,10 @@
       "health" : [
         "emergencyCare",
         "primaryCare",
-        "mentalHealthCare",
+        "mentalHealth",
         "audiology",
         "dermatology",
-        "dentalServices"
+        "dental"
       ],
       "last_updated" : "2020-03-16"
     },
@@ -75,7 +75,7 @@
           "established" : 2.113052
         },
         {
-          "service" : "mentalHealthCare",
+          "service" : "mentalHealth",
           "new" : 3.045454,
           "established" : 0.844202
         }

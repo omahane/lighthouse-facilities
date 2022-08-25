@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 
 public class FacilitySamples {
@@ -20,7 +19,7 @@ public class FacilitySamples {
 
   @SneakyThrows
   @Builder
-  FacilitySamples(@NonNull List<String> resources, @NonNull String linkerUrl) {
+  FacilitySamples(List<String> resources) {
     var datamartFacilitiesMapper = DatamartFacilitiesJacksonConfig.createMapper();
     datamartFacilities =
         resources.stream()
@@ -38,16 +37,15 @@ public class FacilitySamples {
                     gov.va.api.lighthouse.facilities.api.v0.Facility::id, Function.identity()));
     facilitiesV1 =
         datamartFacilities.stream()
-            .map(df -> FacilityTransformerV1.toFacility(df, linkerUrl))
+            .map(FacilityTransformerV1::toFacility)
             .collect(
                 Collectors.toMap(
                     gov.va.api.lighthouse.facilities.api.v1.Facility::id, Function.identity()));
   }
 
-  static FacilitySamples defaultSamples(@NonNull String linkerUrl) {
+  static FacilitySamples defaultSamples() {
     return FacilitySamples.builder()
         .resources(List.of("/vha_691GB.json", "/vha_740GA.json", "/vha_757.json"))
-        .linkerUrl(linkerUrl)
         .build();
   }
 

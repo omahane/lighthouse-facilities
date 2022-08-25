@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HomeController {
+public class HomeControllerV0 {
   private final Resource openapi;
 
   private final String linkBase;
@@ -23,8 +24,8 @@ public class HomeController {
   private final BuildProperties buildProperties;
 
   @Builder
-  HomeController(
-      @Value("classpath:/openapi.json") Resource openapi,
+  HomeControllerV0(
+      @Value("classpath:/v0/openapi.json") Resource openapi,
       @Value("${facilities.base-path}") String basePath,
       @Autowired BuildProperties buildProperties) {
     this.openapi = openapi;
@@ -63,7 +64,7 @@ public class HomeController {
       value = {"/", "/docs/v0/api", "/v0/facilities/openapi.json"},
       produces = "application/json")
   Object openapiJson() {
-    return openapiContent();
+    return JacksonConfig.createMapper().readValue(openapiContent(), Object.class);
   }
 
   @Builder

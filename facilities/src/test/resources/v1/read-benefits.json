@@ -42,7 +42,6 @@
           "VocationalRehabilitationAndEmploymentAssistance"
         ]
       },
-      "activeStatus" : "A",
       "operatingStatus" : {
         "code" : "NORMAL"
       }

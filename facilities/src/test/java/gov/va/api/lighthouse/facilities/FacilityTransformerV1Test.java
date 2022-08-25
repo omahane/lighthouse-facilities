@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,11 +13,34 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   private DatamartFacility datamartFacility() {
+    return datamartFacility(
+        List.of(
+            DatamartFacility.BenefitsService.EducationClaimAssistance,
+            DatamartFacility.BenefitsService.FamilyMemberClaimAssistance),
+        List.of(
+            DatamartFacility.HealthService.PrimaryCare,
+            DatamartFacility.HealthService.UrgentCare,
+            DatamartFacility.HealthService.EmergencyCare),
+        List.of(DatamartFacility.OtherService.OnlineScheduling),
+        List.of(
+            DatamartFacility.HealthService.Covid19Vaccine,
+            DatamartFacility.HealthService.Cardiology),
+        true);
+  }
+
+  private DatamartFacility datamartFacility(
+      @NonNull List<DatamartFacility.BenefitsService> benefitsForServices,
+      @NonNull List<DatamartFacility.HealthService> healthForServices,
+      @NonNull List<DatamartFacility.OtherService> otherForServices,
+      @NonNull List<DatamartFacility.HealthService> healthForDetailedServices,
+      boolean isActive) {
     return DatamartFacility.builder()
         .id("vha_123GA")
         .type(DatamartFacility.Type.va_facilities)
@@ -68,16 +93,9 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 .mobile(false)
                 .services(
                     DatamartFacility.Services.builder()
-                        .benefits(
-                            List.of(
-                                DatamartFacility.BenefitsService.EducationClaimAssistance,
-                                DatamartFacility.BenefitsService.FamilyMemberClaimAssistance))
-                        .other(List.of(DatamartFacility.OtherService.OnlineScheduling))
-                        .health(
-                            List.of(
-                                DatamartFacility.HealthService.PrimaryCare,
-                                DatamartFacility.HealthService.UrgentCare,
-                                DatamartFacility.HealthService.EmergencyCare))
+                        .benefits(benefitsForServices)
+                        .other(otherForServices)
+                        .health(healthForServices)
                         .lastUpdated(LocalDate.parse("2018-01-01"))
                         .build())
                 .activeStatus(DatamartFacility.ActiveStatus.A)
@@ -114,180 +132,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                         .code(DatamartFacility.OperatingStatusCode.NORMAL)
                         .additionalInfo("additional operating status info")
                         .build())
-                .detailedServices(
-                    List.of(
-                        DatamartDetailedService.builder()
-                            .active(true)
-                            .name("COVID-19 vaccines")
-                            .path("https://www.melbourne.va.gov/services/covid-19-vaccines.asp")
-                            .phoneNumbers(
-                                List.of(
-                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                        .number("937-268-6511")
-                                        .label("Main phone")
-                                        .type("tel")
-                                        .extension("71234")
-                                        .build(),
-                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                        .number("321-213-4253")
-                                        .label("After hours phone")
-                                        .type("tel")
-                                        .extension("12345")
-                                        .build()))
-                            .walkInsAccepted("true")
-                            .referralRequired("false")
-                            .appointmentLeadIn(
-                                "Your VA health care team will contact you if you???re eligible to get a vaccine "
-                                    + "during this time. As the supply of vaccine increases, we'll work with our care "
-                                    + "teams to let Veterans know their options.")
-                            .descriptionFacility("facility description")
-                            .onlineSchedulingAvailable("true")
-                            .serviceLocations(
-                                List.of(
-                                    DatamartDetailedService.DetailedServiceLocation.builder()
-                                        .additionalHoursInfo(
-                                            "Location hours times may vary depending on staff availability")
-                                        .facilityServiceHours(
-                                            DatamartDetailedService.DetailedServiceHours.builder()
-                                                .sunday("Closed")
-                                                .monday("9AM-5PM")
-                                                .tuesday("9AM-5PM")
-                                                .wednesday("9AM-5PM")
-                                                .thursday("9AM-5PM")
-                                                .friday("9AM-5PM")
-                                                .saturday("Closed")
-                                                .build())
-                                        .emailContacts(
-                                            List.of(
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("georgea@va.gov")
-                                                    .emailLabel("George Anderson")
-                                                    .build(),
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("john.doe@va.gov")
-                                                    .emailLabel("John Doe")
-                                                    .build(),
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("jane.doe@va.gov")
-                                                    .emailLabel("Jane Doe")
-                                                    .build()))
-                                        .appointmentPhoneNumbers(
-                                            List.of(
-                                                DatamartDetailedService.AppointmentPhoneNumber
-                                                    .builder()
-                                                    .number("932-934-6731")
-                                                    .type("tel")
-                                                    .label("Main Phone")
-                                                    .extension("3245")
-                                                    .build(),
-                                                DatamartDetailedService.AppointmentPhoneNumber
-                                                    .builder()
-                                                    .number("956-862-6651")
-                                                    .type("mobile")
-                                                    .label("Mobile phone")
-                                                    .build()))
-                                        .serviceLocationAddress(
-                                            DatamartDetailedService.DetailedServiceAddress.builder()
-                                                .address1("50 Irving Street, Northwest")
-                                                .buildingNameNumber("Baxter Building")
-                                                .city("Washington")
-                                                .state("DC")
-                                                .zipCode("20422-0001")
-                                                .countryCode("US")
-                                                .clinicName("Baxter Clinic")
-                                                .wingFloorOrRoomNumber("Wing East")
-                                                .build())
-                                        .build()))
-                            .changed("2021-02-04T22:36:49+00:00")
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .active(true)
-                            .name("Cardiology")
-                            .path("https://www.melbourne.va.gov/services/cardiology.asp")
-                            .phoneNumbers(
-                                List.of(
-                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                        .number("924-268-4253")
-                                        .label("Main phone")
-                                        .type("tel")
-                                        .extension("71432")
-                                        .build(),
-                                    DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                        .number("321-726-6526")
-                                        .label("After hours phone")
-                                        .type("tel")
-                                        .extension("17525")
-                                        .build()))
-                            .walkInsAccepted("true")
-                            .referralRequired("false")
-                            .appointmentLeadIn(
-                                "Do not consume caffeinated beverages 24 hours prior to your appointment.")
-                            .descriptionFacility("cardiology facility description")
-                            .onlineSchedulingAvailable("true")
-                            .serviceLocations(
-                                List.of(
-                                    DatamartDetailedService.DetailedServiceLocation.builder()
-                                        .additionalHoursInfo(
-                                            "Location hours times may vary depending on staff availability")
-                                        .facilityServiceHours(
-                                            DatamartDetailedService.DetailedServiceHours.builder()
-                                                .sunday("Closed")
-                                                .monday("9AM-5PM")
-                                                .tuesday("9AM-5PM")
-                                                .wednesday("9AM-5PM")
-                                                .thursday("9AM-5PM")
-                                                .friday("9AM-5PM")
-                                                .saturday("Closed")
-                                                .build())
-                                        .emailContacts(
-                                            List.of(
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("georgea@va.gov")
-                                                    .emailLabel("George Anderson")
-                                                    .build(),
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("john.doe@va.gov")
-                                                    .emailLabel("John Doe")
-                                                    .build(),
-                                                DatamartDetailedService.DetailedServiceEmailContact
-                                                    .builder()
-                                                    .emailAddress("jane.doe@va.gov")
-                                                    .emailLabel("Jane Doe")
-                                                    .build()))
-                                        .appointmentPhoneNumbers(
-                                            List.of(
-                                                DatamartDetailedService.AppointmentPhoneNumber
-                                                    .builder()
-                                                    .number("932-934-6731")
-                                                    .type("tel")
-                                                    .label("Main Phone")
-                                                    .extension("3245")
-                                                    .build(),
-                                                DatamartDetailedService.AppointmentPhoneNumber
-                                                    .builder()
-                                                    .number("956-862-6651")
-                                                    .type("mobile")
-                                                    .label("Mobile phone")
-                                                    .build()))
-                                        .serviceLocationAddress(
-                                            DatamartDetailedService.DetailedServiceAddress.builder()
-                                                .address1("2513 Irving Street, Northwest")
-                                                .buildingNameNumber("Baxter Building")
-                                                .city("Washington")
-                                                .state("DC")
-                                                .zipCode("20422-0001")
-                                                .countryCode("US")
-                                                .clinicName("Walter Read Medical Facility")
-                                                .wingFloorOrRoomNumber("Wing East")
-                                                .build())
-                                        .build()))
-                            .changed("2021-02-04T22:36:49+00:00")
-                            .build()))
+                .detailedServices(getHealthDetailedServices(healthForDetailedServices, isActive))
                 .operationalHoursSpecialInstructions(
                     "Vet center 1 is available. | Vet center 2 is available. | Vet center 3 is available.")
                 .build())
@@ -304,18 +149,26 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .ignoringFields("attributes.detailedServices")
+        .ignoringFields("attributes.activeStatus")
         .isEqualTo(datamartFacility);
   }
 
   private Facility facility() {
     return facility(
         List.of(
+            Facility.BenefitsService.EducationClaimAssistance,
+            Facility.BenefitsService.FamilyMemberClaimAssistance),
+        List.of(
             Facility.HealthService.PrimaryCare,
             Facility.HealthService.UrgentCare,
-            Facility.HealthService.EmergencyCare));
+            Facility.HealthService.EmergencyCare),
+        List.of(Facility.OtherService.OnlineScheduling));
   }
 
-  private Facility facility(List<Facility.HealthService> healthServices) {
+  private Facility facility(
+      @NonNull List<Facility.BenefitsService> benefitsForServices,
+      @NonNull List<Facility.HealthService> healthForServices,
+      @NonNull List<Facility.OtherService> otherForServices) {
     return Facility.builder()
         .id("vha_123GA")
         .type(Facility.Type.va_facilities)
@@ -368,15 +221,11 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 .mobile(false)
                 .services(
                     Facility.Services.builder()
-                        .benefits(
-                            List.of(
-                                Facility.BenefitsService.EducationClaimAssistance,
-                                Facility.BenefitsService.FamilyMemberClaimAssistance))
-                        .other(List.of(Facility.OtherService.OnlineScheduling))
-                        .health(healthServices)
+                        .benefits(benefitsForServices)
+                        .other(otherForServices)
+                        .health(healthForServices)
                         .lastUpdated(LocalDate.parse("2018-01-01"))
                         .build())
-                .activeStatus(Facility.ActiveStatus.A)
                 .visn("20")
                 .satisfaction(
                     Facility.Satisfaction.builder()
@@ -428,6 +277,105 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toFacility(FacilityTransformerV1.toVersionAgnostic(facility)))
         .usingRecursiveComparison()
         .isEqualTo(facility);
+  }
+
+  private DatamartDetailedService getHealthDetailedService(
+      @NonNull DatamartFacility.HealthService healthService, boolean isActive) {
+    return DatamartDetailedService.builder()
+        .active(isActive)
+        .name(
+            DatamartFacility.HealthService.Covid19Vaccine.equals(healthService)
+                ? "COVID-19 vaccines"
+                : healthService.name())
+        .serviceId(uncapitalize(healthService.name()))
+        .phoneNumbers(
+            List.of(
+                DatamartDetailedService.AppointmentPhoneNumber.builder()
+                    .number("937-268-6511")
+                    .label("Main phone")
+                    .type("tel")
+                    .extension("71234")
+                    .build(),
+                DatamartDetailedService.AppointmentPhoneNumber.builder()
+                    .number("321-213-4253")
+                    .label("After hours phone")
+                    .type("tel")
+                    .extension("12345")
+                    .build()))
+        .walkInsAccepted("true")
+        .referralRequired("false")
+        .appointmentLeadIn(
+            "Your VA health care team will contact you if you???re eligible to get a vaccine "
+                + "during this time. As the supply of vaccine increases, we'll work with our care "
+                + "teams to let Veterans know their options.")
+        .descriptionFacility("facility description")
+        .onlineSchedulingAvailable("true")
+        .serviceLocations(
+            List.of(
+                DatamartDetailedService.DetailedServiceLocation.builder()
+                    .additionalHoursInfo(
+                        "Location hours times may vary depending on staff availability")
+                    .facilityServiceHours(
+                        DatamartDetailedService.DetailedServiceHours.builder()
+                            .sunday("Closed")
+                            .monday("9AM-5PM")
+                            .tuesday("9AM-5PM")
+                            .wednesday("9AM-5PM")
+                            .thursday("9AM-5PM")
+                            .friday("9AM-5PM")
+                            .saturday("Closed")
+                            .build())
+                    .emailContacts(
+                        List.of(
+                            DatamartDetailedService.DetailedServiceEmailContact.builder()
+                                .emailAddress("georgea@va.gov")
+                                .emailLabel("George Anderson")
+                                .build(),
+                            DatamartDetailedService.DetailedServiceEmailContact.builder()
+                                .emailAddress("john.doe@va.gov")
+                                .emailLabel("John Doe")
+                                .build(),
+                            DatamartDetailedService.DetailedServiceEmailContact.builder()
+                                .emailAddress("jane.doe@va.gov")
+                                .emailLabel("Jane Doe")
+                                .build()))
+                    .appointmentPhoneNumbers(
+                        List.of(
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
+                                .number("932-934-6731")
+                                .type("tel")
+                                .label("Main Phone")
+                                .extension("3245")
+                                .build(),
+                            DatamartDetailedService.AppointmentPhoneNumber.builder()
+                                .number("956-862-6651")
+                                .type("mobile")
+                                .label("Mobile phone")
+                                .build()))
+                    .serviceLocationAddress(
+                        DatamartDetailedService.DetailedServiceAddress.builder()
+                            .address1("50 Irving Street, Northwest")
+                            .buildingNameNumber("Baxter Building")
+                            .city("Washington")
+                            .state("DC")
+                            .zipCode("20422-0001")
+                            .countryCode("US")
+                            .clinicName("Baxter Clinic")
+                            .wingFloorOrRoomNumber("Wing East")
+                            .build())
+                    .build()))
+        .changed("2021-02-04T22:36:49+00:00")
+        .build();
+  }
+
+  private List<DatamartDetailedService> getHealthDetailedServices(
+      @NonNull List<DatamartFacility.HealthService> healthServices, boolean isActive) {
+    return healthServices.stream()
+        .map(
+            hs -> {
+              return getHealthDetailedService(hs, isActive);
+            })
+        .collect(Collectors.toList());
   }
 
   @Test
@@ -534,21 +482,25 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void nonLosslessFacilityVisitorRoundtrip() {
     Facility facilityWithWholeHealth =
         facility(
+            emptyList(),
             List.of(
                 Facility.HealthService.PrimaryCare,
                 Facility.HealthService.UrgentCare,
                 Facility.HealthService.EmergencyCare,
                 Facility.HealthService.MentalHealth,
                 Facility.HealthService.Dental,
-                Facility.HealthService.WholeHealth));
+                Facility.HealthService.WholeHealth),
+            emptyList());
     Facility facilityWithoutWholeHealth =
         facility(
+            emptyList(),
             List.of(
                 Facility.HealthService.PrimaryCare,
                 Facility.HealthService.UrgentCare,
                 Facility.HealthService.EmergencyCare,
                 Facility.HealthService.MentalHealth,
-                Facility.HealthService.Dental));
+                Facility.HealthService.Dental),
+            emptyList());
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
@@ -730,6 +682,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .ignoringFields("attributes.detailedServices")
+        .ignoringFields("attributes.activeStatus")
         .isEqualTo(expected);
   }
 

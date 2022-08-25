@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import lombok.SneakyThrows;
@@ -12,16 +13,23 @@ public class DetailedServiceResponseEmptyFieldsTest {
   void isEmpty() {
     // Empty
     assertThat(DetailedServiceResponse.builder().build().isEmpty()).isTrue();
-    assertThat(
-            DetailedServiceResponse.builder()
-                .data(DetailedService.builder().build())
-                .build()
-                .isEmpty())
-        .isTrue();
     // Not empty
     assertThat(
             DetailedServiceResponse.builder()
-                .data(DetailedService.builder().name("test").build())
+                .data(
+                    DetailedService.builder()
+                        .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
+                        .build())
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedServiceResponse.builder()
+                .data(
+                    DetailedService.builder()
+                        .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
+                        .name("test")
+                        .build())
                 .build()
                 .isEmpty())
         .isFalse();

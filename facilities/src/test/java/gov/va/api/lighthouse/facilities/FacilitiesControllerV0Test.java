@@ -153,19 +153,29 @@ public class FacilitiesControllerV0Test {
   @Test
   void geoFacilitiesByBoundingBox() {
     when(fr.findAll(
-            FacilityRepository.BoundingBoxSpecification.builder()
-                .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
-                .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
-                .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
-                .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .boundingBox(
+                    FacilityRepository.BoundingBoxSpecification.builder()
+                        .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
+                        .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
+                        .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
+                        .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build()))
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
     assertThat(
@@ -211,16 +221,26 @@ public class FacilitiesControllerV0Test {
   @Test
   void geoFacilitiesByLatLong() {
     when(fr.findAll(
-            FacilityRepository.TypeServicesIdsSpecification.builder()
-                .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .ids(
+                    FacilityRepository.TypeServicesIdsSpecification.builder()
+                        .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build()))
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
@@ -292,16 +312,23 @@ public class FacilitiesControllerV0Test {
     when(mockPage.stream())
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
     when(fr.findAll(
-            FacilityRepository.StateSpecification.builder()
-                .state("FL")
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .state(FacilityRepository.StateSpecification.builder().state("FL").build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
@@ -342,16 +369,23 @@ public class FacilitiesControllerV0Test {
     when(mockPage.stream())
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
     when(fr.findAll(
-            FacilityRepository.ZipSpecification.builder()
-                .zip("32934")
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
@@ -374,19 +408,29 @@ public class FacilitiesControllerV0Test {
   @Test
   void jsonFacilitiesByBoundingBox() {
     when(fr.findAll(
-            FacilityRepository.BoundingBoxSpecification.builder()
-                .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
-                .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
-                .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
-                .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .boundingBox(
+                    FacilityRepository.BoundingBoxSpecification.builder()
+                        .minLongitude(BigDecimal.valueOf(-97.65).min(BigDecimal.valueOf(-97.67)))
+                        .maxLongitude(BigDecimal.valueOf(-97.65).max(BigDecimal.valueOf(-97.67)))
+                        .minLatitude(BigDecimal.valueOf(26.16).min(BigDecimal.valueOf(26.18)))
+                        .maxLatitude(BigDecimal.valueOf(26.16).max(BigDecimal.valueOf(26.18)))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build()))
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
     assertThat(
@@ -508,16 +552,26 @@ public class FacilitiesControllerV0Test {
   @Test
   void jsonFacilitiesByLatLong() {
     when(fr.findAll(
-            FacilityRepository.TypeServicesIdsSpecification.builder()
-                .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .ids(
+                    FacilityRepository.TypeServicesIdsSpecification.builder()
+                        .ids(List.of(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "740GA")))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build()))
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
@@ -657,25 +711,31 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void jsonFacilitiesByState() {
+    FacilityRepository.FacilitySpecificationHelper spec =
+        FacilityRepository.FacilitySpecificationHelper.builder()
+            .state(FacilityRepository.StateSpecification.builder().state("FL").build())
+            .facilityType(
+                FacilityRepository.FacilityTypeSpecification.builder()
+                    .facilityType(FacilityEntity.Type.vha)
+                    .build())
+            .services(
+                FacilityRepository.ServicesSpecification.builder()
+                    .services(
+                        ImmutableSet.copyOf(
+                            List.of(
+                                Facility.HealthService.Cardiology,
+                                Facility.HealthService.Audiology,
+                                Facility.HealthService.Urology)))
+                    .build())
+            .mobile(FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
+            .build();
     Page mockPage = mock(Page.class);
     when(mockPage.get())
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
-    when(fr.findAll(
-            FacilityRepository.StateSpecification.builder()
-                .state("FL")
-                .facilityType(FacilityEntity.Type.vha)
-                .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
-                .build(),
-            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
+    when(fr.findAll(spec, PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
             controller()
@@ -752,16 +812,23 @@ public class FacilitiesControllerV0Test {
     when(mockPage.stream())
         .thenReturn(List.of(FacilitySamples.defaultSamples().facilityEntity("vha_740GA")).stream());
     when(fr.findAll(
-            FacilityRepository.ZipSpecification.builder()
-                .zip("32934")
-                .facilityType(FacilityEntity.Type.vha)
+            FacilityRepository.FacilitySpecificationHelper.builder()
+                .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
+                .mobile(
+                    FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .services(
-                    ImmutableSet.copyOf(
-                        List.of(
-                            Facility.HealthService.Cardiology,
-                            Facility.HealthService.Audiology,
-                            Facility.HealthService.Urology)))
-                .mobile(Boolean.FALSE)
+                    FacilityRepository.ServicesSpecification.builder()
+                        .services(
+                            ImmutableSet.copyOf(
+                                List.of(
+                                    Facility.HealthService.Cardiology,
+                                    Facility.HealthService.Audiology,
+                                    Facility.HealthService.Urology)))
+                        .build())
+                .facilityType(
+                    FacilityRepository.FacilityTypeSpecification.builder()
+                        .facilityType(FacilityEntity.Type.vha)
+                        .build())
                 .build(),
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);

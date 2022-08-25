@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities.collector;
 
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
@@ -8,11 +9,16 @@ import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
+import gov.va.api.lighthouse.facilities.DatamartDetailedService;
+import gov.va.api.lighthouse.facilities.DatamartFacility;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -220,7 +226,6 @@ public class FacilitiesCollectorTest {
                 mockAtcBaseUrl,
                 mockAtpBaseUrl,
                 null));
-
     when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays())
         .thenThrow(new NullPointerException("oh noes"));
     FacilitiesCollector collector =
@@ -234,12 +239,10 @@ public class FacilitiesCollectorTest {
     assertThrows(
         CollectorExceptions.CollectorException.class,
         () -> collector.updateOperatingStatusFromCmsOverlay(new ArrayList<>()));
-
     ResultSet mockRs = mock(ResultSet.class);
     when(mockRs.getBoolean("VCTR2")).thenThrow(new SQLException("oh noes"));
     assertThrows(SQLException.class, () -> FacilitiesCollector.toVastEntity(mockRs));
     assertThrows(NullPointerException.class, () -> FacilitiesCollector.withTrailingSlash(null));
-
     assertThrows(
         IllegalArgumentException.class, () -> FacilitiesCollector.loadCaregiverSupport(null));
   }
@@ -265,6 +268,62 @@ public class FacilitiesCollectorTest {
                     "http://atp",
                     "http://statecems")
                 .collectFacilities());
+  }
+
+  @Test
+  void onlyCovidVaccineServiceStoredInFacility() {
+    InsecureRestTemplateProvider mockInsecureRestTemplateProvider =
+        mock(InsecureRestTemplateProvider.class);
+    JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+    CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+    String mockAtcBaseUrl = "atcBaseUrl";
+    String mockAtpBaseUrl = "atpBaseUrl";
+    String mockCemeteriesBaseUrl = "cemeteriesBaseUrl";
+    FacilitiesCollector collector =
+        new FacilitiesCollector(
+            mockInsecureRestTemplateProvider,
+            mockJdbcTemplate,
+            mockCmsOverlayCollector,
+            mockAtcBaseUrl,
+            mockAtpBaseUrl,
+            mockCemeteriesBaseUrl);
+    DatamartFacility testFacility =
+        DatamartFacility.builder()
+            .id("vha_123")
+            .attributes(DatamartFacility.FacilityAttributes.builder().build())
+            .build();
+    DatamartCmsOverlay testOverlay =
+        DatamartCmsOverlay.builder()
+            .operatingStatus(
+                DatamartFacility.OperatingStatus.builder()
+                    .code(DatamartFacility.OperatingStatusCode.NORMAL)
+                    .build())
+            .detailedServices(
+                List.of(
+                    DatamartDetailedService.builder()
+                        .serviceId(
+                            uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()))
+                        .name("Covid-19 Vaccines")
+                        .build(),
+                    DatamartDetailedService.builder()
+                        .serviceId(uncapitalize(DatamartFacility.HealthService.Cardiology.name()))
+                        .name("Cardiology")
+                        .build()))
+            .build();
+    HashMap<String, DatamartCmsOverlay> testCollectorMap = new HashMap<>();
+    testCollectorMap.put("vha_123", testOverlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(testCollectorMap);
+    collector.updateOperatingStatusFromCmsOverlay(List.of(testFacility));
+    assertThat(
+            testFacility.attributes().detailedServices().stream()
+                .map(DatamartDetailedService::serviceId)
+                .collect(Collectors.toList()))
+        .contains(uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name()));
+    assertThat(
+            testFacility.attributes().detailedServices().stream()
+                .map(DatamartDetailedService::serviceId)
+                .collect(Collectors.toList()))
+        .doesNotContain(uncapitalize(DatamartFacility.HealthService.Cardiology.name()));
   }
 
   @Test

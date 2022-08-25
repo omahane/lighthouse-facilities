@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static gov.va.api.lighthouse.facilities.DatamartDetailedService.INVALID_SVC_ID;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_benefits_facility;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_cemetery;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_health_facility;
@@ -10,6 +11,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.vet
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.isBlank;
 import static java.util.stream.Collectors.toCollection;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,18 +29,23 @@ import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -190,6 +197,147 @@ public class InternalFacilitiesController {
     return null;
   }
 
+  /** Check for invalid service ids in existing CMS overlays. */
+  @GetMapping(value = "/facilities/detailedServices/overlay/check-for-invalid-service-ids")
+  ResponseEntity<String> checkForInvalidServiceIdsInCmsOverlay() {
+    boolean noErrors = true;
+    StringBuilder responseBody = new StringBuilder();
+    try {
+      log.info("Checking service ids of all overlay detailed services.");
+      Streams.stream(cmsOverlayRepository.findAll())
+          .parallel()
+          .forEach(
+              c -> {
+                String responseMsg;
+                try {
+                  List<DatamartDetailedService> updatedCmsServices =
+                      CmsOverlayHelper.getDetailedServices(c.cmsServices());
+                  if (containsInvalidServiceId(updatedCmsServices)) {
+                    String serviceNamesWithInvalidServiceIds =
+                        updatedCmsServices.stream()
+                            .filter(ds -> ds.serviceId().equals(INVALID_SVC_ID))
+                            .map(ds -> ds.name())
+                            .collect(Collectors.joining(", "));
+                    responseMsg =
+                        String.format(
+                            "Invalid service id(s) found for %s existing detailed services in "
+                                + "overlay with %s operating status code for the following "
+                                + "service names: %s",
+                            c.id().toIdString(),
+                            CmsOverlayHelper.getOperatingStatus(c.cmsOperatingStatus()).code(),
+                            serviceNamesWithInvalidServiceIds);
+                    log.error(responseMsg);
+                    responseBody.append(responseMsg).append("\n");
+                  }
+                } catch (Exception ex) {
+                  log.error(
+                      "Failed to check service id for detailed services associated with {}: {}",
+                      c.id().toIdString(),
+                      ex.getMessage());
+                  responseBody
+                      .append("Failed to check service id ")
+                      .append("for detailed services associated with ")
+                      .append(c.id().toIdString())
+                      .append(":\n")
+                      .append(ex.getMessage())
+                      .append("\n");
+                }
+              });
+    } catch (Exception e) {
+      noErrors = false;
+      log.error("Failed to check service id for all overlay detailed services: {}", e.getMessage());
+      responseBody
+          .append("Failed to check service id for all overlay detailed services:\n")
+          .append(e.getMessage())
+          .append("\n");
+    }
+    if (noErrors) {
+      if (responseBody.isEmpty()) {
+        responseBody
+            .append("No failures to perform invalid service id check encountered.\n")
+            .append("No invalid service ids identified for existing overlays.\n");
+      }
+      String msg = "Completed invalid service id check for all overlay detailed services!";
+      log.info(msg);
+      responseBody.append(msg).append("\n");
+      return ResponseEntity.ok().body(responseBody.toString());
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody.toString());
+  }
+
+  /** Check for invalid service ids in facility attributes. */
+  @GetMapping(value = "/facilities/detailedServices/check-for-invalid-service-ids")
+  ResponseEntity<String> checkForInvalidServiceIdsInFacilityAttributes() {
+    boolean noErrors = true;
+    StringBuilder responseBody = new StringBuilder();
+    try {
+      log.info("Checking service ids of all facility detailed services.");
+      Streams.stream(facilityRepository.findAll())
+          .parallel()
+          .forEach(
+              f -> {
+                String responseMsg;
+                try {
+                  DatamartFacility facility =
+                      DATAMART_MAPPER.readValue(f.facility(), DatamartFacility.class);
+                  DatamartFacility.OperatingStatus operatingStatus =
+                      facility.attributes().operatingStatus();
+                  List<DatamartDetailedService> facilityDetailedServices =
+                      facility.attributes().detailedServices();
+                  if (containsInvalidServiceId(facilityDetailedServices)) {
+                    String serviceNamesWithInvalidServiceIds =
+                        facilityDetailedServices.stream()
+                            .filter(ds -> ds.serviceId().equals(INVALID_SVC_ID))
+                            .map(ds -> ds.name())
+                            .collect(Collectors.joining(", "));
+                    responseMsg =
+                        String.format(
+                            "Invalid service id(s) found for %s existing detailed services in "
+                                + "facility attributes with %s operating status code for the "
+                                + "following service names: %s",
+                            f.id().toIdString(),
+                            operatingStatus.code,
+                            serviceNamesWithInvalidServiceIds);
+                    log.error(responseMsg);
+                    responseBody.append(responseMsg).append("\n");
+                  }
+                } catch (Exception ex) {
+                  log.error(
+                      "Failed to check service id for detailed services associated with {}: {}",
+                      f.id().toIdString(),
+                      ex.getMessage());
+                  responseBody
+                      .append("Failed to check service id ")
+                      .append("for detailed services associated with ")
+                      .append(f.id().toIdString())
+                      .append(":\n")
+                      .append(ex.getMessage())
+                      .append("\n");
+                }
+              });
+    } catch (Exception e) {
+      noErrors = false;
+      log.error(
+          "Failed to check service ids for all facility detailed services: {}", e.getMessage());
+      responseBody
+          .append("Failed to check service ids for all facility detailed services:\n")
+          .append(e.getMessage())
+          .append("\n");
+    }
+    if (noErrors) {
+      if (responseBody.isEmpty()) {
+        responseBody
+            .append("No failures to perform invalid service id check encountered.\n")
+            .append("No invalid service ids identified for existing facility attributes.\n");
+      }
+      String msg = "Completed invalid service id check for all facility detailed services!";
+      log.info(msg);
+      responseBody.append(msg).append("\n");
+      return ResponseEntity.ok().body(responseBody.toString());
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody.toString());
+  }
+
   private Optional<CmsOverlayEntity> cmsOverlayEntityById(String id) {
     FacilityEntity.Pk pk = null;
     try {
@@ -198,6 +346,13 @@ public class InternalFacilitiesController {
       return Optional.empty();
     }
     return cmsOverlayRepository.findById(pk);
+  }
+
+  private boolean containsInvalidServiceId(List<DatamartDetailedService> detailedServices) {
+    return ObjectUtils.isNotEmpty(detailedServices)
+        && detailedServices.stream()
+            .parallel()
+            .anyMatch(ds -> ds.serviceId().equals(INVALID_SVC_ID));
   }
 
   /**
@@ -391,7 +546,6 @@ public class InternalFacilitiesController {
       saveAsMissing(response, entity);
       return;
     }
-
     facilityRepository.delete(entity);
   }
 
@@ -420,6 +574,45 @@ public class InternalFacilitiesController {
                   id.toIdString(), "Failed to mark facility as missing: " + e.getMessage()));
       throw e;
     }
+  }
+
+  /**
+   * WARNING: This method will overwrite existing detailed services in CMS overlay with those
+   * containing a matching serviceId found within facility attributes. Engineer discretion is
+   * advised.
+   */
+  @GetMapping(value = "/facilities/detailedServices/transfer-to-cms-overlay-table")
+  ResponseEntity<String> updateAllDetailedServiceIdAndTransferToCmsOverlay() {
+    boolean noErrors = true;
+    StringBuilder responseBody = new StringBuilder();
+    try {
+      log.warn(
+          "Attempting to update and transfer all facility detailed services to cms_overlay table.");
+      Streams.stream(facilityRepository.findAll())
+          .parallel()
+          .forEach(
+              f ->
+                  responseBody.append(
+                      updateDetailedServiceIdAndTransferToCmsOverlay(f.facility())));
+    } catch (Exception e) {
+      noErrors = false;
+      log.error(
+          "Failed to update and transfer all facility detailed services to cms_overlay table: {}",
+          e.getMessage());
+      responseBody
+          .append("Failed to update and transfer all facility detailed services ")
+          .append("to cms_overlay table:\n")
+          .append(e.getMessage())
+          .append("\n");
+    }
+    if (noErrors) {
+      String msg =
+          "Completed update and transfer of all facility detailed services to cms_overlay table!";
+      log.warn(msg);
+      responseBody.append(msg).append("\n");
+      return ResponseEntity.ok().body(responseBody.toString());
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody.toString());
   }
 
   @SneakyThrows
@@ -599,6 +792,79 @@ public class InternalFacilitiesController {
     }
   }
 
+  /**
+   * WARNING: This method will overwrite existing detailed services in CMS overlay with those
+   * containing a matching serviceId found within facility attributes. Engineer discretion is
+   * advised.
+   */
+  @SneakyThrows
+  private String updateDetailedServiceIdAndTransferToCmsOverlay(String facilityJson) {
+    String responseMsg;
+    StringBuilder responseBody = new StringBuilder();
+    DatamartFacility df = DATAMART_MAPPER.readValue(facilityJson, DatamartFacility.class);
+    DatamartFacility.OperatingStatus operatingStatus = df.attributes().operatingStatus();
+    List<DatamartDetailedService> facilityDetailedServices = df.attributes().detailedServices();
+    if (operatingStatus != null) {
+      // Merge facility detailed services with those of existing overlay
+      Set<DatamartDetailedService> mergedDetailedServices =
+          new TreeSet<>(
+              new Comparator<DatamartDetailedService>() {
+                @Override
+                public int compare(DatamartDetailedService dds1, DatamartDetailedService dds2) {
+                  return dds1.serviceId().compareTo(dds2.serviceId());
+                }
+              });
+      if (isNotEmpty(facilityDetailedServices)) {
+        responseMsg =
+            String.format(
+                "Updating service id for detailed services associated with facility %s", df.id());
+        log.warn(responseMsg);
+        responseBody.append(responseMsg).append("\n");
+        if (containsInvalidServiceId(facilityDetailedServices)) {
+          responseMsg =
+              String.format(
+                  "Invalid service id(s) found for %s existing detailed services "
+                      + "in facility attributes",
+                  df.id());
+          log.error(responseMsg);
+          responseBody.append(responseMsg).append("\n");
+        }
+        mergedDetailedServices.addAll(facilityDetailedServices);
+      }
+      Optional<CmsOverlayEntity> existingOverlay =
+          cmsOverlayRepository.findById(FacilityEntity.Pk.fromIdString(df.id()));
+      if (existingOverlay.isPresent()) {
+        List<DatamartDetailedService> updatedCmsServices =
+            CmsOverlayHelper.getDetailedServices(existingOverlay.get().cmsServices());
+        if (isNotEmpty(updatedCmsServices)) {
+          responseMsg =
+              String.format(
+                  "Updating service id for existing %s CMS overlay detailed services", df.id());
+          log.warn(responseMsg);
+          responseBody.append(responseMsg).append("\n");
+        }
+        if (containsInvalidServiceId(updatedCmsServices)) {
+          responseMsg =
+              String.format(
+                  "Invalid service id(s) found for %s existing CMS overlay detailed services",
+                  df.id());
+          log.error(responseMsg);
+          responseBody.append(responseMsg).append("\n");
+        }
+        mergedDetailedServices.addAll(updatedCmsServices);
+      }
+      cmsOverlayRepository.save(
+          CmsOverlayEntity.builder()
+              .id(FacilityEntity.Pk.fromIdString(df.id()))
+              .cmsOperatingStatus(DATAMART_MAPPER.writeValueAsString(operatingStatus))
+              .cmsServices(
+                  CmsOverlayHelper.serializeDetailedServices(
+                      mergedDetailedServices.stream().toList()))
+              .build());
+    }
+    return responseBody.toString();
+  }
+
   private void updateFacility(ReloadResponse response, DatamartFacility datamartFacility) {
     FacilityEntity.Pk pk;
     try {
@@ -627,6 +893,80 @@ public class InternalFacilitiesController {
     response.facilitiesCreated().add(datamartFacility.id());
     log.warn("Creating new facility {}", datamartFacility.id());
     updateAndSave(response, FacilityEntity.builder().id(pk).build(), datamartFacility);
+  }
+
+  /** Update service id for existing CMS overlays. */
+  @GetMapping(value = "/facilities/detailedServices/update-exisiting-overlay-service-ids")
+  ResponseEntity<String> updateServiceIdForExistingCmsOverlays() {
+    boolean noErrors = true;
+    StringBuilder responseBody = new StringBuilder();
+    try {
+      log.warn(
+          "Attempting to update service id for existing detailed services contained "
+              + "in overlay.");
+      Streams.stream(cmsOverlayRepository.findAll())
+          .parallel()
+          .forEach(
+              c -> {
+                String responseMsg;
+                try {
+                  if (StringUtils.isNotBlank(c.cmsServices())) {
+                    responseMsg =
+                        String.format(
+                            "Updating service id for detailed services associated with overlay %s",
+                            c.id().toIdString());
+                    log.warn(responseMsg);
+                    responseBody.append(responseMsg).append("\n");
+                    List<DatamartDetailedService> updatedCmsServices =
+                        CmsOverlayHelper.getDetailedServices(c.cmsServices());
+                    if (containsInvalidServiceId(updatedCmsServices)) {
+                      responseMsg =
+                          String.format(
+                              "Invalid service id(s) found for %s existing detailed services "
+                                  + "in overlay",
+                              c.id().toIdString());
+                      log.error(responseMsg);
+                      responseBody.append(responseMsg).append("\n");
+                    }
+                    cmsOverlayRepository.save(
+                        c.cmsServices(
+                            CmsOverlayHelper.serializeDetailedServices(updatedCmsServices)));
+                  }
+                } catch (Exception ex) {
+                  log.error(
+                      "Failed to update service id for {} existing detailed services "
+                          + "in overlay: {}",
+                      c.id().toIdString(),
+                      ex.getMessage());
+                  responseBody
+                      .append("Failed to update service id for ")
+                      .append(c.id().toIdString())
+                      .append(" existing detailed services in overlay:\n")
+                      .append(ex.getMessage())
+                      .append("\n");
+                }
+              });
+    } catch (Exception e) {
+      noErrors = false;
+      log.error(
+          "Failed to update service id for existing detailed services in overlay: {}",
+          e.getMessage());
+      responseBody
+          .append("Failed to update service id for existing detailed services in overlay:\n")
+          .append(e.getMessage())
+          .append("\n");
+    }
+    if (noErrors) {
+      if (responseBody.isEmpty()) {
+        responseBody.append(
+            "No failures to perform service id update encountered for existing overlays.\n");
+      }
+      String msg = "Completed service id update for existing detailed services in overlay!";
+      log.warn(msg);
+      responseBody.append(msg).append("\n");
+      return ResponseEntity.ok().body(responseBody.toString());
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody.toString());
   }
 
   @PostMapping(value = "/reload")

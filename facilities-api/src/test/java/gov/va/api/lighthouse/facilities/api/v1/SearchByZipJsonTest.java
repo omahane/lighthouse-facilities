@@ -167,7 +167,6 @@ public class SearchByZipJsonTest {
                                     .effectiveDate(LocalDate.parse("2020-03-02"))
                                     .build())
                             .mobile(false)
-                            .activeStatus(Facility.ActiveStatus.A)
                             .visn("8")
                             .build())
                     .build()))

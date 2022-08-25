@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import gov.va.api.lighthouse.facilities.api.v0.deserializers.GeoFacilityPropertiesDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
@@ -79,6 +81,7 @@ public final class GeoFacility {
     "operating_status",
     "visn"
   })
+  @JsonDeserialize(using = GeoFacilityPropertiesDeserializer.class)
   public static final class Properties {
     @Schema(example = "vha_688")
     @NotNull

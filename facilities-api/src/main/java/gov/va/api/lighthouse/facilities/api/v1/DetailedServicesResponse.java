@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import gov.va.api.lighthouse.facilities.api.v1.deserializers.DetailedServicesResponseDeserializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServicesMetadataSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServicesResponseSerializer;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = DetailedServicesResponseSerializer.class)
+@JsonDeserialize(using = DetailedServicesResponseDeserializer.class)
 public class DetailedServicesResponse implements CanBeEmpty {
   List<@Valid DetailedService> data;
 

@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 public interface DetailedServicesApi {
   @Operation(
       summary = "Retrieve all services for a given facility",
+<<<<<<< HEAD
       description =
           "Query facility services using service and serviceType parameters. "
               + "Multiple services may be provided by separating services using a comma "
@@ -39,6 +40,8 @@ public interface DetailedServicesApi {
               + "- `serviceType`"
               + "\n\n"
               + " Not supplying both parameters will return `400 Bad Request`. ",
+=======
+>>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
       operationId = "getServicesById",
       tags = {"facilities"},
       security = @SecurityRequirement(name = "apikey"))
@@ -105,6 +108,7 @@ public interface DetailedServicesApi {
                       + "or vet center, respectively.",
               required = true,
               example = "vha_688")
+<<<<<<< HEAD
           String id,
       @Parameter(
               in = ParameterIn.QUERY,
@@ -120,4 +124,7 @@ public interface DetailedServicesApi {
               required = false,
               example = "health")
           String serviceType);
+=======
+          String id);
+>>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
 }

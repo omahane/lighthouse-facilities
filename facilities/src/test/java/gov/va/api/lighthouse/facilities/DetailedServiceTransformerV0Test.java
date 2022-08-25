@@ -32,12 +32,21 @@ public class DetailedServiceTransformerV0Test {
 
   @Test
   public void roundTripTransformation() {
+    // Lossless transformation
+    List<DatamartDetailedService> covidOnlyDatamartDetailedServices =
+        DatamartDetailedServicesTestUtils.covidOnlyDatamartDetailedServices(true);
+    assertThat(
+            DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
+                DetailedServiceTransformerV0.toDetailedServices(covidOnlyDatamartDetailedServices)))
+        .containsAll(covidOnlyDatamartDetailedServices);
+
+    // Non-lossless transformation
     List<DatamartDetailedService> datamartDetailedServices =
         DatamartDetailedServicesTestUtils.datamartDetailedServices(true);
     assertThat(
             DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
                 DetailedServiceTransformerV0.toDetailedServices(datamartDetailedServices)))
-        .containsAll(datamartDetailedServices);
+        .containsAll(covidOnlyDatamartDetailedServices);
   }
 
   @Test

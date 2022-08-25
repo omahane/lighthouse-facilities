@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities.collector;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -258,7 +259,19 @@ public class FacilitiesCollector {
       if (cmsOverlays.containsKey(datamartFacility.id())) {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
-        datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
+        datamartFacility
+            .attributes()
+            .detailedServices(
+                cmsOverlay.detailedServices() == null || cmsOverlay.detailedServices().isEmpty()
+                    ? null
+                    : cmsOverlay.detailedServices().parallelStream()
+                        .filter(
+                            ds ->
+                                ds.serviceId()
+                                    .equals(
+                                        uncapitalize(
+                                            DatamartFacility.HealthService.Covid19Vaccine.name())))
+                        .collect(toList()));
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
       }

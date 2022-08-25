@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 public interface DetailedServiceApi {
   @Operation(
       summary = "Retrieve a specific service given an ID",
+<<<<<<< HEAD
       description =
           "Query facility services using service parameter. "
               + "Simply provide the service like `services/cardiology`. "
@@ -25,6 +26,9 @@ public interface DetailedServiceApi {
               + "\n\n"
               + " Not supplying `service` will return `400 Bad Request`. ",
       operationId = "getServicesById",
+=======
+      operationId = "getServiceById",
+>>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
       tags = {"facilities"},
       security = @SecurityRequirement(name = "apikey"))
   @GET
@@ -94,7 +98,11 @@ public interface DetailedServiceApi {
       @Parameter(
               in = ParameterIn.PATH,
               name = "service",
+<<<<<<< HEAD
               description = "Service ID, unique identifier for service",
+=======
+              description = "Service ID",
+>>>>>>> parent of 90213680 (Rollback to 3.0.89 baseline with selected updates)
               required = false,
               example = "covid19Vaccine")
           String service);

@@ -6,7 +6,17 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartAddressDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartFacilityAttributesDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartHoursDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartOperatingStatusDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartPatientSatisfactionDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartPhoneDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartSatisfactionDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartServicesDeserializer;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartWaitTimesDeserializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -109,6 +119,8 @@ public class DatamartFacility {
     CriticalCare,
     @JsonProperty("dental")
     Dental,
+    // DentalServices is a V0 holdover
+    DentalServices,
     @JsonProperty("dermatology")
     Dermatology,
     @JsonProperty("diabetic")
@@ -149,6 +161,8 @@ public class DatamartFacility {
     MedicalRecords,
     @JsonProperty("mentalHealth")
     MentalHealth,
+    // MentalHealthCare is a V0 holdover
+    MentalHealthCare,
     @JsonProperty("militarySexualTrauma")
     MilitarySexualTrauma,
     @JsonProperty("minorityCare")
@@ -227,7 +241,7 @@ public class DatamartFacility {
     Smoking,
     @JsonProperty("socialWork")
     SocialWork,
-    @JsonProperty("specialtyCare")
+    // SpecialtyCare is a V0 holdover. V1 contains specific instances of its specialized care.
     SpecialtyCare,
     @JsonProperty("spinalInjury")
     SpinalInjury,
@@ -269,9 +283,13 @@ public class DatamartFacility {
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
     @JsonCreator
     public static HealthService fromString(String name) {
-      return "MentalHealthCare".equalsIgnoreCase(name)
-          ? valueOf("MentalHealth")
-          : "DentalServices".equalsIgnoreCase(name) ? valueOf("Dental") : valueOf(capitalize(name));
+      return "COVID-19 vaccines".equalsIgnoreCase(name)
+          ? HealthService.Covid19Vaccine
+          : "MentalHealthCare".equalsIgnoreCase(name)
+              ? HealthService.MentalHealth
+              : "DentalServices".equalsIgnoreCase(name)
+                  ? HealthService.Dental
+                  : valueOf(capitalize(name));
     }
   }
 
@@ -293,6 +311,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartAddressDeserializer.class)
   public static final class Address {
     @JsonProperty("address_1")
     String address1;
@@ -343,6 +362,7 @@ public class DatamartFacility {
     "detailed_services",
     "visn"
   })
+  @JsonDeserialize(using = DatamartFacilityAttributesDeserializer.class)
   public static final class FacilityAttributes {
     @NotNull String name;
 
@@ -408,6 +428,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartHoursDeserializer.class)
   public static final class Hours {
     String sunday;
 
@@ -464,6 +485,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartOperatingStatusDeserializer.class)
   public static final class OperatingStatus {
     @NotNull
     @JsonProperty(required = true)
@@ -477,6 +499,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartPatientSatisfactionDeserializer.class)
   public static final class PatientSatisfaction {
     @JsonProperty("primary_care_urgent")
     BigDecimal primaryCareUrgent;
@@ -507,6 +530,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartPhoneDeserializer.class)
   public static final class Phone {
     String fax;
 
@@ -530,6 +554,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartSatisfactionDeserializer.class)
   public static final class Satisfaction {
     @Valid PatientSatisfaction health;
 
@@ -540,6 +565,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartServicesDeserializer.class)
   public static final class Services {
     List<OtherService> other;
 
@@ -554,6 +580,7 @@ public class DatamartFacility {
   @Data
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonDeserialize(using = DatamartWaitTimesDeserializer.class)
   public static final class WaitTimes {
     @Valid List<PatientWaitTime> health;
 

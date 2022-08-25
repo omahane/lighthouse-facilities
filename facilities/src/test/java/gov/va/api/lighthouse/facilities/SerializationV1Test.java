@@ -1,11 +1,16 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -19,12 +24,66 @@ import org.junit.jupiter.api.Test;
  * whitespace.
  */
 public class SerializationV1Test {
-
   @Test
   @SneakyThrows
   void all() {
     String path = "/v1/all.json";
     roundTrip(path, FacilitiesResponse.class);
+  }
+
+  @Test
+  @SneakyThrows
+  void jacksonConfigQuietlyMap() {
+    DetailedService emptyDetailedService =
+        DetailedService.builder()
+            .serviceId(DetailedService.INVALID_SVC_ID)
+            .phoneNumbers(emptyList())
+            .serviceLocations(emptyList())
+            .build();
+    String json =
+        FacilitiesJacksonConfigV1.quietlyWriteValueAsString(
+            FacilitiesJacksonConfigV1.createMapper(), emptyDetailedService);
+    assertThat(json).isEqualTo("{\"serviceId\":\"INVALID_ID\"}");
+    assertThat(
+            FacilitiesJacksonConfigV1.quietlyMap(
+                FacilitiesJacksonConfigV1.createMapper(), json, DetailedService.class))
+        .usingRecursiveComparison()
+        .isEqualTo(emptyDetailedService);
+    assertThat(
+            FacilitiesJacksonConfigV1.quietlyMap(
+                FacilitiesJacksonConfigV1.createMapper(),
+                new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                DetailedService.class))
+        .usingRecursiveComparison()
+        .isEqualTo(emptyDetailedService);
+    // Exceptions
+    assertThat(
+            FacilitiesJacksonConfigV1.quietlyWriteValueAsString(
+                FacilitiesJacksonConfigV1.createMapper(), null))
+        .isEqualTo("null");
+
+    assertThatThrownBy(() -> FacilitiesJacksonConfigV1.quietlyWriteValueAsString(null, null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage(
+            "Cannot invoke \"com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(Object)\" because \"mapper\" is null");
+    assertThatThrownBy(
+            () ->
+                FacilitiesJacksonConfigV1.quietlyMap(
+                    FacilitiesJacksonConfigV1.createMapper(),
+                    "{\"serviceId\":\"INVALID_ID\"}",
+                    null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Unrecognized Type: [null]");
+
+    assertThatThrownBy(
+            () ->
+                FacilitiesJacksonConfigV1.quietlyMap(
+                    FacilitiesJacksonConfigV1.createMapper(),
+                    new ByteArrayInputStream(
+                        "{\"serviceId\":\"INVALID_ID\"}".getBytes(StandardCharsets.UTF_8)),
+                    null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Unrecognized Type: [null]");
   }
 
   @Test

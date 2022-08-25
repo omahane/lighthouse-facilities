@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities;
 
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
+
 import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ public class DetailedServiceTransformerV0 {
   /** Transform DatamartDetailedService to version 0 DetailedService. */
   public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
+        .serviceId(dds.serviceId())
         .name(dds.name())
         .active(dds.active())
         .changed(dds.changed())
@@ -82,25 +85,31 @@ public class DetailedServiceTransformerV0 {
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
                 .map(DetailedServiceTransformerV0::toDetailedService)
+                .filter(
+                    ds ->
+                        ds.serviceId()
+                            .equals(
+                                uncapitalize(DatamartFacility.HealthService.Covid19Vaccine.name())))
                 .collect(Collectors.toList())
             : new ArrayList<>();
   }
 
   /** Transform version 0 DetailedService to version agnostic DatamartDetailedService. */
   public static DatamartDetailedService toVersionAgnosticDetailedService(
-      @NonNull DetailedService dds) {
+      @NonNull DetailedService ds) {
     return DatamartDetailedService.builder()
-        .name(dds.name())
-        .active(dds.active())
-        .changed(dds.changed())
-        .descriptionFacility(dds.descriptionFacility())
-        .appointmentLeadIn(dds.appointmentLeadIn())
-        .onlineSchedulingAvailable(dds.onlineSchedulingAvailable())
-        .path(dds.path())
-        .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(dds.phoneNumbers()))
-        .referralRequired(dds.referralRequired())
-        .serviceLocations(toVersionAgnosticDetailedServiceLocations(dds.serviceLocations()))
-        .walkInsAccepted(dds.walkInsAccepted())
+        .serviceId(ds.serviceId())
+        .name(ds.name())
+        .active(ds.active())
+        .changed(ds.changed())
+        .descriptionFacility(ds.descriptionFacility())
+        .appointmentLeadIn(ds.appointmentLeadIn())
+        .onlineSchedulingAvailable(ds.onlineSchedulingAvailable())
+        .path(ds.path())
+        .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(ds.phoneNumbers()))
+        .referralRequired(ds.referralRequired())
+        .serviceLocations(toVersionAgnosticDetailedServiceLocations(ds.serviceLocations()))
+        .walkInsAccepted(ds.walkInsAccepted())
         .build();
   }
 

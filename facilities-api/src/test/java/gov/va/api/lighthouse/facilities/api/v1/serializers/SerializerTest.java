@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities.api.v1.serializers;
 
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.lighthouse.facilities.api.v1.CanBeEmpty;
@@ -126,14 +127,25 @@ public class SerializerTest {
   @Test
   @SneakyThrows
   void serializeDetailedService() {
-    // Empty
-    DetailedService detailedService = DetailedService.builder().build();
-    assertJsonIsEmpty(detailedService);
-    detailedService = DetailedService.builder().serviceLocations(emptyList()).build();
-    assertJsonIsEmpty(detailedService);
     // Not empty
-    detailedService = DetailedService.builder().name("COVID-19 vaccines").build();
-    assertJson(detailedService, "{\"name\":\"COVID-19 vaccines\"}");
+    DetailedService detailedService =
+        DetailedService.builder()
+            .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
+            .build();
+    assertJson(detailedService, "{\"serviceId\":\"cardiology\"}");
+    detailedService =
+        DetailedService.builder()
+            .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
+            .serviceLocations(emptyList())
+            .build();
+    assertJson(detailedService, "{\"serviceId\":\"cardiology\"}");
+    detailedService =
+        DetailedService.builder()
+            .serviceId(uncapitalize(Facility.HealthService.Covid19Vaccine.name()))
+            .name("COVID-19 vaccines")
+            .build();
+    assertJson(
+        detailedService, "{\"serviceId\":\"covid19Vaccine\",\"name\":\"COVID-19 vaccines\"}");
   }
 
   @Test
@@ -223,14 +235,25 @@ public class SerializerTest {
     // Empty
     DetailedServiceResponse response = DetailedServiceResponse.builder().build();
     assertJsonIsEmpty(response);
-    response = DetailedServiceResponse.builder().data(DetailedService.builder().build()).build();
-    assertJsonIsEmpty(response);
     // Not empty
     response =
         DetailedServiceResponse.builder()
-            .data(DetailedService.builder().name("COVID-19 vaccines").build())
+            .data(
+                DetailedService.builder()
+                    .serviceId(uncapitalize(Facility.HealthService.Cardiology.name()))
+                    .build())
             .build();
-    assertJson(response, "{\"data\":{\"name\":\"COVID-19 vaccines\"}}");
+    assertJson(response, "{\"data\":{\"serviceId\":\"cardiology\"}}");
+    response =
+        DetailedServiceResponse.builder()
+            .data(
+                DetailedService.builder()
+                    .serviceId(uncapitalize(Facility.HealthService.Covid19Vaccine.name()))
+                    .name("COVID-19 vaccines")
+                    .build())
+            .build();
+    assertJson(
+        response, "{\"data\":{\"serviceId\":\"covid19Vaccine\",\"name\":\"COVID-19 vaccines\"}}");
   }
 
   @Test

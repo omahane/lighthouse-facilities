@@ -44,17 +44,50 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "ophthalmology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology"
+            },
+            {
+              "name" : "Ophthalmology",
+              "serviceId" : "ophthalmology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental"
+            }
           ],
           "lastUpdated" : "2020-03-02"
         },
@@ -64,61 +97,6 @@
             "primaryCareRoutine" : 0.83
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 32.047619,
-              "established" : 9.879032
-            },
-            {
-              "service" : "audiology",
-              "new" : 1.706967,
-              "established" : 2.126855
-            },
-            {
-              "service" : "optometry",
-              "new" : 76.396226,
-              "established" : 7.900787
-            },
-            {
-              "service" : "cardiology",
-              "new" : 18.657142,
-              "established" : 6.4
-            },
-            {
-              "service" : "dermatology",
-              "new" : 0.616666,
-              "established" : 0.555555
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 24.682539,
-              "established" : 4.995024
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 26.405405,
-              "established" : 1.545372
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 47.571428,
-              "established" : 3.258992
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 22.151515,
-              "established" : 4.943661
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 7.592814,
-              "established" : 3.97159
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -258,19 +236,58 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "gynecology",
-            "ophthalmology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology"
+            },
+            {
+              "name" : "Ophthalmology",
+              "serviceId" : "ophthalmology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental"
+            }
           ],
           "lastUpdated" : "2020-03-02"
         },
@@ -282,71 +299,6 @@
             "specialtyCareRoutine" : 0.83
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 47.070707,
-              "established" : 12.413793
-            },
-            {
-              "service" : "audiology",
-              "new" : 5.071748,
-              "established" : 2.271653
-            },
-            {
-              "service" : "optometry",
-              "new" : 43.336956,
-              "established" : 5.958219
-            },
-            {
-              "service" : "cardiology",
-              "new" : 35.310077,
-              "established" : 8.611954
-            },
-            {
-              "service" : "gynecology",
-              "new" : 27.01923,
-              "established" : 3.189224
-            },
-            {
-              "service" : "dermatology",
-              "new" : 19.019455,
-              "established" : 2.363431
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 12.795918,
-              "established" : 3.948827
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 24.316455,
-              "established" : 3.277552
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 12.04,
-              "established" : 5.528089
-            },
-            {
-              "service" : "womensHealth",
-              "new" : 25.266666,
-              "established" : 1.987108
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 51.232472,
-              "established" : 21.89198
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 10.421052,
-              "established" : 6.068493
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -396,15 +348,42 @@
         ],
         "services" : {
           "benefits" : [
-            "ApplyingForBenefits",
-            "BurialClaimAssistance",
-            "DisabilityClaimAssistance",
-            "eBenefitsRegistrationAssistance",
-            "EducationAndCareerCounseling",
-            "HomelessAssistance",
-            "IntegratedDisabilityEvaluationSystemAssistance",
-            "UpdatingDirectDepositInformation",
-            "VocationalRehabilitationAndEmploymentAssistance"
+            {
+              "name" : "ApplyingForBenefits",
+              "serviceId" : "applyingForBenefits"
+            },
+            {
+              "name" : "BurialClaimAssistance",
+              "serviceId" : "burialClaimAssistance"
+            },
+            {
+              "name" : "DisabilityClaimAssistance",
+              "serviceId" : "disabilityClaimAssistance"
+            },
+            {
+              "name" : "eBenefitsRegistrationAssistance",
+              "serviceId" : "eBenefitsRegistrationAssistance"
+            },
+            {
+              "name" : "EducationAndCareerCounseling",
+              "serviceId" : "educationAndCareerCounseling"
+            },
+            {
+              "name" : "HomelessAssistance",
+              "serviceId" : "homelessAssistance"
+            },
+            {
+              "name" : "IntegratedDisabilityEvaluationSystemAssistance",
+              "serviceId" : "integratedDisabilityEvaluationSystemAssistance"
+            },
+            {
+              "name" : "UpdatingDirectDepositInformation",
+              "serviceId" : "updatingDirectDepositInformation"
+            },
+            {
+              "name" : "VocationalRehabilitationAndEmploymentAssistance",
+              "serviceId" : "vocationalRehabilitationAndEmploymentAssistance"
+            }
           ]
         },
         "operatingStatus" : {
@@ -495,19 +474,12 @@
         ],
         "services" : {
           "health" : [
-            "mentalHealth"
-          ],
-          "lastUpdated" : "2020-03-02"
-        },
-        "waitTimes" : {
-          "health" : [
             {
-              "service" : "mentalHealth",
-              "new" : 25.642857,
-              "established" : 4.24969
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
             }
           ],
-          "effectiveDate" : "2020-03-02"
+          "lastUpdated" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -561,9 +533,18 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "dermatology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology"
+            }
           ],
           "lastUpdated" : "2020-03-02"
         },
@@ -573,26 +554,6 @@
             "primaryCareRoutine" : 0.91
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "dermatology",
-              "new" : 0.333333,
-              "established" : 0.0
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 20.51282,
-              "established" : 3.017211
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 11.545454,
-              "established" : 2.233576
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -646,9 +607,18 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "dermatology"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology"
+            }
           ],
           "lastUpdated" : "2020-03-02"
         },
@@ -658,25 +628,6 @@
             "primaryCareRoutine" : 0.89
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "dermatology",
-              "new" : 1.5
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 8.94,
-              "established" : 2.66054
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 40.117647,
-              "established" : 6.576368
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -730,12 +681,30 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "womensHealth",
-            "audiology",
-            "gynecology",
-            "optometry"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry"
+            }
           ],
           "lastUpdated" : "2020-03-02"
         },
@@ -745,41 +714,6 @@
             "primaryCareRoutine" : 0.81
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "audiology",
-              "new" : 4.0,
-              "established" : 1.094091
-            },
-            {
-              "service" : "optometry",
-              "new" : 72.475247,
-              "established" : 11.642248
-            },
-            {
-              "service" : "gynecology",
-              "new" : 5.0,
-              "established" : 1.210355
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 14.460526,
-              "established" : 1.34292
-            },
-            {
-              "service" : "womensHealth",
-              "new" : 5.0,
-              "established" : 1.210355
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 16.468926,
-              "established" : 4.563762
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",

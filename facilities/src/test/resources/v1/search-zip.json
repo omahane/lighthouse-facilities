@@ -44,18 +44,63 @@
         ],
         "services" : {
           "health" : [
-            "primaryCare",
-            "mentalHealth",
-            "audiology",
-            "cardiology",
-            "dermatology",
-            "gastroenterology",
-            "ophthalmology",
-            "optometry",
-            "orthopedics",
-            "urology",
-            "dental"
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/mentalHealth"
+            },
+            {
+              "name" : "Audiology",
+              "serviceId" : "audiology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/audiology"
+            },
+            {
+              "name" : "Cardiology",
+              "serviceId" : "cardiology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/cardiology"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/dermatology"
+            },
+            {
+              "name" : "Gastroenterology",
+              "serviceId" : "gastroenterology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/gastroenterology"
+            },
+            {
+              "name" : "Ophthalmology",
+              "serviceId" : "ophthalmology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/ophthalmology"
+            },
+            {
+              "name" : "Optometry",
+              "serviceId" : "optometry",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/optometry"
+            },
+            {
+              "name" : "Orthopedics",
+              "serviceId" : "orthopedics",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/orthopedics"
+            },
+            {
+              "name" : "Urology",
+              "serviceId" : "urology",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/urology"
+            },
+            {
+              "name" : "Dental",
+              "serviceId" : "dental",
+              "link" : "http://localhost/v1/facilities/vha_675GA/services/dental"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_675GA/services",
           "lastUpdated" : "2020-03-02"
         },
         "satisfaction" : {
@@ -64,61 +109,6 @@
             "primaryCareRoutine" : 0.83
           },
           "effectiveDate" : "2019-06-20"
-        },
-        "waitTimes" : {
-          "health" : [
-            {
-              "service" : "urology",
-              "new" : 32.047619,
-              "established" : 9.879032
-            },
-            {
-              "service" : "audiology",
-              "new" : 1.706967,
-              "established" : 2.126855
-            },
-            {
-              "service" : "optometry",
-              "new" : 76.396226,
-              "established" : 7.900787
-            },
-            {
-              "service" : "cardiology",
-              "new" : 18.657142,
-              "established" : 6.4
-            },
-            {
-              "service" : "dermatology",
-              "new" : 0.616666,
-              "established" : 0.555555
-            },
-            {
-              "service" : "orthopedics",
-              "new" : 24.682539,
-              "established" : 4.995024
-            },
-            {
-              "service" : "primaryCare",
-              "new" : 26.405405,
-              "established" : 1.545372
-            },
-            {
-              "service" : "ophthalmology",
-              "new" : 47.571428,
-              "established" : 3.258992
-            },
-            {
-              "service" : "gastroenterology",
-              "new" : 22.151515,
-              "established" : 4.943661
-            },
-            {
-              "service" : "mentalHealth",
-              "new" : 7.592814,
-              "established" : 3.97159
-            }
-          ],
-          "effectiveDate" : "2020-03-02"
         },
         "mobile" : false,
         "activeStatus" : "A",

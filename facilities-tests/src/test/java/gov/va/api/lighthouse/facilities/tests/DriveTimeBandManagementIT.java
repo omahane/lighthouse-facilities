@@ -99,4 +99,61 @@ public class DriveTimeBandManagementIT {
     assertThat(updateResponse.bandsUpdated()).containsExactly(name);
     assertThat(updateResponse.bandsCreated()).isEmpty();
   }
+
+  @Test
+  @SneakyThrows
+  public void testNullGeometry() {
+    List<PssgDriveTimeBand> bands =
+        MAPPER.readValue(
+            getClass().getResource("/pssg-drive-time-bands-1.json"),
+            new TypeReference<List<PssgDriveTimeBand>>() {});
+    PssgDriveTimeBand favorite = Iterables.getOnlyElement(bands);
+    favorite.attributes().stationNumber("tmp" + Instant.now().getEpochSecond());
+    String name =
+        favorite.attributes().stationNumber()
+            + "-"
+            + favorite.attributes().fromBreak()
+            + "-"
+            + favorite.attributes().toBreak();
+
+    ExpectedResponse.of(
+            requestSpecification().request(Method.GET, "internal/management/bands/{name}", name))
+        .expect(404);
+    var updateResponse =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .contentType("application/json")
+                    .body(PssgResponse.builder().features(bands).build())
+                    .request(Method.POST, "internal/management/bands"))
+            .expect(200)
+            .expectValid(BandUpdateResponse.class);
+    assertThat(updateResponse.bandsUpdated()).isEmpty();
+    assertThat(updateResponse.bandsCreated()).containsExactly(name);
+
+    var actual =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(Method.GET, "internal/management/bands/{name}", name))
+            .expect(200)
+            .expectValid(Map.class);
+    assertThat(actual.get("stationNumber")).isEqualTo(favorite.attributes().stationNumber());
+
+    var allIds =
+        ExpectedResponse.of(requestSpecification().request(Method.GET, "internal/management/bands"))
+            .expect(200)
+            .expectListOf(String.class);
+    assertThat(allIds).contains(name);
+
+    // Re-attempt update of same list of pssg bands
+    updateResponse =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .contentType("application/json")
+                    .body(PssgResponse.builder().features(bands).build())
+                    .request(Method.POST, "internal/management/bands"))
+            .expect(200)
+            .expectValid(BandUpdateResponse.class);
+    assertThat(updateResponse.bandsUpdated()).containsExactly(name);
+    assertThat(updateResponse.bandsCreated()).isEmpty();
+  }
 }

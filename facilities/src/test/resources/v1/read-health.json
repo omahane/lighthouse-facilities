@@ -44,10 +44,22 @@
       ],
       "services" : {
         "health" : [
-          "emergencyCare",
-          "primaryCare",
-          "mentalHealth",
-          "dermatology"
+          {
+            "name" : "EmergencyCare",
+            "serviceId" : "emergencyCare"
+          },
+          {
+            "name" : "PrimaryCare",
+            "serviceId" : "primaryCare"
+          },
+          {
+            "name" : "MentalHealth",
+            "serviceId" : "mentalHealth"
+          },
+          {
+            "name" : "Dermatology",
+            "serviceId" : "dermatology"
+          }
         ],
         "lastUpdated" : "2020-02-24"
       },
@@ -57,25 +69,6 @@
           "primaryCareRoutine" : 0.91
         },
         "effectiveDate" : "2019-06-20"
-      },
-      "waitTimes" : {
-        "health" : [
-          {
-            "service" : "dermatology",
-            "new" : 3.714285
-          },
-          {
-            "service" : "primaryCare",
-            "new" : 13.727272,
-            "established" : 10.392441
-          },
-          {
-            "service" : "mentalHealth",
-            "new" : 5.75,
-            "established" : 2.634703
-          }
-        ],
-        "effectiveDate" : "2020-02-24"
       },
       "mobile" : false,
       "activeStatus" : "A",

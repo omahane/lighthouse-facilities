@@ -1,7 +1,12 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
+
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
@@ -10,146 +15,58 @@ import lombok.experimental.UtilityClass;
 /** Utility class for transforming DatamartFacility to version 1 facility object and back. */
 @UtilityClass
 public final class FacilityTransformerV1 extends BaseVersionedTransformer {
+  private static Facility.OperatingStatus determineOperatingStatusFromActiveStatus(
+      DatamartFacility.ActiveStatus activeStatus) {
+    return Facility.OperatingStatus.builder()
+        .code(
+            activeStatus == DatamartFacility.ActiveStatus.T
+                ? Facility.OperatingStatusCode.CLOSED
+                : Facility.OperatingStatusCode.NORMAL)
+        .build();
+  }
+
   /** Transform persisted DatamartFacility to version 1 facility. */
-  static Facility toFacility(@NonNull DatamartFacility df) {
+  static Facility toFacility(@NonNull DatamartFacility df, @NonNull String linkerUrl) {
     return Facility.builder()
         .id(df.id())
-        .type(transformType(df.type()))
+        .type(toType(df.type()))
         .attributes(
             (df.attributes() != null)
                 ? Facility.FacilityAttributes.builder()
-                    .facilityType(transformFacilityType(df.attributes().facilityType()))
-                    .address(transformFacilityAddresses(df.attributes().address()))
-                    .hours(transformFacilityHours(df.attributes().hours()))
+                    .facilityType(toFacilityType(df.attributes().facilityType()))
+                    .address(toFacilityAddresses(df.attributes().address()))
+                    .hours(toFacilityHours(df.attributes().hours()))
                     .latitude(df.attributes().latitude())
                     .longitude(df.attributes().longitude())
                     .name(df.attributes().name())
-                    .phone(transformFacilityPhone(df.attributes().phone()))
+                    .phone(toFacilityPhone(df.attributes().phone()))
                     .website(df.attributes().website())
                     .classification(df.attributes().classification())
                     .timeZone(df.attributes().timeZone())
                     .mobile(df.attributes().mobile())
-                    .services(transformFacilityServices(df.attributes().services()))
-                    .activeStatus(transformFacilityActiveStatus(df.attributes().activeStatus()))
+                    .services(toFacilityServices(df.attributes().services(), linkerUrl, df.id()))
+                    .activeStatus(toFacilityActiveStatus(df.attributes().activeStatus()))
                     .visn(df.attributes().visn())
-                    .satisfaction(transformFacilitySatisfaction(df.attributes().satisfaction()))
-                    .waitTimes(transformFacilityWaitTimes(df.attributes().waitTimes()))
+                    .satisfaction(toFacilitySatisfaction(df.attributes().satisfaction()))
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
                     .operationalHoursSpecialInstructions(
-                        transformOperationalHoursSpecialInstructions(
+                        toFacilityOperationalHoursSpecialInstructions(
                             df.attributes().operationalHoursSpecialInstructions()))
                     .build()
                 : null)
         .build();
   }
 
-  /** Transform DatamartFacility operating status to version 1 facility operating status. */
-  public static Facility.OperatingStatus toFacilityOperatingStatus(
-      DatamartFacility.OperatingStatus datamartFacilityOperatingStatus) {
-    return (datamartFacilityOperatingStatus != null)
-        ? Facility.OperatingStatus.builder()
-            .code(
-                (datamartFacilityOperatingStatus.code() != null)
-                    ? containsValueOfName(
-                            Facility.OperatingStatusCode.values(),
-                            datamartFacilityOperatingStatus.code().name())
-                        ? Facility.OperatingStatusCode.valueOf(
-                            datamartFacilityOperatingStatus.code().name())
-                        : null
-                    : null)
-            .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
-            .build()
-        : null;
-  }
-
-  /** Transform version 1 facility to DatamartFacility for persistence. */
-  public static DatamartFacility toVersionAgnostic(@NonNull Facility f) {
-    return DatamartFacility.builder()
-        .id(f.id())
-        .type(transformType(f.type()))
-        .attributes(
-            (f.attributes() != null)
-                ? DatamartFacility.FacilityAttributes.builder()
-                    .facilityType(transformFacilityType(f.attributes().facilityType()))
-                    .address(transformFacilityAddresses(f.attributes().address()))
-                    .hours(transformFacilityHours(f.attributes().hours()))
-                    .latitude(f.attributes().latitude())
-                    .longitude(f.attributes().longitude())
-                    .name(f.attributes().name())
-                    .phone(transformFacilityPhone(f.attributes().phone()))
-                    .website(f.attributes().website())
-                    .classification(f.attributes().classification())
-                    .timeZone(f.attributes().timeZone())
-                    .mobile(f.attributes().mobile())
-                    .services(transformFacilityServices(f.attributes().services()))
-                    .activeStatus(transformFacilityActiveStatus(f.attributes().activeStatus()))
-                    .visn(f.attributes().visn())
-                    .satisfaction(transformFacilitySatisfaction(f.attributes().satisfaction()))
-                    .waitTimes(transformFacilityWaitTimes(f.attributes().waitTimes()))
-                    .operatingStatus(
-                        toVersionAgnosticFacilityOperatingStatus(f.attributes().operatingStatus()))
-                    .operationalHoursSpecialInstructions(
-                        toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
-                            f.attributes().operationalHoursSpecialInstructions()))
-                    .build()
-                : null)
-        .build();
-  }
-
-  /** Transform version 1 facility operating status to DatamartFacility operating status. */
-  public static DatamartFacility.OperatingStatus toVersionAgnosticFacilityOperatingStatus(
-      Facility.OperatingStatus facilityOperatingStatus) {
-    return (facilityOperatingStatus != null)
-        ? DatamartFacility.OperatingStatus.builder()
-            .code(
-                (facilityOperatingStatus.code() != null)
-                    ? containsValueOfName(
-                            DatamartFacility.OperatingStatusCode.values(),
-                            facilityOperatingStatus.code().name())
-                        ? DatamartFacility.OperatingStatusCode.valueOf(
-                            facilityOperatingStatus.code().name())
-                        : null
-                    : null)
-            .additionalInfo(facilityOperatingStatus.additionalInfo())
-            .build()
-        : null;
-  }
-
-  /**
-   * Transform Facility operational hours special instructions to version agnostic operational hours
-   * special instructions.
-   */
-  public static String toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
-      List<String> instructions) {
-    if (instructions != null) {
-      return String.join(" | ", instructions);
-    } else {
-      return null;
-    }
-  }
-
   /** Transform DatamartFacility active status to version 1 facility active status. */
-  private static Facility.ActiveStatus transformFacilityActiveStatus(
+  private static Facility.ActiveStatus toFacilityActiveStatus(
       DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
     return (datamartFacilityActiveStatus != null)
-        ? containsValueOfName(Facility.ActiveStatus.values(), datamartFacilityActiveStatus.name())
-            ? Facility.ActiveStatus.valueOf(datamartFacilityActiveStatus.name())
-            : null
-        : null;
-  }
-
-  /** Transform version 1 facility active status to DatamartFacility active status. */
-  private static DatamartFacility.ActiveStatus transformFacilityActiveStatus(
-      Facility.ActiveStatus facilityActiveStatus) {
-    return (facilityActiveStatus != null)
-        ? containsValueOfName(DatamartFacility.ActiveStatus.values(), facilityActiveStatus.name())
-            ? DatamartFacility.ActiveStatus.valueOf(facilityActiveStatus.name())
-            : null
+        ? Facility.ActiveStatus.valueOf(datamartFacilityActiveStatus.name())
         : null;
   }
 
   /** Transform DatamartFacility address to version 1 facility address. */
-  private static Facility.Address transformFacilityAddress(
+  private static Facility.Address toFacilityAddress(
       DatamartFacility.Address datamartFacilityAddress) {
     return (datamartFacilityAddress != null)
         ? Facility.Address.builder()
@@ -163,82 +80,54 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : Facility.Address.builder().build();
   }
 
-  /** Transform version 1 facility address to DatamartFacility address. */
-  private static DatamartFacility.Address transformFacilityAddress(
-      Facility.Address facilityAddress) {
-    return (facilityAddress != null)
-        ? DatamartFacility.Address.builder()
-            .address1(facilityAddress.address1())
-            .address2(facilityAddress.address2())
-            .address3(facilityAddress.address3())
-            .city(facilityAddress.city())
-            .state(facilityAddress.state())
-            .zip(facilityAddress.zip())
-            .build()
-        : DatamartFacility.Address.builder().build();
-  }
-
   /** Transform DatamartFacility addresses to version 1 facility addresses. */
-  private static Facility.Addresses transformFacilityAddresses(
+  private static Facility.Addresses toFacilityAddresses(
       DatamartFacility.Addresses datamartFacilityAddresses) {
     return (datamartFacilityAddresses != null)
         ? Facility.Addresses.builder()
-            .physical(transformFacilityAddress(datamartFacilityAddresses.physical()))
-            .mailing(transformFacilityAddress(datamartFacilityAddresses.mailing()))
+            .physical(toFacilityAddress(datamartFacilityAddresses.physical()))
+            .mailing(toFacilityAddress(datamartFacilityAddresses.mailing()))
             .build()
         : Facility.Addresses.builder().build();
   }
 
-  /** Transform version 1 facility addresses to DatamartFacility addresses. */
-  private static DatamartFacility.Addresses transformFacilityAddresses(
-      Facility.Addresses facilityAddresses) {
-    return (facilityAddresses != null)
-        ? DatamartFacility.Addresses.builder()
-            .physical(transformFacilityAddress(facilityAddresses.physical()))
-            .mailing(transformFacilityAddress(facilityAddresses.mailing()))
+  /** Transform DatamartFacility benefits service to version 1 facility benefits service object. */
+  private static Facility.Service<Facility.BenefitsService> toFacilityBenefitsService(
+      @NonNull
+          DatamartFacility.Service<DatamartFacility.BenefitsService>
+              datamartFacilityBenefitsService,
+      @NonNull String linkUrl,
+      @NonNull String facilityId) {
+    final Optional<Facility.BenefitsService> benefitsService =
+        Facility.BenefitsService.fromServiceId(datamartFacilityBenefitsService.serviceId());
+    return benefitsService.isPresent()
+        ? Facility.Service.<Facility.BenefitsService>builder()
+            .serviceType(benefitsService.get())
+            .name(benefitsService.get().name())
+            .link(buildTypedServiceLink(linkUrl, facilityId, benefitsService.get().serviceId()))
             .build()
-        : DatamartFacility.Addresses.builder().build();
-  }
-
-  /** Transform DatamartFacility benefits service to version 1 facility benefits service. */
-  private static Facility.BenefitsService transformFacilityBenefitsService(
-      @NonNull DatamartFacility.BenefitsService datamartFacilityBenefitsService) {
-    return containsValueOfName(
-            Facility.BenefitsService.values(), datamartFacilityBenefitsService.name())
-        ? Facility.BenefitsService.valueOf(datamartFacilityBenefitsService.name())
         : null;
   }
 
-  /** Transform version 1 facility benefits service to DatamartFacility benefits service. */
-  private static DatamartFacility.BenefitsService transformFacilityBenefitsService(
-      @NonNull Facility.BenefitsService facilityBenefitsService) {
-    return containsValueOfName(
-            DatamartFacility.BenefitsService.values(), facilityBenefitsService.name())
-        ? DatamartFacility.BenefitsService.valueOf(facilityBenefitsService.name())
-        : null;
-  }
-
-  /** Transform DatamartFacility health service to version 1 facility health service. */
-  private static Facility.HealthService transformFacilityHealthService(
-      @NonNull DatamartFacility.HealthService datamartFacilityHealthService) {
-    return containsValueOfName(
-            Facility.HealthService.values(), datamartFacilityHealthService.name())
-        ? Facility.HealthService.valueOf(datamartFacilityHealthService.name())
-        : null;
-  }
-
-  /** Transform version 1 facility health service to DatamartFacility health service. */
-  private static DatamartFacility.HealthService transformFacilityHealthService(
-      @NonNull Facility.HealthService facilityHealthService) {
-    return containsValueOfName(
-            DatamartFacility.HealthService.values(), facilityHealthService.name())
-        ? DatamartFacility.HealthService.valueOf(facilityHealthService.name())
+  /** Transform DatamartFacility health service to version 1 facility health service object. */
+  public static Facility.Service<Facility.HealthService> toFacilityHealthService(
+      @NonNull
+          DatamartFacility.Service<DatamartFacility.HealthService> datamartFacilityHealthService,
+      @NonNull String linkUrl,
+      @NonNull String facilityId) {
+    final Optional<Facility.HealthService> healthService =
+        Facility.HealthService.fromServiceId(datamartFacilityHealthService.serviceId());
+    return healthService.isPresent()
+        ? Facility.Service.<Facility.HealthService>builder()
+            .serviceType(healthService.get())
+            .name(healthService.get().name())
+            .link(buildTypedServiceLink(linkUrl, facilityId, healthService.get().serviceId()))
+            .build()
         : null;
   }
 
   /** Transform DatamartFacility hours to version 1 facility hours. */
-  private static Facility.Hours transformFacilityHours(
-      DatamartFacility.Hours datamartFacilityHours) {
+  private static Facility.Hours toFacilityHours(DatamartFacility.Hours datamartFacilityHours) {
     return (datamartFacilityHours != null)
         ? Facility.Hours.builder()
             .monday(datamartFacilityHours.monday())
@@ -252,70 +141,75 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : Facility.Hours.builder().build();
   }
 
-  /** Transform version 1 facility hours to DatamartFacility hours. */
-  private static DatamartFacility.Hours transformFacilityHours(Facility.Hours facilityHours) {
-    return (facilityHours != null)
-        ? DatamartFacility.Hours.builder()
-            .monday(facilityHours.monday())
-            .tuesday(facilityHours.tuesday())
-            .wednesday(facilityHours.wednesday())
-            .thursday(facilityHours.thursday())
-            .friday(facilityHours.friday())
-            .saturday(facilityHours.saturday())
-            .sunday(facilityHours.sunday())
+  /** Transform DatamartFacility operating status to version 1 facility operating status. */
+  public static Facility.OperatingStatus toFacilityOperatingStatus(
+      DatamartFacility.OperatingStatus datamartFacilityOperatingStatus,
+      DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
+    return (datamartFacilityOperatingStatus != null)
+        ? Facility.OperatingStatus.builder()
+            .code(
+                (datamartFacilityOperatingStatus.code() != null)
+                    ? Facility.OperatingStatusCode.valueOf(
+                        datamartFacilityOperatingStatus.code().name())
+                    : null)
+            .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
             .build()
-        : DatamartFacility.Hours.builder().build();
+        : determineOperatingStatusFromActiveStatus(datamartFacilityActiveStatus);
   }
 
-  /** Transform DatamartFacility other service to version 1 facility other service. */
-  private static Facility.OtherService transformFacilityOtherService(
-      @NonNull DatamartFacility.OtherService datamartFacilityOtherService) {
-    return containsValueOfName(Facility.OtherService.values(), datamartFacilityOtherService.name())
-        ? Facility.OtherService.valueOf(datamartFacilityOtherService.name())
+  /** Transform DatamartFacility operating status to version 1 facility operating status. */
+  public static Facility.OperatingStatus toFacilityOperatingStatus(
+      DatamartFacility.OperatingStatus datamartFacilityOperatingStatus) {
+    return (datamartFacilityOperatingStatus != null)
+        ? Facility.OperatingStatus.builder()
+            .code(
+                (datamartFacilityOperatingStatus.code() != null)
+                    ? Facility.OperatingStatusCode.valueOf(
+                        datamartFacilityOperatingStatus.code().name())
+                    : null)
+            .additionalInfo(datamartFacilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toFacilitySupplementalStatuses(
+                    datamartFacilityOperatingStatus.supplementalStatuses()))
+            .build()
         : null;
   }
 
-  /** Transform version 1 facility other service to DatamartFacility other service. */
-  private static DatamartFacility.OtherService transformFacilityOtherService(
-      @NonNull Facility.OtherService facilityOtherService) {
-    return containsValueOfName(DatamartFacility.OtherService.values(), facilityOtherService.name())
-        ? DatamartFacility.OtherService.valueOf(facilityOtherService.name())
+  /**
+   * Transform DatamartFacility operational hours special instructions to version 1 operational
+   * hours special instructions.
+   */
+  public static List<String> toFacilityOperationalHoursSpecialInstructions(String instructions) {
+    if (instructions != null) {
+      return Stream.of(instructions.split("\\|")).map(String::trim).collect(Collectors.toList());
+    } else {
+      return null;
+    }
+  }
+
+  /** Transform DatamartFacility other service to version 1 facility other service object. */
+  private static Facility.Service<Facility.OtherService> toFacilityOtherService(
+      @NonNull DatamartFacility.Service<DatamartFacility.OtherService> datamartFacilityOtherService,
+      @NonNull String linkUrl,
+      @NonNull String facilityId) {
+    final Optional<Facility.OtherService> otherService =
+        Facility.OtherService.fromServiceId(datamartFacilityOtherService.serviceId());
+    return otherService.isPresent()
+        ? Facility.Service.<Facility.OtherService>builder()
+            .serviceType(otherService.get())
+            .name(otherService.get().name())
+            .link(buildTypedServiceLink(linkUrl, facilityId, otherService.get().serviceId()))
+            .build()
         : null;
-  }
-
-  /** Transform DatamartFacility patient wait times to version 1 facility patient wait times. */
-  private static Facility.PatientWaitTime transformFacilityPatientWaitTime(
-      @NonNull DatamartFacility.PatientWaitTime datamartFacilityPatientWaitTime) {
-    return Facility.PatientWaitTime.builder()
-        .newPatientWaitTime(datamartFacilityPatientWaitTime.newPatientWaitTime())
-        .establishedPatientWaitTime(datamartFacilityPatientWaitTime.establishedPatientWaitTime())
-        .service(
-            (datamartFacilityPatientWaitTime.service() != null)
-                ? transformFacilityHealthService(datamartFacilityPatientWaitTime.service())
-                : null)
-        .build();
-  }
-
-  /** Transform version 1 facility patient wait times to DatamartFacility patient wait times. */
-  private static DatamartFacility.PatientWaitTime transformFacilityPatientWaitTime(
-      @NonNull Facility.PatientWaitTime facilityPatientWaitTime) {
-    return DatamartFacility.PatientWaitTime.builder()
-        .newPatientWaitTime(facilityPatientWaitTime.newPatientWaitTime())
-        .establishedPatientWaitTime(facilityPatientWaitTime.establishedPatientWaitTime())
-        .service(
-            (facilityPatientWaitTime.service() != null)
-                ? transformFacilityHealthService(facilityPatientWaitTime.service())
-                : null)
-        .build();
   }
 
   /** Transform DatamartFacility phone to version 1 facility phone. */
-  private static Facility.Phone transformFacilityPhone(
-      DatamartFacility.Phone datamartFacilityPhone) {
+  private static Facility.Phone toFacilityPhone(DatamartFacility.Phone datamartFacilityPhone) {
     return (datamartFacilityPhone != null)
         ? Facility.Phone.builder()
             .fax(datamartFacilityPhone.fax())
             .main(datamartFacilityPhone.main())
+            .healthConnect(datamartFacilityPhone.healthConnect())
             .afterHours(datamartFacilityPhone.afterHours())
             .enrollmentCoordinator(datamartFacilityPhone.enrollmentCoordinator())
             .mentalHealthClinic(datamartFacilityPhone.mentalHealthClinic())
@@ -325,23 +219,8 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : Facility.Phone.builder().build();
   }
 
-  /** Transform version 1 facility phone to DatamartFacility phone. */
-  private static DatamartFacility.Phone transformFacilityPhone(Facility.Phone facilityPhone) {
-    return (facilityPhone != null)
-        ? DatamartFacility.Phone.builder()
-            .fax(facilityPhone.fax())
-            .main(facilityPhone.main())
-            .afterHours(facilityPhone.afterHours())
-            .enrollmentCoordinator(facilityPhone.enrollmentCoordinator())
-            .mentalHealthClinic(facilityPhone.mentalHealthClinic())
-            .patientAdvocate(facilityPhone.patientAdvocate())
-            .pharmacy(facilityPhone.pharmacy())
-            .build()
-        : DatamartFacility.Phone.builder().build();
-  }
-
   /** Transform DatamartFacility satisfaction to version 1 facility satisfaction. */
-  private static Facility.Satisfaction transformFacilitySatisfaction(
+  private static Facility.Satisfaction toFacilitySatisfaction(
       DatamartFacility.Satisfaction datamartFacilitySatisfaction) {
     return (datamartFacilitySatisfaction != null)
         ? Facility.Satisfaction.builder()
@@ -363,8 +242,279 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : Facility.Satisfaction.builder().build();
   }
 
+  /** Transform DatamartFacility services to version 1 facility services. */
+  private static Facility.Services toFacilityServices(
+      DatamartFacility.Services datamartFacilityServices,
+      @NonNull String linkUrl,
+      @NonNull String facilityId) {
+    return (datamartFacilityServices != null)
+        ? Facility.Services.builder()
+            .health(
+                (datamartFacilityServices.health() != null)
+                    ? datamartFacilityServices.health().parallelStream()
+                        .filter(
+                            e ->
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        Facility.HealthService.values(), e.name()))
+                        .map(e -> toFacilityHealthService(e, linkUrl, facilityId))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
+                    : null)
+            .benefits(
+                (datamartFacilityServices.benefits() != null)
+                    ? datamartFacilityServices.benefits().parallelStream()
+                        .map(e -> toFacilityBenefitsService(e, linkUrl, facilityId))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
+                    : null)
+            .other(
+                (datamartFacilityServices.other() != null)
+                    ? datamartFacilityServices.other().parallelStream()
+                        .map(e -> toFacilityOtherService(e, linkUrl, facilityId))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
+                    : null)
+            .link(buildServicesLink(linkUrl, facilityId))
+            .lastUpdated(datamartFacilityServices.lastUpdated())
+            .build()
+        : Facility.Services.builder().build();
+  }
+
+  /** Transform DatamartFacility supplemental status to version 1 facility supplemental status. */
+  public static Facility.SupplementalStatus toFacilitySupplementalStatus(
+      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+    return Facility.SupplementalStatus.builder()
+        .id(datamartFacilitySupplementalStatus.id())
+        .label(datamartFacilitySupplementalStatus.label())
+        .build();
+  }
+
+  /**
+   * Transform list of DatamartFacility supplemental statuses to version 1 facility supplemental
+   * statuses.
+   */
+  public static List<Facility.SupplementalStatus> toFacilitySupplementalStatuses(
+      List<DatamartFacility.SupplementalStatus> datamartFacilitySupplementalStatuses) {
+    if (datamartFacilitySupplementalStatuses != null) {
+      return datamartFacilitySupplementalStatuses.parallelStream()
+          .map(FacilityTransformerV1::toFacilitySupplementalStatus)
+          .collect(Collectors.toList());
+    }
+    return null;
+  }
+
+  /** Transform DatamartFacility facility type to version 1 facility type. */
+  private static Facility.FacilityType toFacilityType(
+      DatamartFacility.FacilityType datamartFacilityType) {
+    return (datamartFacilityType != null)
+        ? Facility.FacilityType.valueOf(datamartFacilityType.name())
+        : null;
+  }
+
+  /** Transform version 1 facility type to DatamartFacility facility type. */
+  private static Facility.Type toType(DatamartFacility.Type datamartType) {
+    return (datamartType != null) ? Facility.Type.valueOf(datamartType.name()) : null;
+  }
+
+  /** Transform version 1 facility to DatamartFacility for persistence. */
+  public static DatamartFacility toVersionAgnostic(@NonNull Facility f) {
+    return DatamartFacility.builder()
+        .id(f.id())
+        .type(toVersionAgnosticType(f.type()))
+        .attributes(
+            (f.attributes() != null)
+                ? DatamartFacility.FacilityAttributes.builder()
+                    .facilityType(toVersionAgnosticFacilityType(f.attributes().facilityType()))
+                    .address(toVersionAgnosticFacilityAddresses(f.attributes().address()))
+                    .hours(toVersionAgnosticFacilityHours(f.attributes().hours()))
+                    .latitude(f.attributes().latitude())
+                    .longitude(f.attributes().longitude())
+                    .name(f.attributes().name())
+                    .phone(toVersionAgnosticFacilityPhone(f.attributes().phone()))
+                    .website(f.attributes().website())
+                    .classification(f.attributes().classification())
+                    .timeZone(f.attributes().timeZone())
+                    .mobile(f.attributes().mobile())
+                    .services(toVersionAgnosticFacilityServices(f.attributes().services()))
+                    .activeStatus(
+                        toVersionAgnosticFacilityActiveStatus(f.attributes().activeStatus()))
+                    .visn(f.attributes().visn())
+                    .satisfaction(
+                        toVersionAgnosticFacilitySatisfaction(f.attributes().satisfaction()))
+                    .operatingStatus(
+                        toVersionAgnosticFacilityOperatingStatus(f.attributes().operatingStatus()))
+                    .operationalHoursSpecialInstructions(
+                        toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
+                            f.attributes().operationalHoursSpecialInstructions()))
+                    .build()
+                : null)
+        .build();
+  }
+
+  /** Transform version 1 facility active status to DatamartFacility active status. */
+  private static DatamartFacility.ActiveStatus toVersionAgnosticFacilityActiveStatus(
+      Facility.ActiveStatus facilityActiveStatus) {
+    return (facilityActiveStatus != null)
+        ? DatamartFacility.ActiveStatus.valueOf(facilityActiveStatus.name())
+        : null;
+  }
+
+  /** Transform version 1 facility address to DatamartFacility address. */
+  private static DatamartFacility.Address toVersionAgnosticFacilityAddress(
+      Facility.Address facilityAddress) {
+    return (facilityAddress != null)
+        ? DatamartFacility.Address.builder()
+            .address1(facilityAddress.address1())
+            .address2(facilityAddress.address2())
+            .address3(facilityAddress.address3())
+            .city(facilityAddress.city())
+            .state(facilityAddress.state())
+            .zip(facilityAddress.zip())
+            .build()
+        : DatamartFacility.Address.builder().build();
+  }
+
+  /** Transform version 1 facility addresses to DatamartFacility addresses. */
+  private static DatamartFacility.Addresses toVersionAgnosticFacilityAddresses(
+      Facility.Addresses facilityAddresses) {
+    return (facilityAddresses != null)
+        ? DatamartFacility.Addresses.builder()
+            .physical(toVersionAgnosticFacilityAddress(facilityAddresses.physical()))
+            .mailing(toVersionAgnosticFacilityAddress(facilityAddresses.mailing()))
+            .build()
+        : DatamartFacility.Addresses.builder().build();
+  }
+
+  /** Transform version 1 facility benefits service to DatamartFacility benefits service object. */
+  private static DatamartFacility.Service<DatamartFacility.BenefitsService>
+      toVersionAgnosticFacilityBenefitsService(
+          @NonNull Facility.Service<Facility.BenefitsService> facilityBenefitsService) {
+    final Optional<DatamartFacility.BenefitsService> versionAgnosticBenefitsService =
+        toVersionAgnosticFacilityBenefitsServiceType(facilityBenefitsService.serviceType());
+    return versionAgnosticBenefitsService.isPresent()
+        ? DatamartFacility.Service.<DatamartFacility.BenefitsService>builder()
+            .serviceType(versionAgnosticBenefitsService.get())
+            .name(versionAgnosticBenefitsService.get().name())
+            .build()
+        : null;
+  }
+
+  /**
+   * Transform version 1 facility benefits service type to DatamartFacility benefits service type.
+   */
+  public static Optional<DatamartFacility.BenefitsService>
+      toVersionAgnosticFacilityBenefitsServiceType(
+          @NonNull Facility.BenefitsService facilityBenefitsService) {
+    return DatamartFacility.BenefitsService.fromServiceId(facilityBenefitsService.serviceId());
+  }
+
+  /** Transform version 1 facility health service to DatamartFacility health service object. */
+  public static DatamartFacility.Service<DatamartFacility.HealthService>
+      toVersionAgnosticFacilityHealthService(
+          @NonNull Facility.Service<Facility.HealthService> facilityHealthService) {
+    final Optional<DatamartFacility.HealthService> versionAgnosticHealthService =
+        toVersionAgnosticFacilityHealthServiceType(facilityHealthService.serviceType());
+    return versionAgnosticHealthService.isPresent()
+        ? DatamartFacility.Service.<DatamartFacility.HealthService>builder()
+            .serviceType(versionAgnosticHealthService.get())
+            .name(versionAgnosticHealthService.get().name())
+            .build()
+        : null;
+  }
+
+  /** Transform version 1 facility health service type to DatamartFacility health service type. */
+  public static Optional<DatamartFacility.HealthService> toVersionAgnosticFacilityHealthServiceType(
+      @NonNull Facility.HealthService facilityHealthService) {
+    return DatamartFacility.HealthService.fromServiceId(facilityHealthService.serviceId());
+  }
+
+  /** Transform version 1 facility hours to DatamartFacility hours. */
+  private static DatamartFacility.Hours toVersionAgnosticFacilityHours(
+      Facility.Hours facilityHours) {
+    return (facilityHours != null)
+        ? DatamartFacility.Hours.builder()
+            .monday(facilityHours.monday())
+            .tuesday(facilityHours.tuesday())
+            .wednesday(facilityHours.wednesday())
+            .thursday(facilityHours.thursday())
+            .friday(facilityHours.friday())
+            .saturday(facilityHours.saturday())
+            .sunday(facilityHours.sunday())
+            .build()
+        : DatamartFacility.Hours.builder().build();
+  }
+
+  /** Transform version 1 facility operating status to DatamartFacility operating status. */
+  public static DatamartFacility.OperatingStatus toVersionAgnosticFacilityOperatingStatus(
+      Facility.OperatingStatus facilityOperatingStatus) {
+    return (facilityOperatingStatus != null)
+        ? DatamartFacility.OperatingStatus.builder()
+            .code(
+                (facilityOperatingStatus.code() != null)
+                    ? DatamartFacility.OperatingStatusCode.valueOf(
+                        facilityOperatingStatus.code().name())
+                    : null)
+            .additionalInfo(facilityOperatingStatus.additionalInfo())
+            .supplementalStatuses(
+                toVersionAgnosticSupplementalStatuses(
+                    facilityOperatingStatus.supplementalStatuses()))
+            .build()
+        : null;
+  }
+
+  /**
+   * Transform Facility operational hours special instructions to version agnostic operational hours
+   * special instructions.
+   */
+  public static String toVersionAgnosticFacilityOperationalHoursSpecialInstructions(
+      List<String> instructions) {
+    if (instructions != null) {
+      return String.join(" | ", instructions);
+    } else {
+      return null;
+    }
+  }
+
+  /** Transform version 1 facility other service to DatamartFacility other service object. */
+  private static DatamartFacility.Service<DatamartFacility.OtherService>
+      toVersionAgnosticFacilityOtherService(
+          @NonNull Facility.Service<Facility.OtherService> facilityOtherService) {
+    final Optional<DatamartFacility.OtherService> versionAgnosticOtherService =
+        toVersionAgnosticFacilityOtherServiceType(facilityOtherService.serviceType());
+    return versionAgnosticOtherService.isPresent()
+        ? DatamartFacility.Service.<DatamartFacility.OtherService>builder()
+            .serviceType(versionAgnosticOtherService.get())
+            .name(versionAgnosticOtherService.get().name())
+            .build()
+        : null;
+  }
+
+  /** Transform version 1 facility other service type to DatamartFacility other service type. */
+  public static Optional<DatamartFacility.OtherService> toVersionAgnosticFacilityOtherServiceType(
+      @NonNull Facility.OtherService facilityOtherService) {
+    return DatamartFacility.OtherService.fromServiceId(facilityOtherService.serviceId());
+  }
+
+  /** Transform version 1 facility phone to DatamartFacility phone. */
+  private static DatamartFacility.Phone toVersionAgnosticFacilityPhone(
+      Facility.Phone facilityPhone) {
+    return (facilityPhone != null)
+        ? DatamartFacility.Phone.builder()
+            .fax(facilityPhone.fax())
+            .main(facilityPhone.main())
+            .healthConnect(facilityPhone.healthConnect())
+            .afterHours(facilityPhone.afterHours())
+            .enrollmentCoordinator(facilityPhone.enrollmentCoordinator())
+            .mentalHealthClinic(facilityPhone.mentalHealthClinic())
+            .patientAdvocate(facilityPhone.patientAdvocate())
+            .pharmacy(facilityPhone.pharmacy())
+            .build()
+        : DatamartFacility.Phone.builder().build();
+  }
+
   /** Transform version 1 facility satisfaction to DatamartFacility satisfaction. */
-  private static DatamartFacility.Satisfaction transformFacilitySatisfaction(
+  private static DatamartFacility.Satisfaction toVersionAgnosticFacilitySatisfaction(
       Facility.Satisfaction facilitySatisfaction) {
     return (facilitySatisfaction != null)
         ? DatamartFacility.Satisfaction.builder()
@@ -382,43 +532,8 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : DatamartFacility.Satisfaction.builder().build();
   }
 
-  /** Transform DatamartFacility services to version 1 facility services. */
-  private static Facility.Services transformFacilityServices(
-      DatamartFacility.Services datamartFacilityServices) {
-    return (datamartFacilityServices != null)
-        ? Facility.Services.builder()
-            .health(
-                (datamartFacilityServices.health() != null)
-                    ? datamartFacilityServices.health().parallelStream()
-                        .filter(
-                            e ->
-                                containsValueOfName(Facility.HealthService.values(), e.name())
-                                    || checkHealthServiceNameChange(e))
-                        .map(e -> transformFacilityHealthService(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .benefits(
-                (datamartFacilityServices.benefits() != null)
-                    ? datamartFacilityServices.benefits().parallelStream()
-                        .filter(
-                            e -> containsValueOfName(Facility.BenefitsService.values(), e.name()))
-                        .map(e -> transformFacilityBenefitsService(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .other(
-                (datamartFacilityServices.other() != null)
-                    ? datamartFacilityServices.other().parallelStream()
-                        .filter(e -> containsValueOfName(Facility.OtherService.values(), e.name()))
-                        .map(e -> transformFacilityOtherService(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .lastUpdated(datamartFacilityServices.lastUpdated())
-            .build()
-        : Facility.Services.builder().build();
-  }
-
   /** Transform version 1 facility services to DatamartFacility services. */
-  private static DatamartFacility.Services transformFacilityServices(
+  private static DatamartFacility.Services toVersionAgnosticFacilityServices(
       Facility.Services facilityServices) {
     return (facilityServices != null)
         ? DatamartFacility.Services.builder()
@@ -427,30 +542,25 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     ? facilityServices.health().parallelStream()
                         .filter(
                             e ->
-                                containsValueOfName(
-                                        DatamartFacility.HealthService.values(), e.name())
-                                    || checkHealthServiceNameChange(e))
-                        .map(e -> transformFacilityHealthService(e))
+                                checkHealthServiceNameChange(e)
+                                    || containsValueOfName(
+                                        DatamartFacility.HealthService.values(), e.name()))
+                        .map(FacilityTransformerV1::toVersionAgnosticFacilityHealthService)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
                     : null)
             .benefits(
                 (facilityServices.benefits() != null)
                     ? facilityServices.benefits().parallelStream()
-                        .filter(
-                            e ->
-                                containsValueOfName(
-                                    DatamartFacility.BenefitsService.values(), e.name()))
-                        .map(e -> transformFacilityBenefitsService(e))
+                        .map(FacilityTransformerV1::toVersionAgnosticFacilityBenefitsService)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
                     : null)
             .other(
                 (facilityServices.other() != null)
                     ? facilityServices.other().parallelStream()
-                        .filter(
-                            e ->
-                                containsValueOfName(
-                                    DatamartFacility.OtherService.values(), e.name()))
-                        .map(e -> transformFacilityOtherService(e))
+                        .map(FacilityTransformerV1::toVersionAgnosticFacilityOtherService)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
                     : null)
             .lastUpdated(facilityServices.lastUpdated())
@@ -458,85 +568,39 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
         : DatamartFacility.Services.builder().build();
   }
 
-  /** Transform DatamartFacility facility type to version 1 facility type. */
-  private static Facility.FacilityType transformFacilityType(
-      DatamartFacility.FacilityType datamartFacilityType) {
-    return (datamartFacilityType != null)
-        ? containsValueOfName(Facility.FacilityType.values(), datamartFacilityType.name())
-            ? Facility.FacilityType.valueOf(datamartFacilityType.name())
-            : null
-        : null;
-  }
-
   /** Transform version 1 facility type to DatamartFacility facility type. */
-  private static DatamartFacility.FacilityType transformFacilityType(
+  private static DatamartFacility.FacilityType toVersionAgnosticFacilityType(
       Facility.FacilityType facilityType) {
     return (facilityType != null)
-        ? containsValueOfName(DatamartFacility.FacilityType.values(), facilityType.name())
-            ? DatamartFacility.FacilityType.valueOf(facilityType.name())
-            : null
+        ? DatamartFacility.FacilityType.valueOf(facilityType.name())
         : null;
   }
 
-  /** Transform DatamartFacility wait times to version 1 facility wait times. */
-  private static Facility.WaitTimes transformFacilityWaitTimes(
-      DatamartFacility.WaitTimes datamartFacilityWaitTimes) {
-    return (datamartFacilityWaitTimes != null)
-        ? Facility.WaitTimes.builder()
-            .health(
-                (datamartFacilityWaitTimes.health() != null)
-                    ? datamartFacilityWaitTimes.health().parallelStream()
-                        .map(e -> transformFacilityPatientWaitTime(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .effectiveDate(datamartFacilityWaitTimes.effectiveDate())
-            .build()
-        : Facility.WaitTimes.builder().build();
-  }
-
-  /** Transform version 1 facility wait times to DatamartFacility wait times. */
-  private static DatamartFacility.WaitTimes transformFacilityWaitTimes(
-      Facility.WaitTimes facilityWaitTimes) {
-    return (facilityWaitTimes != null)
-        ? DatamartFacility.WaitTimes.builder()
-            .health(
-                (facilityWaitTimes.health() != null)
-                    ? facilityWaitTimes.health().parallelStream()
-                        .map(e -> transformFacilityPatientWaitTime(e))
-                        .collect(Collectors.toList())
-                    : null)
-            .effectiveDate(facilityWaitTimes.effectiveDate())
-            .build()
-        : DatamartFacility.WaitTimes.builder().build();
+  /** Transform version 1 facility supplemental status to DatamartFacility supplemental status. */
+  public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
+      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+    return DatamartFacility.SupplementalStatus.builder()
+        .id(facilitySupplementalStatus.id())
+        .label(facilitySupplementalStatus.label())
+        .build();
   }
 
   /**
-   * Transform DatamartFacility operational hours special instructions to version 1 operational
-   * hours special instructions.
+   * Transform list of version 1 facility supplemental statuses to DatamartFacility supplemental
+   * statuses.
    */
-  public static List<String> transformOperationalHoursSpecialInstructions(String instructions) {
-    if (instructions != null) {
-      return Stream.of(instructions.split("\\|")).map(String::trim).collect(Collectors.toList());
-    } else {
-      return null;
+  public static List<DatamartFacility.SupplementalStatus> toVersionAgnosticSupplementalStatuses(
+      List<Facility.SupplementalStatus> facilitySupplementalStatuses) {
+    if (facilitySupplementalStatuses != null) {
+      return facilitySupplementalStatuses.parallelStream()
+          .map(FacilityTransformerV1::toVersionAgnosticSupplementalStatus)
+          .collect(Collectors.toList());
     }
-  }
-
-  /** Transform version 1 facility type to DatamartFacility facility type. */
-  private static Facility.Type transformType(DatamartFacility.Type datamartType) {
-    return (datamartType != null)
-        ? containsValueOfName(Facility.Type.values(), datamartType.name())
-            ? Facility.Type.valueOf(datamartType.name())
-            : null
-        : null;
+    return null;
   }
 
   /** Transform DatamartFacility type to version 1 facility type. */
-  private static DatamartFacility.Type transformType(Facility.Type type) {
-    return (type != null)
-        ? containsValueOfName(DatamartFacility.Type.values(), type.name())
-            ? DatamartFacility.Type.valueOf(type.name())
-            : null
-        : null;
+  private static DatamartFacility.Type toVersionAgnosticType(Facility.Type type) {
+    return (type != null) ? DatamartFacility.Type.valueOf(type.name()) : null;
   }
 }

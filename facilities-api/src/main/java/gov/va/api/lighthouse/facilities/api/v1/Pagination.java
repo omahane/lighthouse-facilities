@@ -20,29 +20,25 @@ import org.apache.commons.lang3.ObjectUtils;
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = PaginationSerializer.class)
 @JsonPropertyOrder({"currentPage", "perPage", "totalPages", "totalEntries"})
-@Schema(
-    description =
-        "Pagination data reflecting response that has been seperated into discrete pages.")
 public final class Pagination implements CanBeEmpty {
   @NotNull
-  @Schema(description = "Current page of response.", example = "1")
+  @Schema(example = "1")
   Integer currentPage;
 
   @NotNull
-  @Schema(description = "Number of results per page.", example = "20")
+  @Schema(example = "10")
   @JsonProperty("perPage")
   Integer entriesPerPage;
 
   @NotNull
-  @Schema(description = "Total number of pages matching this query.", example = "250")
+  @Schema(example = "217")
   Integer totalPages;
 
   @NotNull
-  @Schema(description = "Total number of entries matching this query.", example = "2162")
+  @Schema(example = "2162")
   Integer totalEntries;
 
   /** Empty elements will be omitted from JSON serialization. */
-  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(currentPage())

@@ -17,7 +17,6 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.
 import static gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.VocationalRehabilitationAndEmploymentAssistance;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService.eBenefitsRegistrationAssistance;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType.va_benefits_facility;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.Type.va_facilities;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.allBlank;
 import static gov.va.api.lighthouse.facilities.collector.Transformers.checkAngleBracketNull;
@@ -45,7 +44,7 @@ final class BenefitsTransformer {
 
   String csvWebsite;
 
-  private FacilityAttributes attributes(@NonNull String facilityId) {
+  private FacilityAttributes attributes() {
     return FacilityAttributes.builder()
         .name(cdwFacility.facilityName())
         .facilityType(va_benefits_facility)
@@ -54,7 +53,9 @@ final class BenefitsTransformer {
         .longitude(cdwFacility.longitude())
         .timeZone(
             TimeZoneFinder.calculateTimeZonesWithMap(
-                cdwFacility.latitude(), cdwFacility.longitude(), facilityId))
+                cdwFacility.latitude(),
+                cdwFacility.longitude(),
+                "vba_" + cdwFacility.facilityNumber()))
         .website(website(cdwFacility.websiteUrl()))
         .address(
             Addresses.builder()
@@ -93,85 +94,63 @@ final class BenefitsTransformer {
   }
 
   Services services() {
-    List<Service<BenefitsService>> benefitsServices = new ArrayList<>();
+    List<BenefitsService> benefitsServices = new ArrayList<>();
     if (yesNoToBoolean(cdwFacility.applyingForBenefits())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(ApplyingForBenefits).build());
+      benefitsServices.add(ApplyingForBenefits);
     }
     if (yesNoToBoolean(cdwFacility.burialClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(BurialClaimAssistance).build());
+      benefitsServices.add(BurialClaimAssistance);
     }
     if (yesNoToBoolean(cdwFacility.disabilityClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(DisabilityClaimAssistance).build());
+      benefitsServices.add(DisabilityClaimAssistance);
     }
     if (yesNoToBoolean(cdwFacility.ebenefitsRegistration())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(eBenefitsRegistrationAssistance).build());
+      benefitsServices.add(eBenefitsRegistrationAssistance);
     }
     if (yesNoToBoolean(cdwFacility.educationAndCareerCounseling())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(EducationAndCareerCounseling).build());
+      benefitsServices.add(EducationAndCareerCounseling);
     }
     if (yesNoToBoolean(cdwFacility.educationClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(EducationClaimAssistance).build());
+      benefitsServices.add(EducationClaimAssistance);
     }
     if (yesNoToBoolean(cdwFacility.familyMemberClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(FamilyMemberClaimAssistance).build());
+      benefitsServices.add(FamilyMemberClaimAssistance);
     }
     if (yesNoToBoolean(cdwFacility.homelessAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(HomelessAssistance).build());
+      benefitsServices.add(HomelessAssistance);
     }
     if (yesNoToBoolean(cdwFacility.vaHomeLoanAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(VAHomeLoanAssistance).build());
+      benefitsServices.add(VAHomeLoanAssistance);
     }
     if (yesNoToBoolean(cdwFacility.insuranceClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder()
-              .serviceType(InsuranceClaimAssistanceAndFinancialCounseling)
-              .build());
+      benefitsServices.add(InsuranceClaimAssistanceAndFinancialCounseling);
     }
     if (yesNoToBoolean(cdwFacility.integratedDisabilityEvaluationSystem())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder()
-              .serviceType(IntegratedDisabilityEvaluationSystemAssistance)
-              .build());
+      benefitsServices.add(IntegratedDisabilityEvaluationSystemAssistance);
     }
     if (yesNoToBoolean(cdwFacility.preDischargeClaimAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(PreDischargeClaimAssistance).build());
+      benefitsServices.add(PreDischargeClaimAssistance);
     }
     if (yesNoToBoolean(cdwFacility.transitionAssistance())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(TransitionAssistance).build());
+      benefitsServices.add(TransitionAssistance);
     }
     if (yesNoToBoolean(cdwFacility.updatingDirectDepositInformation())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder().serviceType(UpdatingDirectDepositInformation).build());
+      benefitsServices.add(UpdatingDirectDepositInformation);
     }
     if (yesNoToBoolean(cdwFacility.vocationalRehabilitationEmplo())) {
-      benefitsServices.add(
-          Service.<BenefitsService>builder()
-              .serviceType(VocationalRehabilitationAndEmploymentAssistance)
-              .build());
+      benefitsServices.add(VocationalRehabilitationAndEmploymentAssistance);
     }
     if (StringUtils.containsIgnoreCase(cdwFacility.otherServices(), "PENSION")) {
-      benefitsServices.add(Service.<BenefitsService>builder().serviceType(Pensions).build());
+      benefitsServices.add(Pensions);
     }
     return Services.builder().benefits(benefitsServices).build();
   }
 
   DatamartFacility toDatamartFacility() {
-    final var facilityId = "vba_" + cdwFacility.facilityNumber();
     return DatamartFacility.builder()
-        .id(facilityId)
+        .id("vba_" + cdwFacility.facilityNumber())
         .type(va_facilities)
-        .attributes(attributes(facilityId))
+        .attributes(attributes())
         .build();
   }
 

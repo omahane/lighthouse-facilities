@@ -13,27 +13,24 @@ import lombok.Value;
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
-@Schema(
-    description =
-        "Pagination data reflecting response that has been seperated into discrete pages.")
 public final class Pagination {
   @NotNull
-  @Schema(description = "Current page of response.", example = "1")
+  @Schema(example = "1")
   @JsonProperty("current_page")
   Integer currentPage;
 
   @NotNull
-  @Schema(description = "Number of results per page.", example = "20")
+  @Schema(example = "10")
   @JsonProperty("per_page")
   Integer entriesPerPage;
 
   @NotNull
-  @Schema(description = "Total number of pages matching this query.", example = "250")
+  @Schema(example = "217")
   @JsonProperty("total_pages")
   Integer totalPages;
 
   @NotNull
-  @Schema(description = "Total number of entries matching this query.", example = "2162")
+  @Schema(example = "2162")
   @JsonProperty("total_entries")
   Integer totalEntries;
 }

@@ -22,7 +22,6 @@
       "phone" : {
         "fax" : "207-493-3877",
         "main" : "207-493-3800",
-        "healthConnect" : "312-122-4516",
         "pharmacy" : "207-623-8411 x5770",
         "afterHours" : "844-750-8426",
         "patientAdvocate" : "207-623-5760",
@@ -40,28 +39,11 @@
       },
       "services" : {
         "health" : [
-          {
-            "name" : "EmergencyCare",
-            "serviceId" : "emergencyCare",
-            "link" : "http://foo/bar/v1/facilities/vha_402GA/services/emergencyCare"
-          },
-          {
-            "name" : "PrimaryCare",
-            "serviceId" : "primaryCare",
-            "link" : "http://foo/bar/v1/facilities/vha_402GA/services/primaryCare"
-          },
-          {
-            "name" : "MentalHealth",
-            "serviceId" : "mentalHealth",
-            "link" : "http://foo/bar/v1/facilities/vha_402GA/services/mentalHealth"
-          },
-          {
-            "name" : "Dermatology",
-            "serviceId" : "dermatology",
-            "link" : "http://foo/bar/v1/facilities/vha_402GA/services/dermatology"
-          }
+          "emergencyCare",
+          "primaryCare",
+          "mentalHealth",
+          "dermatology"
         ],
-        "link" : "http://foo/bar/v1/facilities/vha_402GA/services",
         "lastUpdated" : "2020-02-24"
       },
       "satisfaction" : {
@@ -70,6 +52,25 @@
           "primaryCareRoutine" : 0.91
         },
         "effectiveDate" : "2019-06-20"
+      },
+      "waitTimes" : {
+        "health" : [
+          {
+            "service" : "dermatology",
+            "new" : 3.714285
+          },
+          {
+            "service" : "primaryCare",
+            "new" : 13.727272,
+            "established" : 10.392441
+          },
+          {
+            "service" : "mentalHealth",
+            "new" : 5.75,
+            "established" : 2.634703
+          }
+        ],
+        "effectiveDate" : "2020-02-24"
       },
       "mobile" : false,
       "activeStatus" : "A",

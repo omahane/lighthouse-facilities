@@ -378,26 +378,11 @@
         },
         "services" : {
           "health" : [
-            {
-              "name" : "EmergencyCare",
-              "serviceId" : "emergencyCare"
-            },
-            {
-              "name" : "Gynecology",
-              "serviceId" : "gynecology"
-            },
-            {
-              "name" : "MentalHealth",
-              "serviceId" : "mentalHealth"
-            },
-            {
-              "name" : "PrimaryCare",
-              "serviceId" : "primaryCare"
-            },
-            {
-              "name" : "WomensHealth",
-              "serviceId" : "womensHealth"
-            }
+            "emergencyCare",
+            "gynecology",
+            "mentalHealth",
+            "primaryCare",
+            "womensHealth"
           ],
           "lastUpdated" : "2020-03-09"
         },
@@ -407,6 +392,30 @@
             "primaryCareRoutine" : 0.8500000238418579
           },
           "effectiveDate" : "2019-06-20"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "gynecology",
+              "new" : 28.333333,
+              "established" : 1.594594
+            },
+            {
+              "service" : "mentalHealth",
+              "new" : 6.484848,
+              "established" : 1.301587
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 11.8,
+              "established" : 3.374829
+            },
+            {
+              "service" : "womensHealth",
+              "established" : 2.185185
+            }
+          ],
+          "effectiveDate" : "2020-03-09"
         },
         "mobile" : false,
         "activeStatus" : "A",
@@ -454,20 +463,26 @@
         },
         "services" : {
           "health" : [
-            {
-              "name" : "EmergencyCare",
-              "serviceId" : "emergencyCare"
-            },
-            {
-              "name" : "MentalHealth",
-              "serviceId" : "mentalHealth"
-            },
-            {
-              "name" : "PrimaryCare",
-              "serviceId" : "primaryCare"
-            }
+            "emergencyCare",
+            "mentalHealth",
+            "primaryCare"
           ],
           "lastUpdated" : "2020-03-09"
+        },
+        "waitTimes" : {
+          "health" : [
+            {
+              "service" : "mentalHealth",
+              "new" : 21.2,
+              "established" : 5.368421
+            },
+            {
+              "service" : "primaryCare",
+              "new" : 6.9375,
+              "established" : 2.656084
+            }
+          ],
+          "effectiveDate" : "2020-03-09"
         },
         "mobile" : false,
         "activeStatus" : "A",

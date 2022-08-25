@@ -1,7 +1,7 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
-import static org.apache.commons.lang3.StringUtils.capitalize;
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.CmsOverlayEntity;
@@ -9,25 +9,15 @@ import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
-import gov.va.api.lighthouse.facilities.DatamartFacility;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
-import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
-import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
-import java.time.LocalDate;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +31,7 @@ public class CmsOverlayCollector {
   public static boolean containsCovidService(List<DatamartDetailedService> detailedServices) {
     return detailedServices != null
         && detailedServices.parallelStream()
-            .anyMatch(
-                ds ->
-                    ds.serviceInfo().serviceId().equals(HealthService.Covid19Vaccine.serviceId()));
+            .anyMatch(f -> f.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19));
   }
 
   private static <K, V>
@@ -55,39 +43,11 @@ public class CmsOverlayCollector {
         HashMap::new);
   }
 
-  private AbstractMap.SimpleEntry<String, Service<HealthService>>
-      filterCovid19ServiceFromCmsOverlayServices(CmsOverlayEntity cmsOverlayEntity) {
-    Optional<Service<HealthService>> opt =
-        cmsOverlayEntity.overlayServices().stream()
-            .filter(s -> EnumUtils.isValidEnum(HealthService.class, capitalize(s)))
-            .map(s -> HealthService.fromString(s))
-            .filter(s -> s.equals(HealthService.Covid19Vaccine))
-            .map(
-                s ->
-                    Service.<HealthService>builder()
-                        .serviceType(HealthService.Covid19Vaccine)
-                        .build())
-            .findFirst();
-    if (opt.isPresent()) {
-      return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), opt.get());
-    }
-    return null;
-  }
-
-  /** Return a map of facilities that have covid 19 vaccines. This is a V0 utility function. */
-  public HashMap<String, Service<HealthService>> getCovid19VaccineServices() {
-    HashMap<String, Service<HealthService>> cmsOverlayServices =
-        Streams.stream(cmsOverlayRepository.findAll())
-            .map(this::filterCovid19ServiceFromCmsOverlayServices)
-            .filter(Objects::nonNull)
-            .collect(convertOverlayToMap());
-    return cmsOverlayServices;
-  }
-
   /** Load and return map of CMS overlays for each facility id. */
   public HashMap<String, DatamartCmsOverlay> loadAndUpdateCmsOverlays() {
     HashMap<String, DatamartCmsOverlay> overlays =
         Streams.stream(cmsOverlayRepository.findAll())
+            // .parallel()
             .map(this::makeOverlayFromEntity)
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
@@ -107,12 +67,9 @@ public class CmsOverlayCollector {
               .detailedServices(
                   cmsOverlayEntity.cmsServices() != null
                       ? // updateServiceUrlPaths(
-                      // cmsOverlayEntity.id().toIdString(),
-                      // )
-                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices())
+                      //  cmsOverlayEntity.id().toIdString(),
+                      CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()) // )
                       : null)
-              .healthCareSystem(
-                  CmsOverlayHelper.getHealthCareSystem(cmsOverlayEntity.healthCareSystem()))
               .build();
       // Save updates made to overlay with Covid services
       final OperatingStatus operatingStatus = overlay.operatingStatus();
@@ -123,9 +80,6 @@ public class CmsOverlayCollector {
                 .id(cmsOverlayEntity.id())
                 .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
                 .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
-                .overlayServices(cmsOverlayEntity.overlayServices())
-                .healthCareSystem(
-                    CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
                 .build());
         log.info(
             "CMS overlay updated for {} facility", sanitize(cmsOverlayEntity.id().toIdString()));
@@ -137,51 +91,5 @@ public class CmsOverlayCollector {
       return null;
     }
     return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), overlay);
-  }
-
-  /** Update CMS Detailed Service with wait times data from ATC during reload. */
-  public void updateCmsServicesWithAtcWaitTimes(List<DatamartFacility> datamartFacilities) {
-    Iterable<CmsOverlayEntity> existingOverlayEntities = cmsOverlayRepository.findAll();
-    Map<String, CmsOverlayEntity> overlayEntityMap =
-        Streams.stream(existingOverlayEntities)
-            .collect(
-                Collectors.toMap(
-                    cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
-    datamartFacilities.stream()
-        .filter(df -> overlayEntityMap.containsKey(df.id()))
-        .filter(df -> df.attributes().waitTimes() != null)
-        .filter(df -> df.attributes().waitTimes().health() != null)
-        .forEach(
-            datamartFacility -> {
-              WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();
-              List<PatientWaitTime> patientWaitTimes = atcWaitTimes.health();
-              LocalDate effectiveDate = atcWaitTimes.effectiveDate();
-              Map<String, PatientWaitTime> waitTimeMap =
-                  patientWaitTimes.stream()
-                      .collect(Collectors.toMap(s -> s.service().serviceId(), Function.identity()));
-              CmsOverlayEntity cmsOverlayEntity = overlayEntityMap.get(datamartFacility.id());
-              List<DatamartDetailedService> cmsDatamartDetailedServices =
-                  Optional.ofNullable(
-                          CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices()))
-                      .orElse(List.of());
-              cmsDatamartDetailedServices.stream()
-                  .forEach(
-                      cmsService -> {
-                        String serviceId = cmsService.serviceInfo().serviceId();
-                        PatientWaitTime patientWaitTime = waitTimeMap.get(serviceId);
-                        if (patientWaitTime != null) {
-                          cmsService.waitTime(
-                              DatamartDetailedService.PatientWaitTime.builder()
-                                  .newPatientWaitTime(patientWaitTime.newPatientWaitTime())
-                                  .establishedPatientWaitTime(
-                                      patientWaitTime.establishedPatientWaitTime())
-                                  .effectiveDate(effectiveDate)
-                                  .build());
-                        }
-                      });
-              cmsOverlayEntity.cmsServices(
-                  CmsOverlayHelper.serializeDetailedServices(cmsDatamartDetailedServices));
-            });
-    cmsOverlayRepository.saveAll(overlayEntityMap.values());
   }
 }

@@ -57,8 +57,6 @@ final class HealthsCollector {
 
   @NonNull final ArrayList<String> cscFacilities;
 
-  @NonNull final ArrayList<String> orthoFacilities;
-
   @SneakyThrows
   static void putMentalHealthContact(ResultSet resultSet, Map<String, String> map) {
     String stationNumber = resultSet.getString("StationNumber");
@@ -136,7 +134,6 @@ final class HealthsCollector {
                       .accessToCare(accessToCareEntries)
                       .accessToPwt(accessToPwtEntries)
                       .cscFacilities(cscFacilities)
-                      .orthoFacilities(orthoFacilities)
                       .mentalHealthPhoneNumbers(mentalHealthPhoneNumbers)
                       .stopCodesMap(stopCodesMap)
                       .websites(websites)

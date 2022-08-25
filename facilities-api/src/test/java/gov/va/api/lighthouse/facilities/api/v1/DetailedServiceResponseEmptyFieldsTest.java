@@ -12,31 +12,16 @@ public class DetailedServiceResponseEmptyFieldsTest {
   void isEmpty() {
     // Empty
     assertThat(DetailedServiceResponse.builder().build().isEmpty()).isTrue();
+    assertThat(
+            DetailedServiceResponse.builder()
+                .data(DetailedService.builder().build())
+                .build()
+                .isEmpty())
+        .isTrue();
     // Not empty
     assertThat(
             DetailedServiceResponse.builder()
-                .data(
-                    DetailedService.builder()
-                        .serviceInfo(
-                            DetailedService.ServiceInfo.builder()
-                                .serviceId(Facility.HealthService.Cardiology.serviceId())
-                                .serviceType(Facility.HealthService.Cardiology.serviceType())
-                                .build())
-                        .build())
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(
-            DetailedServiceResponse.builder()
-                .data(
-                    DetailedService.builder()
-                        .serviceInfo(
-                            DetailedService.ServiceInfo.builder()
-                                .serviceId(Facility.HealthService.Cardiology.serviceId())
-                                .name("test")
-                                .serviceType(Facility.HealthService.Cardiology.serviceType())
-                                .build())
-                        .build())
+                .data(DetailedService.builder().name("test").build())
                 .build()
                 .isEmpty())
         .isFalse();

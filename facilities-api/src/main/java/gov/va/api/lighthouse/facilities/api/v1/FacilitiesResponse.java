@@ -24,8 +24,6 @@ import org.apache.commons.lang3.ObjectUtils;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = FacilitiesResponseSerializer.class)
-@Schema(
-    description = "JSON API-compliant response object describing " + "one or more VA facilities")
 public final class FacilitiesResponse implements CanBeEmpty {
   List<@Valid Facility> data;
 
@@ -34,7 +32,6 @@ public final class FacilitiesResponse implements CanBeEmpty {
   @Valid @NotNull FacilitiesMetadata meta;
 
   /** Empty elements will be omitted from JSON serialization. */
-  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return ObjectUtils.isEmpty(data())
@@ -44,26 +41,16 @@ public final class FacilitiesResponse implements CanBeEmpty {
 
   @Value
   @Builder
+  @Schema
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = DistanceSerializer.class)
-  @Schema(
-      description =
-          "Distance to facility in miles "
-              + "using decimal format. "
-              + "Used when querying for facilities proximal to a location. ",
-      example = "54.13")
   public static final class Distance implements CanBeEmpty {
-    @Schema(description = "Identifier of facility.", example = "vc_0101V")
-    @NotNull
-    String id;
+    @NotNull String id;
 
-    @Schema(description = "Distance to facility in decimal format.", example = "54.13")
-    @NotNull
-    BigDecimal distance;
+    @NotNull BigDecimal distance;
 
     /** Empty elements will be omitted from JSON serialization. */
-    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(id()) && ObjectUtils.isEmpty(distance());
@@ -75,20 +62,12 @@ public final class FacilitiesResponse implements CanBeEmpty {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = FacilitiesMetadataSerializer.class)
-  @Schema(
-      description =
-          "Metadata representation for data in response. "
-              + "This metadata includes paginated items "
-              + "that allow user to see the current page, "
-              + "objects perPage, total pages "
-              + "and total entries.")
   public static final class FacilitiesMetadata implements CanBeEmpty {
     @Valid @NotNull Pagination pagination;
 
     List<@Valid @NotNull Distance> distances;
 
     /** Empty elements will be omitted from JSON serialization. */
-    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (pagination() == null || pagination().isEmpty()) && ObjectUtils.isEmpty(distances());

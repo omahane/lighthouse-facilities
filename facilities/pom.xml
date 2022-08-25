@@ -4,15 +4,14 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>11.0.7</version>
+    <version>9.0.6</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities</artifactId>
-  <version>3.0.165-SNAPSHOT</version>
+  <version>3.0.117-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <github.repository-name>lighthouse-facilities</github.repository-name>
     <commons-csv.version>1.8</commons-csv.version>
     <docker.imageName>lighthouse-facilities</docker.imageName>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
@@ -20,7 +19,6 @@
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.1</swagger-maven-plugin.version>
     <timezonemap.version>LATEST</timezonemap.version>
-    <talos.version>3.0.2</talos.version>
   </properties>
   <dependencies>
     <dependency>
@@ -43,12 +41,6 @@
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
-      <version>4.8.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-compress</artifactId>
-      <version>1.21</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
@@ -70,11 +62,6 @@
       <groupId>us.dustinj.timezonemap</groupId>
       <artifactId>timezonemap</artifactId>
       <version>${timezonemap.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>gov.va.api.lighthouse</groupId>
-      <artifactId>talos</artifactId>
-      <version>${talos.version}</version>
     </dependency>
   </dependencies>
   <build>

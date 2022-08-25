@@ -4,15 +4,14 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>health-apis-parent</artifactId>
-    <version>11.0.7</version>
+    <version>9.0.6</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities-local-db</artifactId>
-  <version>3.0.165-SNAPSHOT</version>
+  <version>3.0.117-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <github.repository-name>lighthouse-facilities</github.repository-name>
     <commons-csv.version>1.8</commons-csv.version>
     <guava.version>[30.0-jre,)</guava.version>
     <populator.sqlserver>false</populator.sqlserver>

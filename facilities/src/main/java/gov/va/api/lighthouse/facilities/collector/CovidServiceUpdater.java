@@ -4,7 +4,6 @@ import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
@@ -25,7 +24,7 @@ public final class CovidServiceUpdater {
       @NotNull String id, @NotNull List<DatamartDetailedService> detailedServices) {
     final Map<String, String> websites = loadWebsites(COVID_CSV_WEBSITES_RESOURCE_NAME);
     detailedServices.parallelStream()
-        .filter(d -> d.serviceInfo().serviceId().equals(HealthService.Covid19Vaccine.serviceId()))
+        .filter(d -> d.name().equals(CMS_OVERLAY_SERVICE_NAME_COVID_19))
         .forEach(
             d -> {
               d.path(websites.get(id));

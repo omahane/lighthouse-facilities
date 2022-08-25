@@ -1,20 +1,14 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
-import gov.va.api.lighthouse.facilities.api.TypedService;
 import java.util.List;
-import lombok.NonNull;
 
 public class DetailedServiceUtils {
-  public static DetailedService getDetailedService(@NonNull TypedService serviceType) {
+  public static DetailedService getDetailedService(String name) {
     return DetailedService.builder()
-        .serviceInfo(
-            DetailedService.ServiceInfo.builder()
-                .serviceId(serviceType.serviceId())
-                .name(serviceType.name())
-                .serviceType(serviceType.serviceType())
-                .build())
+        .name(name)
         .active(true)
         .changed(null)
+        .descriptionFacility("Most advanced healthcare facility nationally.")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .path("replaceable path here")

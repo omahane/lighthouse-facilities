@@ -5,9 +5,9 @@ import lombok.NonNull;
 
 abstract class BaseVersionedTransformer {
   protected static boolean checkHealthServiceNameChange(
-      @NonNull DatamartFacility.Service<DatamartFacility.HealthService> healthService) {
-    return healthService.serviceType().equals(DatamartFacility.HealthService.MentalHealth)
-        || healthService.serviceType().equals(DatamartFacility.HealthService.Dental);
+      @NonNull DatamartFacility.HealthService healthService) {
+    return healthService.equals(DatamartFacility.HealthService.MentalHealth)
+        || healthService.equals(DatamartFacility.HealthService.Dental);
   }
 
   protected static boolean checkHealthServiceNameChange(
@@ -19,16 +19,11 @@ abstract class BaseVersionedTransformer {
   }
 
   protected static boolean checkHealthServiceNameChange(
-      @NonNull
-          gov.va.api.lighthouse.facilities.api.v1.Facility.Service<
-                  gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>
-              healthService) {
-    return healthService
-            .serviceType()
-            .equals(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
-        || healthService
-            .serviceType()
-            .equals(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.Dental);
+      @NonNull gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService healthService) {
+    return healthService.equals(
+            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+        || healthService.equals(
+            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.Dental);
   }
 
   protected static boolean containsValueOfName(@NonNull Enum<?>[] values, @NonNull String name) {

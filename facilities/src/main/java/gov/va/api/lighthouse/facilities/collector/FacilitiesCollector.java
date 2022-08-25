@@ -1,8 +1,6 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static com.google.common.base.Preconditions.checkState;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
 
@@ -18,13 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -42,8 +37,6 @@ public class FacilitiesCollector {
   private static final String WEBSITES_CSV_RESOURCE_NAME = "websites.csv";
 
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
-
-  private static final String ORTHO_STATIONS_RESOURCE_NAME = "ortho_stations.txt";
 
   protected final InsecureRestTemplateProvider insecureRestTemplateProvider;
 
@@ -73,26 +66,26 @@ public class FacilitiesCollector {
     this.cmsOverlayCollector = cmsOverlayCollector;
   }
 
-  /** Returns list of vha facilities contained in a file. */
+  /** Caregiver support facilities given a resource name. */
   @SneakyThrows
-  public static ArrayList<String> loadFacilitiesFromResource(String resourceName) {
+  public static ArrayList<String> loadCaregiverSupport(String resourceName) {
     final Stopwatch totalWatch = Stopwatch.createStarted();
-    ArrayList<String> facilities = new ArrayList<>();
+    ArrayList<String> cscFacilities = new ArrayList<>();
     try (BufferedReader reader =
         new BufferedReader(
             new InputStreamReader(
                 new ClassPathResource(resourceName).getInputStream(), StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null) {
-        facilities.add("vha_" + line);
+        cscFacilities.add("vha_" + line);
       }
     }
     log.info(
         "Loading caregiver support facilities took {} millis for {} entries",
         totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-        facilities.size());
-    checkState(!facilities.isEmpty(), "No caregiver support entries");
-    return facilities;
+        cscFacilities.size());
+    checkState(!cscFacilities.isEmpty(), "No caregiver support entries");
+    return cscFacilities;
   }
 
   @SneakyThrows
@@ -147,12 +140,10 @@ public class FacilitiesCollector {
     Map<String, String> websites;
     Collection<VastEntity> vastEntities;
     ArrayList<String> cscFacilities;
-    ArrayList<String> orthoFacilities;
     try {
       websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
       vastEntities = loadVast();
-      cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
-      orthoFacilities = loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME);
+      cscFacilities = loadCaregiverSupport(CSC_STATIONS_RESOURCE_NAME);
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
@@ -161,7 +152,6 @@ public class FacilitiesCollector {
             .atcBaseUrl(atcBaseUrl)
             .atpBaseUrl(atpBaseUrl)
             .cscFacilities(cscFacilities)
-            .orthoFacilities(orthoFacilities)
             .jdbcTemplate(jdbcTemplate)
             .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
             .vastEntities(vastEntities)
@@ -204,8 +194,6 @@ public class FacilitiesCollector {
             .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
             .collect(toList());
     updateOperatingStatusFromCmsOverlay(datamartFacilities);
-    updateServicesFromCmsOverlay(datamartFacilities);
-    cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     return datamartFacilities;
   }
 
@@ -258,9 +246,8 @@ public class FacilitiesCollector {
     return entities;
   }
 
-  /** Updates facility based on CMS Overlay data. * */
   @SneakyThrows
-  public void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+  void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
     HashMap<String, DatamartCmsOverlay> cmsOverlays;
     try {
       cmsOverlays = cmsOverlayCollector.loadAndUpdateCmsOverlays();
@@ -272,71 +259,9 @@ public class FacilitiesCollector {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
-
-        if (cmsOverlay.healthCareSystem() != null) {
-          if (cmsOverlay.healthCareSystem().healthConnectPhone() != null) {
-            if (datamartFacility.attributes().phone() != null) {
-              datamartFacility
-                  .attributes()
-                  .phone()
-                  .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone());
-            } else {
-              datamartFacility
-                  .attributes()
-                  .phone(
-                      DatamartFacility.Phone.builder()
-                          .healthConnect(cmsOverlay.healthCareSystem().healthConnectPhone())
-                          .build());
-            }
-          }
-        }
       } else {
         log.warn("No cms overlay for facility: {}", datamartFacility.id());
       }
-      if (datamartFacility.attributes() != null) {
-        if (datamartFacility.attributes().operatingStatus() == null) {
-          datamartFacility
-              .attributes()
-              .operatingStatus(
-                  datamartFacility.attributes().activeStatus() == DatamartFacility.ActiveStatus.T
-                      ? DatamartFacility.OperatingStatus.builder()
-                          .code(DatamartFacility.OperatingStatusCode.CLOSED)
-                          .build()
-                      : DatamartFacility.OperatingStatus.builder()
-                          .code(DatamartFacility.OperatingStatusCode.NORMAL)
-                          .build());
-        }
-      }
     }
-  }
-
-  private void updateServicesFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
-    Map<String, Service<HealthService>> facilityCovid19Services;
-    try {
-      facilityCovid19Services = cmsOverlayCollector.getCovid19VaccineServices();
-    } catch (Exception e) {
-      throw new CollectorExceptions.CollectorException(e);
-    }
-
-    datamartFacilities.stream()
-        .filter(df -> facilityCovid19Services.containsKey(df.id()))
-        .forEach(
-            df -> {
-              // Covid-19 vaccines is the only CMS service that should appear in the list of ATC
-              // facility services, as well as the CMS overlay detailed services list, if present
-              // for a facility.
-              Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
-              facilityHealthServices.add(facilityCovid19Services.get(df.id()));
-              if (df.attributes().services() == null) {
-                df.attributes().services(DatamartFacility.Services.builder().build());
-              }
-              if (df.attributes().services().health() != null) {
-                facilityHealthServices.addAll(df.attributes().services().health());
-              }
-              List<Service<HealthService>> facilityHealthServiceList =
-                  new ArrayList<>(facilityHealthServices);
-              Collections.sort(facilityHealthServiceList);
-              df.attributes().services().health(facilityHealthServiceList);
-            });
   }
 }

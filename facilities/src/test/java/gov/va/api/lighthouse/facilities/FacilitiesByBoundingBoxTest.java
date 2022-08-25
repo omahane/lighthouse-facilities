@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,6 +11,8 @@ import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v0.Pagination;
 import java.math.BigDecimal;
 import java.util.List;
+import lombok.NonNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +24,25 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class FacilitiesByBoundingBoxTest {
   @Autowired private FacilityRepository repo;
 
-  private FacilitiesControllerV0 controller() {
+  private String baseUrl;
+
+  private String basePath;
+
+  private String linkerUrl;
+
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
-        .baseUrl("http://foo/")
-        .basePath("bp")
+        .baseUrl(baseUrl)
+        .basePath(basePath)
         .build();
   }
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .geoFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -48,7 +57,7 @@ public class FacilitiesByBoundingBoxTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples().geoFacility("vha_757")))
+                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
                 .build());
   }
 
@@ -57,7 +66,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -77,7 +86,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -96,7 +105,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -112,9 +121,9 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_noFilter() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -127,14 +136,14 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void json_perPageZero() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -169,9 +178,9 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -184,17 +193,17 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_691GB"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
     String linkBase =
         "http://foo/bp/v0/facilities?bbox%5B%5D=-80&bbox%5B%5D=20&bbox%5B%5D=-120&bbox%5B%5D=40&services%5B%5D=primarycare&type=HEALTH";
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -208,7 +217,7 @@ public class FacilitiesByBoundingBoxTest {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples().facility("vha_691GB")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=2&per_page=1")
@@ -231,9 +240,9 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller()
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -246,6 +255,13 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples().facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+  }
+
+  @BeforeEach
+  void setup() {
+    baseUrl = "http://foo/";
+    basePath = "bp";
+    linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
   }
 }

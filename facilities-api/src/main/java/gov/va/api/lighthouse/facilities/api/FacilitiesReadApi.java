@@ -1,5 +1,9 @@
-package gov.va.api.lighthouse.facilities.api.v0;
+package gov.va.api.lighthouse.facilities.api;
 
+import gov.va.api.lighthouse.facilities.api.v0.ApiError;
+import gov.va.api.lighthouse.facilities.api.v0.FacilityReadResponse;
+import gov.va.api.lighthouse.facilities.api.v0.GenericError;
+import gov.va.api.lighthouse.facilities.api.v0.GeoFacilityReadResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -14,8 +18,8 @@ public interface FacilitiesReadApi {
   @Operation(
       summary = "Retrieve a specific facility by ID",
       operationId = "getFacilityById",
-      tags = {"facilities"},
-      security = @SecurityRequirement(name = "apikey"))
+      security = @SecurityRequirement(name = "apikey"),
+      tags = {"facilities"})
   @GET
   @Path("/facilities/{id}")
   @ApiResponse(

@@ -1,7 +1,9 @@
 package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.lighthouse.facilities.deserializers.DatamartServicesDeserializer;
 import java.io.InputStream;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
@@ -19,9 +21,20 @@ public class DatamartFacilitiesJacksonConfig {
     return mapper.readValue(json, type);
   }
 
+  /**
+   * Method used to obtain datamart object mapper with registered modules for custom serializers and
+   * deserializers.
+   */
   @Bean
   public ObjectMapper datamartMapper() {
-    return JacksonConfig.createMapper()
-        .registerModule(DatamartJacksonSerializers.datamartSerializers());
+    final ObjectMapper mapper = JacksonConfig.createMapper();
+    // Register module for serializers
+    mapper.registerModule(DatamartJacksonSerializers.datamartSerializers());
+    // Register module for deserializers
+    final SimpleModule deserializerModule = new SimpleModule();
+    deserializerModule.addDeserializer(
+        DatamartFacility.Services.class, new DatamartServicesDeserializer());
+    mapper.registerModule(deserializerModule);
+    return mapper;
   }
 }

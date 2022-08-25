@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -10,24 +9,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.io.ByteArrayResource;
 
-public class HomeControllerV0Test {
+public class HomeControllerTest {
   @Test
   void metadata() {
     Properties properties = new Properties();
     properties.put("version", "3.14");
     assertThat(
-            HomeControllerV0.builder()
+            HomeController.builder()
                 .buildProperties(new BuildProperties(properties))
                 .basePath("/bp")
                 .build()
                 .metadata())
         .isEqualTo(
-            HomeControllerV0.Metadata.builder()
+            HomeController.Metadata.builder()
                 .meta(
-                    HomeControllerV0.Versions.builder()
+                    HomeController.Versions.builder()
                         .versions(
                             List.of(
-                                HomeControllerV0.Version.builder()
+                                HomeController.Version.builder()
                                     .version("3.14")
                                     .internalOnly(false)
                                     .status("Current Version")
@@ -42,11 +41,11 @@ public class HomeControllerV0Test {
   @SneakyThrows
   void openapiJson() {
     assertThat(
-            HomeControllerV0.builder()
+            HomeController.builder()
                 .openapi(new ByteArrayResource("{}".getBytes()))
                 .basePath("")
                 .build()
                 .openapiJson())
-        .isEqualTo(emptyMap());
+        .isEqualTo("{}");
   }
 }

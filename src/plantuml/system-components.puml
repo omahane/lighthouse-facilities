@@ -1,7 +1,7 @@
 @startuml
 !include component-definitions.iuml!0
 
-CONSUMER -(0- F <<public>> : "/v0/facilities\n/v0/nearby"
+CONSUMER -(0- F <<public>> : "/facilities\n/nearby\n/ids\n/services"
 ADMIN -(0- F <<internal>> : /internal/management
 TIMER -right(0- F <<internal>> : /internal/management/reload
 F -- DB
@@ -21,7 +21,7 @@ ETL2Source -up-> ETL1
 ETL3Source -up-> ETL2
 ETL4Source -up-> ETL3
 
-CMS -(0- F : /v0/facilities/{id}/cms-overlay\n/facilities/all
+CMS -(0- F : /facilities/{id}/cms-overlay\n/facilities/
 CMS -[hidden]up- F
 CDW -[hidden]right- ATC
 ' The hidden connector is to force CMS below F with lollipop in the correct direction

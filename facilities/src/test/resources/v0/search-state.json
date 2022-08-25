@@ -29,7 +29,8 @@
           "after_hours" : "228-523-5000",
           "patient_advocate" : "850-912-2050",
           "mental_health_clinic" : "850-912-2317",
-          "enrollment_coordinator" : "228-523-4910"
+          "enrollment_coordinator" : "228-523-4910",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "800AM-430PM",
@@ -171,7 +172,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-9524",
           "mental_health_clinic" : "727-398-6661 x 14680",
-          "enrollment_coordinator" : "727-398-6661 x5684"
+          "enrollment_coordinator" : "727-398-6661 x5684",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "24/7",
@@ -320,7 +322,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "239-652-1800 x20387",
           "mental_health_clinic" : "239-652-1800 x 21373",
-          "enrollment_coordinator" : "239-652-1800 x20222"
+          "enrollment_coordinator" : "239-652-1800 x20222",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "700AM-430PM",
@@ -461,7 +464,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-9524",
           "mental_health_clinic" : "727-398-6661 x 14680",
-          "enrollment_coordinator" : "941-371-3349 x6900"
+          "enrollment_coordinator" : "941-371-3349 x6900",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "700AM-430PM",
@@ -577,7 +581,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-9524",
           "mental_health_clinic" : "727-398-6661 x 14680",
-          "enrollment_coordinator" : "727-502-1700 x3702"
+          "enrollment_coordinator" : "727-502-1700 x3702",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "730AM-430PM",
@@ -663,7 +668,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-9524",
           "mental_health_clinic" : "727-398-6661 x 14680",
-          "enrollment_coordinator" : "941-721-0649"
+          "enrollment_coordinator" : "941-721-0649",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "700AM-430PM",
@@ -786,7 +792,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-6661 x5024",
           "mental_health_clinic" : "239-652-1800 x 21373",
-          "enrollment_coordinator" : "863-471-6227 x22601"
+          "enrollment_coordinator" : "863-471-6227 x22601",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "730AM-430PM",
@@ -884,7 +891,8 @@
           "after_hours" : "888-820-0230",
           "patient_advocate" : "727-398-9524",
           "mental_health_clinic" : "727-398-6661 x 14680",
-          "enrollment_coordinator" : "727-734-5276"
+          "enrollment_coordinator" : "727-734-5276",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "700AM-430PM",
@@ -982,7 +990,8 @@
           "after_hours" : "877-741-3400",
           "patient_advocate" : "386-755-3016 x392073",
           "mental_health_clinic" : "386-755-3016 x 392602",
-          "enrollment_coordinator" : "352-548-6000 x107084"
+          "enrollment_coordinator" : "352-548-6000 x107084",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "24/7",
@@ -1105,7 +1114,8 @@
           "after_hours" : "877-741-3400",
           "patient_advocate" : "352-548-6000 x106019",
           "mental_health_clinic" : "352-547-1583",
-          "enrollment_coordinator" : "352-369-3320 x311328"
+          "enrollment_coordinator" : "352-369-3320 x311328",
+          "health_connect" : null
         },
         "hours" : {
           "friday" : "730AM-430PM",

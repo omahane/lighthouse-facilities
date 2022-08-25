@@ -15,6 +15,8 @@ import lombok.Value;
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+@Schema(
+    description = "JSON API-compliant response object describing " + "one or more VA facilities")
 public final class FacilitiesResponse {
   List<@Valid Facility> data;
 
@@ -24,19 +26,35 @@ public final class FacilitiesResponse {
 
   @Value
   @Builder
-  @Schema
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(
+      description =
+          "Distance to facility in miles "
+              + "using decimal format. "
+              + "Used when querying for facilities proximal to a location. ",
+      example = "54.13")
   public static final class Distance {
-    @NotNull String id;
+    @Schema(description = "Identifier of facility.", example = "vc_0101V")
+    @NotNull
+    String id;
 
-    @NotNull BigDecimal distance;
+    @Schema(description = "Distance to facility in decimal format.", example = "54.13")
+    @NotNull
+    BigDecimal distance;
   }
 
   @Value
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(
+      description =
+          "Metadata representation for data in response. "
+              + "This metadata includes paginated items "
+              + "that allow user to see the current page, "
+              + "objects perPage, total pages "
+              + "and total entries.")
   public static final class FacilitiesMetadata {
     @Valid @NotNull Pagination pagination;
 

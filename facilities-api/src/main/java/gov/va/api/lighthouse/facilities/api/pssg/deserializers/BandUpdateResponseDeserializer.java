@@ -4,15 +4,18 @@ import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMap
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import gov.va.api.lighthouse.facilities.api.pssg.BandUpdateResponse;
 import java.util.List;
 import lombok.SneakyThrows;
 
 public class BandUpdateResponseDeserializer extends StdDeserializer<BandUpdateResponse> {
+
+  private static final ObjectMapper MAPPER = createMapper();
 
   public BandUpdateResponseDeserializer() {
     this(null);
@@ -24,24 +27,26 @@ public class BandUpdateResponseDeserializer extends StdDeserializer<BandUpdateRe
 
   @Override
   @SneakyThrows
-  @SuppressWarnings("unchecked")
   public BandUpdateResponse deserialize(
-      JsonParser jsonParser, DeserializationContext deserializationContext) {
-    ObjectCodec oc = jsonParser.getCodec();
-    JsonNode node = oc.readTree(jsonParser);
+      JsonParser jp, DeserializationContext deserializationContext) {
+    JsonNode node = jp.getCodec().readTree(jp);
     JsonNode bandsUpdatedNode = node.get("bandsUpdated");
     JsonNode bandsCreatedNode = node.get("bandsCreated");
-    List<String> bandsUpdated =
-        bandsUpdatedNode != null
-            ? createMapper().convertValue(bandsUpdatedNode, List.class)
-            : emptyList();
-    List<String> bandsCreated =
-        bandsCreatedNode != null
-            ? createMapper().convertValue(bandsCreatedNode, List.class)
-            : emptyList();
+
+    TypeReference<List<String>> bandsList = new TypeReference<>() {};
     return BandUpdateResponse.builder()
-        .bandsUpdated(bandsUpdated)
-        .bandsCreated(bandsCreated)
+        .bandsUpdated(
+            isBlank(bandsUpdatedNode)
+                ? emptyList()
+                : MAPPER.convertValue(bandsUpdatedNode, bandsList))
+        .bandsCreated(
+            isBlank(bandsCreatedNode)
+                ? emptyList()
+                : MAPPER.convertValue(bandsCreatedNode, bandsList))
         .build();
+  }
+
+  private boolean isBlank(JsonNode node) {
+    return node == null || node.isNull();
   }
 }

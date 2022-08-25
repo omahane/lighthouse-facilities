@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,12 +20,10 @@ public class SearchByZipJsonTest {
     assertThat(f).isEqualTo(sample());
   }
 
-  private Facility.PatientWaitTime patientWaitTime(
-      Facility.HealthService service, Double newPat, Double oldPat) {
-    Facility.PatientWaitTime.PatientWaitTimeBuilder waitTime = Facility.PatientWaitTime.builder();
-    if (service != null) {
-      waitTime.service(service);
-    }
+  private DetailedService.PatientWaitTime patientWaitTime(
+      Double newPat, Double oldPat, LocalDate effectDate) {
+    DetailedService.PatientWaitTime.PatientWaitTimeBuilder waitTime =
+        DetailedService.PatientWaitTime.builder();
     if (newPat != null) {
       waitTime.newPatientWaitTime(BigDecimal.valueOf(newPat));
     }
@@ -33,6 +34,8 @@ public class SearchByZipJsonTest {
   }
 
   private FacilitiesResponse sample() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_675GA";
     return FacilitiesResponse.builder()
         .links(
             PageLinks.builder()
@@ -55,7 +58,7 @@ public class SearchByZipJsonTest {
         .data(
             List.of(
                 Facility.builder()
-                    .id("vha_675GA")
+                    .id(facilityId)
                     .type(Facility.Type.va_facilities)
                     .attributes(
                         Facility.FacilityAttributes.builder()
@@ -80,6 +83,7 @@ public class SearchByZipJsonTest {
                                 Facility.Phone.builder()
                                     .fax("321-637-3515")
                                     .main("321-637-3788")
+                                    .healthConnect("312-122-4516")
                                     .pharmacy("877-646-4550")
                                     .afterHours("877-741-3400")
                                     .patientAdvocate("407-631-1187")
@@ -100,17 +104,117 @@ public class SearchByZipJsonTest {
                                 Facility.Services.builder()
                                     .health(
                                         List.of(
-                                            Facility.HealthService.PrimaryCare,
-                                            Facility.HealthService.MentalHealth,
-                                            Facility.HealthService.Audiology,
-                                            Facility.HealthService.Cardiology,
-                                            Facility.HealthService.Dermatology,
-                                            Facility.HealthService.Gastroenterology,
-                                            Facility.HealthService.Ophthalmology,
-                                            Facility.HealthService.Optometry,
-                                            Facility.HealthService.Orthopedics,
-                                            Facility.HealthService.Urology,
-                                            Facility.HealthService.Dental))
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.PrimaryCare)
+                                                .name(Facility.HealthService.PrimaryCare.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.PrimaryCare
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.MentalHealth)
+                                                .name(Facility.HealthService.MentalHealth.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.MentalHealth
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Audiology)
+                                                .name(Facility.HealthService.Audiology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Audiology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Cardiology)
+                                                .name(Facility.HealthService.Cardiology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Cardiology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Dermatology)
+                                                .name(Facility.HealthService.Dermatology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Dermatology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(
+                                                    Facility.HealthService.Gastroenterology)
+                                                .name(
+                                                    Facility.HealthService.Gastroenterology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Gastroenterology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Ophthalmology)
+                                                .name(Facility.HealthService.Ophthalmology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Ophthalmology
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Optometry)
+                                                .name(Facility.HealthService.Optometry.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Optometry
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Orthopedics)
+                                                .name(Facility.HealthService.Orthopedics.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Orthopedics
+                                                            .serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Urology)
+                                                .name(Facility.HealthService.Urology.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Urology.serviceId()))
+                                                .build(),
+                                            Facility.Service.<Facility.HealthService>builder()
+                                                .serviceType(Facility.HealthService.Dental)
+                                                .name(Facility.HealthService.Dental.name())
+                                                .link(
+                                                    buildTypedServiceLink(
+                                                        linkerUrl,
+                                                        facilityId,
+                                                        Facility.HealthService.Dental.serviceId()))
+                                                .build()))
+                                    .link(buildServicesLink(linkerUrl, facilityId))
                                     .lastUpdated(LocalDate.parse("2020-03-02"))
                                     .build())
                             .satisfaction(
@@ -122,51 +226,8 @@ public class SearchByZipJsonTest {
                                             .build())
                                     .effectiveDate(LocalDate.parse("2019-06-20"))
                                     .build())
-                            .waitTimes(
-                                Facility.WaitTimes.builder()
-                                    .health(
-                                        List.of(
-                                            patientWaitTime(
-                                                Facility.HealthService.Urology,
-                                                32.047619,
-                                                9.879032),
-                                            patientWaitTime(
-                                                Facility.HealthService.Audiology,
-                                                1.706967,
-                                                2.126855),
-                                            patientWaitTime(
-                                                Facility.HealthService.Optometry,
-                                                76.396226,
-                                                7.900787),
-                                            patientWaitTime(
-                                                Facility.HealthService.Cardiology, 18.657142, 6.4),
-                                            patientWaitTime(
-                                                Facility.HealthService.Dermatology,
-                                                0.616666,
-                                                0.555555),
-                                            patientWaitTime(
-                                                Facility.HealthService.Orthopedics,
-                                                24.682539,
-                                                4.995024),
-                                            patientWaitTime(
-                                                Facility.HealthService.PrimaryCare,
-                                                26.405405,
-                                                1.545372),
-                                            patientWaitTime(
-                                                Facility.HealthService.Ophthalmology,
-                                                47.571428,
-                                                3.258992),
-                                            patientWaitTime(
-                                                Facility.HealthService.Gastroenterology,
-                                                22.151515,
-                                                4.943661),
-                                            patientWaitTime(
-                                                Facility.HealthService.MentalHealth,
-                                                7.592814,
-                                                3.97159)))
-                                    .effectiveDate(LocalDate.parse("2020-03-02"))
-                                    .build())
                             .mobile(false)
+                            .activeStatus(Facility.ActiveStatus.A)
                             .visn("8")
                             .build())
                     .build()))

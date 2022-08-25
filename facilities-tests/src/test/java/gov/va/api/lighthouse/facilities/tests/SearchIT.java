@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(RequiresFacilitiesExtension.class)
 public class SearchIT {
-
   @Test
   void searchByBoundingBox() {
     final String bbox = systemDefinition().ids().bbox();

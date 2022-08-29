@@ -604,8 +604,8 @@ public final class Facility implements CanBeEmpty {
     Parent parent;
 
     @Schema(
-        description = "Web address of facility.",
-        example = "http://www.washingtondc.va.gov",
+        description = "URL for an API request for the parent facility",
+        example = "https://api.va.gov/services/va_facilities/v0/facilities/vha_402",
         nullable = true)
     String website;
 

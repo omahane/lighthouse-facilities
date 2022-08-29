@@ -66,6 +66,15 @@ public class FacilitySamples {
         FacilityTransformerV0.toVersionAgnostic(facility(id)));
   }
 
+  FacilityEntity facilityEntityV1(String id) {
+    return InternalFacilitiesController.populate(
+        FacilityEntity.builder()
+            .id(FacilityEntity.Pk.fromIdString(id))
+            .lastUpdated(Instant.now())
+            .build(),
+        FacilityTransformerV1.toVersionAgnostic(facilityV1(id)));
+  }
+
   gov.va.api.lighthouse.facilities.api.v1.Facility facilityV1(String id) {
     var fV1 = facilitiesV1.get(id);
     assertThat(fV1).describedAs(id).isNotNull();

@@ -286,8 +286,6 @@ public class DatamartFacility {
     Smoking("smoking"),
     @JsonProperty("socialWork")
     SocialWork("socialWork"),
-    @JsonProperty("specialtyCare")
-    SpecialtyCare("specialtyCare"),
     @JsonProperty("spinalInjury")
     SpinalInjury("spinalInjury"),
     @JsonProperty("suicidePrevention")

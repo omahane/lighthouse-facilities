@@ -486,7 +486,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             "\"nutrition\"",
             "\"podiatry\"",
             "\"primaryCare\"",
-            "\"specialtyCare\"",
             "\"urgentCare\"",
             "\"urology\"",
             "\"womensHealth\"")) {
@@ -530,7 +529,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             "\"Nutrition\"",
             "\"Podiatry\"",
             "\"PrimaryCare\"",
-            "\"SpecialtyCare\"",
             "\"UrgentCare\"",
             "\"Urology\"",
             "\"WomensHealth\"")) {

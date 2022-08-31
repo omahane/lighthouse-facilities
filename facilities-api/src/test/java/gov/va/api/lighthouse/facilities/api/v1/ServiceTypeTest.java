@@ -136,7 +136,6 @@ public class ServiceTypeTest {
             HealthService.Nutrition,
             HealthService.Podiatry,
             HealthService.PrimaryCare,
-            HealthService.SpecialtyCare,
             HealthService.UrgentCare,
             HealthService.Urology,
             HealthService.WomensHealth);

@@ -23,12 +23,12 @@ public class FacilityEntityTest {
     FacilityEntity e = FacilityEntity.builder().build();
     e.overlayServicesFromServiceTypes(
         Set.of(
-            HealthService.SpecialtyCare,
+            HealthService.Covid19Vaccine,
             BenefitsService.ApplyingForBenefits,
             OtherService.OnlineScheduling));
     assertThat(e.overlayServices())
         .containsExactlyInAnyOrder(
-            capitalize(HealthService.SpecialtyCare.serviceId()),
+            capitalize(HealthService.Covid19Vaccine.serviceId()),
             capitalize(BenefitsService.ApplyingForBenefits.serviceId()),
             capitalize(OtherService.OnlineScheduling.serviceId()));
   }
@@ -73,8 +73,8 @@ public class FacilityEntityTest {
     e.servicesFromServiceTypes(
         Set.of(
             Service.<HealthService>builder()
-                .serviceType(HealthService.SpecialtyCare)
-                .name(HealthService.SpecialtyCare.name())
+                .serviceType(HealthService.Covid19Vaccine)
+                .name(HealthService.Covid19Vaccine.name())
                 .build(),
             Service.<BenefitsService>builder()
                 .serviceType(BenefitsService.ApplyingForBenefits)
@@ -87,7 +87,7 @@ public class FacilityEntityTest {
     assertThat(e.services())
         .containsExactlyInAnyOrder(
             DATAMART_MAPPER.writeValueAsString(
-                Service.<HealthService>builder().serviceType(HealthService.SpecialtyCare).build()),
+                Service.<HealthService>builder().serviceType(HealthService.Covid19Vaccine).build()),
             DATAMART_MAPPER.writeValueAsString(
                 Service.<BenefitsService>builder()
                     .serviceType(BenefitsService.ApplyingForBenefits)

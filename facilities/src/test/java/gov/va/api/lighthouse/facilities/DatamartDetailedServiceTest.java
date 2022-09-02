@@ -169,6 +169,8 @@ public class DatamartDetailedServiceTest {
     // Health Service capitalized
     Arrays.stream(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.values())
         .parallel()
+        // Filtering out specialtyCare since it's no longer in DatamartFacility
+        .filter(hs -> !hs.serviceId().equals("specialtyCare"))
         .forEach(
             hs -> {
               try {
@@ -209,6 +211,8 @@ public class DatamartDetailedServiceTest {
     // Health Services uncapitalized
     Arrays.stream(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.values())
         .parallel()
+        // Filtering out specialtyCare since it's no longer in DatamartFacility
+        .filter(hs -> !hs.serviceId().equals("specialtyCare"))
         .forEach(
             hs -> {
               try {

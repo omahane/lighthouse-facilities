@@ -140,8 +140,10 @@ public class ServiceTypeTest {
             HealthService.Urology,
             HealthService.WomensHealth);
     healthV0.parallelStream()
+        .filter(hs -> !hs.serviceId().equals("specialtyCare"))
         .forEach(hs -> assertThat(healthV1.contains(HealthService.fromString(hs.name()))).isTrue());
     healthV0.parallelStream()
+        .filter(hs -> !hs.serviceId().equals("specialtyCare"))
         .forEach(
             hs ->
                 assertThat(healthV1.contains(HealthService.fromString(uncapitalize(hs.name()))))

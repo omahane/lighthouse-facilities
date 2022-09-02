@@ -77,12 +77,11 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/facilities/{facility_id}/services/{service_id}"},
+      value = {"/facilities/{id}/services/{service}"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<DetailedServiceResponse> getDetailedService(
-      @PathVariable("facility_id") String facilityId,
-      @PathVariable("service_id") String serviceId) {
+      @PathVariable("id") String facilityId, @PathVariable("service") String serviceId) {
     return ResponseEntity.ok(
         DetailedServiceResponse.builder()
             .data(

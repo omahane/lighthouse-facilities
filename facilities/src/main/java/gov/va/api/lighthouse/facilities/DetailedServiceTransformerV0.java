@@ -3,6 +3,7 @@ package gov.va.api.lighthouse.facilities;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -15,10 +16,11 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV0 {
   /** Transform DatamartDetailedService to version 0 DetailedService. */
-  public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
+  public static DetailedService toDetailedService(
+      @NonNull DatamartDetailedService dds, @NonNull ServiceNameAggregate serviceNameAggregate) {
     return DetailedService.builder()
         .serviceId(dds.serviceInfo().serviceId())
-        .name(toDetailedServiceName(dds.serviceInfo().name()))
+        .name(serviceNameAggregate.serviceName(dds.serviceInfo().serviceId()))
         .active(dds.active())
         .changed(dds.changed())
         .appointmentLeadIn(dds.appointmentLeadIn())
@@ -150,20 +152,6 @@ public class DetailedServiceTransformerV0 {
   }
 
   /**
-   * If DatamartDetailedService name is recognized as enum name, transform to version 0
-   * DetailedService enum value name. Otherwise, do not alter name.
-   */
-  public static String toDetailedServiceName(String name) {
-    return Facility.HealthService.isRecognizedServiceEnum(name)
-        ? Facility.HealthService.fromString(name).name()
-        : Facility.BenefitsService.isRecognizedServiceEnum(name)
-            ? Facility.BenefitsService.fromString(name).name()
-            : Facility.OtherService.isRecognizedServiceEnum(name)
-                ? Facility.OtherService.fromString(name).name()
-                : name;
-  }
-
-  /**
    * Transform a list of DatamartDetailedService.AppointmentPhoneNumber to a list of version 0
    * DetailedService.AppointmentPhoneNumber
    */
@@ -180,12 +168,13 @@ public class DetailedServiceTransformerV0 {
 
   /** Transform a list of DatamartDetailedService to a list of version 0 DetailedService. */
   public static List<DetailedService> toDetailedServices(
-      @Valid List<DatamartDetailedService> detailedServices) {
+      @Valid List<DatamartDetailedService> detailedServices,
+      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
     return (detailedServices == null)
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(DetailedServiceTransformerV0::toDetailedService)
+                .map(dds -> toDetailedService(dds, serviceNameAggregator.serviceNameAggregate()))
                 .collect(Collectors.toList())
             : emptyList();
   }

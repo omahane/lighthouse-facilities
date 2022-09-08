@@ -8,6 +8,8 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.lang.reflect.InvocationTargetException;
@@ -555,12 +557,17 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
 
   @Test
   public void losslessFacilityVisitorRoundtrip() {
+    final var mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
+    final var mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
+
     Facility facility = facility(linkerUrl, facilityId);
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facility))),
+                        FacilityTransformerV1.toVersionAgnostic(facility),
+                        mockServiceNameAggregatorV0)),
                 linkerUrl))
         .usingRecursiveComparison()
         .isEqualTo(facility);
@@ -663,11 +670,17 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             emptyList(),
             linkerUrl,
             facilityId);
+
+    final var mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
+    final var mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
+
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
+                        FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth),
+                        mockServiceNameAggregatorV0)),
                 linkerUrl))
         .usingRecursiveComparison()
         .isEqualTo(facilityWithoutWholeHealth);

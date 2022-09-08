@@ -42,22 +42,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
+  private final ServiceNameAggregatorV0 serviceNameAggregator;
+
   @Builder
   CmsOverlayControllerV0(
       @Autowired FacilityRepository facilityRepository,
-      @Autowired CmsOverlayRepository cmsOverlayRepository) {
+      @Autowired CmsOverlayRepository cmsOverlayRepository,
+      @Autowired ServiceNameAggregatorV0 serviceNameAggregator) {
     super(facilityRepository, cmsOverlayRepository);
-  }
-
-  /** Obtain service id for specified service name. */
-  private static String getServiceIdFromServiceName(@NonNull String serviceName) {
-    return Facility.HealthService.isRecognizedEnumOrCovidService(serviceName)
-        ? Facility.HealthService.fromString(serviceName).serviceId()
-        : Facility.BenefitsService.isRecognizedServiceEnum(serviceName)
-            ? Facility.BenefitsService.fromString(serviceName).serviceId()
-            : Facility.OtherService.isRecognizedServiceEnum(serviceName)
-                ? Facility.OtherService.fromString(serviceName).serviceId()
-                : INVALID_SVC_ID;
+    this.serviceNameAggregator = serviceNameAggregator;
   }
 
   @GetMapping(
@@ -87,9 +80,17 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
-                        .build()))
+                        .build(),
+                    serviceNameAggregator))
             .build();
     return ResponseEntity.ok(response);
+  }
+
+  /** Obtain service id for specified service name. */
+  private String getServiceIdFromServiceName(@NonNull String serviceName) {
+    return serviceNameAggregator.serviceNameAggregate().isRecognizedServiceName(serviceName)
+        ? serviceNameAggregator.serviceNameAggregate().serviceId(serviceName).get()
+        : INVALID_SVC_ID;
   }
 
   @InitBinder
@@ -112,12 +113,12 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
   private void populateServiceIdAndFilterOutInvalid(@NonNull DatamartCmsOverlay overlay) {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
-          overlay.detailedServices().parallelStream()
+          overlay.detailedServices().stream()
               // Filter out services with invalid service info blocks
               .filter(dds -> dds.serviceInfo() != null)
               .map(
                   dds -> {
-                    if (StringUtils.isEmpty(dds.serviceInfo().serviceId())) {
+                    if (StringUtils.isBlank(dds.serviceInfo().serviceId())) {
                       dds.serviceInfo()
                           .serviceId(getServiceIdFromServiceName(dds.serviceInfo().name()));
                     }
@@ -176,7 +177,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
           findServicesToSave(
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
-
     final Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
     if (!toSaveDetailedServices.isEmpty()) {
       final Set<String> detailedServiceIds = new HashSet<>();
@@ -210,7 +210,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                   } catch (final JsonProcessingException ex) {
                     throw new RuntimeException(ex);
                   }
-
                   facilityHealthServices.add(
                       Service.<HealthService>builder()
                           .serviceType(HealthService.Covid19Vaccine)
@@ -219,10 +218,8 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               });
       facilityEntity.overlayServices(detailedServiceIds);
     }
-
     DatamartFacility facility =
         DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
-
     if (facility != null) {
       DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
       if (operatingStatus != null) {
@@ -249,25 +246,21 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
       }
-
       if (facility.attributes().services().health() != null) {
         facilityHealthServices.addAll(facility.attributes().services().health());
       }
-
       if (overlay.detailedServices() != null) {
         List<String> disabledCmsServiceIds =
             overlay.detailedServices().stream()
                 .filter(dds -> !dds.active())
                 .map(dds -> dds.serviceInfo().serviceId())
                 .collect(Collectors.toList());
-
         disabledCmsServiceIds.stream()
             .forEach(
                 disabledServiceId -> {
                   if (disabledServiceId.equals(HealthService.Covid19Vaccine.serviceId())) {
                     facilityHealthServices.removeIf(
                         svc -> HealthService.Covid19Vaccine.serviceId().equals(svc.serviceId()));
-
                     facilityEntity
                         .services()
                         .removeIf(
@@ -282,15 +275,12 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                   }
                 });
       }
-
       List<Service<HealthService>> facilityHealthServiceList =
           new ArrayList<>(facilityHealthServices);
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().health(facilityHealthServiceList);
-
       facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
     }
-
     facilityRepository.save(facilityEntity);
   }
 }

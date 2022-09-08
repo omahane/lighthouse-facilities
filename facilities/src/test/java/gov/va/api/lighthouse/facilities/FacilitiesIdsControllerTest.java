@@ -3,7 +3,10 @@ package gov.va.api.lighthouse.facilities;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesIdsResponse;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,18 +29,28 @@ public class FacilitiesIdsControllerTest {
 
   private String linkerUrl;
 
-  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
+  private ServiceNameAggregatorV0 mockServiceNameAggregator;
+
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private FacilitiesControllerV0 controller(
+      @NonNull String baseUrl,
+      @NonNull String basePath,
+      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
         .baseUrl(baseUrl)
         .basePath(basePath)
+        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
   @Test
   void facilityIdsByType() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    assertThat(controller(baseUrl, basePath).facilityIdsByType("health"))
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath, mockServiceNameAggregator).facilityIdsByType("health"))
         .isEqualTo(FacilitiesIdsResponse.builder().data(Arrays.asList("vha_757")).build());
   }
 
@@ -45,13 +58,15 @@ public class FacilitiesIdsControllerTest {
   void invalidType() {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
-        () -> controller(baseUrl, basePath).facilityIdsByType("xxx"));
+        () -> controller(baseUrl, basePath, mockServiceNameAggregator).facilityIdsByType("xxx"));
   }
 
   @Test
   void nullReturnAll() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    assertThat(controller(baseUrl, basePath).facilityIdsByType(""))
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath, mockServiceNameAggregator).facilityIdsByType(""))
         .isEqualTo(FacilitiesIdsResponse.builder().data(Arrays.asList("vha_757")).build());
   }
 
@@ -60,12 +75,18 @@ public class FacilitiesIdsControllerTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 
   @Test
   void validEmptyReturn() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    assertThat(controller(baseUrl, basePath).facilityIdsByType("benefits"))
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
+    assertThat(
+            controller(baseUrl, basePath, mockServiceNameAggregator).facilityIdsByType("benefits"))
         .isEqualTo(FacilitiesIdsResponse.builder().data(Collections.emptyList()).build());
   }
 }

@@ -1,9 +1,13 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV1.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
@@ -15,11 +19,19 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DetailedServiceTransformerV1Test {
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private ServiceNameAggregatorV1 mockServiceNameAggregator;
+
   @Test
   void datamartDetailedServiceWithEmptyAttributesRoundTrip() {
+    when(mockServiceNameAggregate.serviceName(
+            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
     assertThat(
             DatamartDetailedServicesTestUtils
                 .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
@@ -34,18 +46,21 @@ class DetailedServiceTransformerV1Test {
                 .phoneNumbers(emptyList())
                 .serviceLocations(emptyList())
                 .build());
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedService(
-                DetailedServiceTransformerV1.toDetailedService(datamartDetailedService)))
+                DetailedServiceTransformerV1.toDetailedService(
+                    datamartDetailedService, mockServiceNameAggregator)))
         .usingRecursiveComparison()
         .isEqualTo(datamartDetailedService);
   }
 
   @Test
   void datamartDetailedServiceWithNullAttributesRoundTrip() {
+    when(mockServiceNameAggregate.serviceName(
+            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
     assertThat(
             DatamartDetailedServicesTestUtils
                 .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
@@ -58,24 +73,41 @@ class DetailedServiceTransformerV1Test {
                         .serviceType(TypeOfService.Health)
                         .build())
                 .build());
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedService(
-                DetailedServiceTransformerV1.toDetailedService(datamartDetailedService)))
+                DetailedServiceTransformerV1.toDetailedService(
+                    datamartDetailedService, mockServiceNameAggregator)))
         .usingRecursiveComparison()
         .isEqualTo(datamartDetailedService);
   }
 
   @Test
   public void roundTripTransformation() {
+    when(mockServiceNameAggregate.serviceName(
+            DatamartFacility.HealthService.Cardiology.serviceId()))
+        .thenReturn(DatamartFacility.HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(
+            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(DatamartFacility.HealthService.Urology.serviceId()))
+        .thenReturn(DatamartFacility.HealthService.Urology.name());
+
     List<DatamartDetailedService> datamartDetailedServices =
         DatamartDetailedServicesTestUtils.datamartDetailedServices(true);
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
-                DetailedServiceTransformerV1.toDetailedServices(datamartDetailedServices)))
+                DetailedServiceTransformerV1.toDetailedServices(
+                    datamartDetailedServices, mockServiceNameAggregator)))
         .containsAll(datamartDetailedServices);
+  }
+
+  @BeforeEach
+  void setup() {
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV1.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 
   @Test
@@ -94,27 +126,24 @@ class DetailedServiceTransformerV1Test {
   }
 
   @Test
-  void toDetailedServiceName() {
-    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("ApplyingForBenefits"))
-        .isEqualTo("ApplyingForBenefits");
-    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("OnlineScheduling"))
-        .isEqualTo("OnlineScheduling");
-  }
-
-  @Test
   void toDetailedServiceNullArgs() {
     assertThrows(
-        NullPointerException.class, () -> DetailedServiceTransformerV1.toDetailedService(null));
+        NullPointerException.class,
+        () -> DetailedServiceTransformerV1.toDetailedService(null, null));
   }
 
   @Test
   void toDetailedServicesEmptyArg() {
-    assertThat(DetailedServiceTransformerV1.toDetailedServices(new ArrayList<>())).isEmpty();
+    assertThat(
+            DetailedServiceTransformerV1.toDetailedServices(
+                new ArrayList<>(), mockServiceNameAggregator))
+        .isEmpty();
   }
 
   @Test
   void toDetailedServicesNullArgs() {
-    assertThat(DetailedServiceTransformerV1.toDetailedServices(null)).isEqualTo(null);
+    assertThat(DetailedServiceTransformerV1.toDetailedServices(null, mockServiceNameAggregator))
+        .isEqualTo(null);
   }
 
   @Test

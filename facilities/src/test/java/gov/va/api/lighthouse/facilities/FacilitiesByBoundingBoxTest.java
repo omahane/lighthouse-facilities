@@ -4,7 +4,10 @@ import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinke
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
@@ -30,19 +33,29 @@ public class FacilitiesByBoundingBoxTest {
 
   private String linkerUrl;
 
-  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private ServiceNameAggregatorV0 mockServiceNameAggregator;
+
+  private FacilitiesControllerV0 controller(
+      @NonNull String baseUrl,
+      @NonNull String basePath,
+      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
         .baseUrl(baseUrl)
         .basePath(basePath)
+        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .geoFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -57,7 +70,10 @@ public class FacilitiesByBoundingBoxTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
+                .features(
+                    List.of(
+                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                            .geoFacility("vha_757")))
                 .build());
   }
 
@@ -66,7 +82,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -86,7 +102,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -105,7 +121,7 @@ public class FacilitiesByBoundingBoxTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -121,9 +137,11 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_noFilter() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -136,14 +154,19 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @Test
   void json_perPageZero() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -178,9 +201,11 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -193,17 +218,24 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_691GB"));
     String linkBase =
         "http://foo/bp/v0/facilities?bbox%5B%5D=-80&bbox%5B%5D=20&bbox%5B%5D=-120&bbox%5B%5D=40&services%5B%5D=primarycare&type=HEALTH";
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -217,7 +249,10 @@ public class FacilitiesByBoundingBoxTest {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")))
+                .data(
+                    List.of(
+                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                            .facility("vha_691GB")))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=2&per_page=1")
@@ -240,9 +275,11 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         new BigDecimal("-80"),
@@ -255,7 +292,10 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @BeforeEach
@@ -263,5 +303,8 @@ public class FacilitiesByBoundingBoxTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

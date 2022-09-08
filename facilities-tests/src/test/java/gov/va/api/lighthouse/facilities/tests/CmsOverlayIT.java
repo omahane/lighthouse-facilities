@@ -201,11 +201,18 @@ public class CmsOverlayIT {
         .expect(200);
   }
 
-  private List<DetailedService> detailedServices() {
+  /**
+   * Without performing a daily reload, the uploaded services will appear with the established
+   * service name. In this case, "COVID-19 vaccines" will appear with serice name "Covid19Vaccine".
+   */
+  private List<DetailedService> detailedServices(boolean hasReloadBeenPerformedAfterOverlayUpload) {
     return List.of(
         DetailedService.builder()
             .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-            .name("COVID-19 vaccines")
+            .name(
+                hasReloadBeenPerformedAfterOverlayUpload
+                    ? "COVID-19 vaccines"
+                    : Facility.HealthService.Covid19Vaccine.name())
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
             .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
@@ -425,7 +432,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
+        .isEqualTo(detailedServices(false));
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -437,7 +444,7 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
+        .isEqualTo(detailedServices(false));
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
@@ -459,7 +466,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
+        .isEqualTo(detailedServices(false));
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -501,7 +508,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices());
+        .isEqualTo(detailedServices(true));
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))

@@ -28,7 +28,7 @@ public class CmsOverlayMapper extends BaseCmsOverlayHandler implements ServiceDa
    */
   public CmsOverlayMapper(@Autowired CmsOverlayRepository cmsOverlayRepository) {
     super(cmsOverlayRepository);
-    refreshServiceIdToServiceNameMapping();
+    reload();
   }
 
   /**
@@ -53,8 +53,9 @@ public class CmsOverlayMapper extends BaseCmsOverlayHandler implements ServiceDa
   }
 
   /** Method for refreshing service id to service name mapping. Intended for use by daily reload. */
-  public void refreshServiceIdToServiceNameMapping() {
+  public boolean reload() {
     serviceIdToServiceNameMapping = buildServiceIdToServiceNameMapping();
+    return true;
   }
 
   @Override

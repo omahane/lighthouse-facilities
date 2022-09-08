@@ -29,7 +29,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -42,7 +41,11 @@ public class NearbyV1Test {
 
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
-  @Mock RestTemplate restTemplate = mock(RestTemplate.class);
+  private RestTemplate mockRestTemplate;
+
+  private ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
+
+  private ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
 
   private String baseUrl;
 
@@ -52,7 +55,7 @@ public class NearbyV1Test {
 
   private NearbyControllerV1 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
-    when(restTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplateProvider.restTemplate()).thenReturn(mockRestTemplate);
     return NearbyControllerV1.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
@@ -182,7 +185,9 @@ public class NearbyV1Test {
 
   @Test
   void empty() {
-    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    facilityRepository.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregatorV0)
+            .facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -301,6 +306,10 @@ public class NearbyV1Test {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
+    mockRestTemplate = mock(RestTemplate.class);
+    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
+    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
   }
 
   @Test

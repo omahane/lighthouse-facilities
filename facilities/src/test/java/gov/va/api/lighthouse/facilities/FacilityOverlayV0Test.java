@@ -1,6 +1,8 @@
 package gov.va.api.lighthouse.facilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
@@ -21,7 +23,12 @@ public class FacilityOverlayV0Test {
 
   private void assertAttributes(
       List<Facility.HealthService> expectedHealthServices, FacilityEntity entity) {
-    Facility facility = FacilityOverlayV0.builder().build().apply(entity);
+    final var mockServiceNameAggregate = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
+    final var mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
+    Facility facility =
+        FacilityOverlayV0.builder().build().apply(entity, mockServiceNameAggregator);
     assertThat(facility.attributes().services().health()).isEqualTo(expectedHealthServices);
   }
 

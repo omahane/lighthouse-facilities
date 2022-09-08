@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import gov.va.api.lighthouse.facilities.api.IsAtcAware;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.AddressSerializer;
@@ -47,7 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @JsonSerialize(using = FacilitySerializer.class)
 @Schema(description = "JSON API representation of a Facility.")
-public final class Facility implements CanBeEmpty {
+public final class Facility implements CanBeEmpty, IsAtcAware {
   @Schema(description = "Identifier representing facility.", example = "vha_688")
   @NotNull
   String id;
@@ -103,6 +104,11 @@ public final class Facility implements CanBeEmpty {
       this.serviceId = serviceId;
     }
 
+    /** Obtain benefits service for given ATC service name. */
+    public static Optional<BenefitsService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(BENEFITS_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<BenefitsService> fromServiceId(String serviceId) {
       return Arrays.stream(values())
@@ -116,7 +122,14 @@ public final class Facility implements CanBeEmpty {
     public static BenefitsService fromString(String name) {
       return eBenefitsRegistrationAssistance.name().equalsIgnoreCase(name)
           ? eBenefitsRegistrationAssistance
-          : valueOf(capitalize(name));
+          : isRecognizedAtcServiceName(name)
+              ? fromAtcServiceName(name).get()
+              : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents benefits service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return BENEFITS_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents benefits service. */
@@ -359,6 +372,11 @@ public final class Facility implements CanBeEmpty {
       this.serviceId = serviceId;
     }
 
+    /** Obtain health service for given ATC service name. */
+    public static Optional<HealthService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(HEALTH_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
       return "mentalHealthCare".equals(serviceId)
@@ -378,7 +396,16 @@ public final class Facility implements CanBeEmpty {
           ? Covid19Vaccine
           : "MentalHealthCare".equalsIgnoreCase(name)
               ? MentalHealth
-              : "DentalServices".equalsIgnoreCase(name) ? Dental : valueOf(capitalize(name));
+              : "DentalServices".equalsIgnoreCase(name)
+                  ? Dental
+                  : isRecognizedAtcServiceName(name)
+                      ? fromAtcServiceName(name).get()
+                      : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents health service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return HEALTH_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents Covid-19 health service. */
@@ -431,6 +458,11 @@ public final class Facility implements CanBeEmpty {
       this.serviceId = serviceId;
     }
 
+    /** Obtain other service for given ATC service name. */
+    public static Optional<OtherService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(OTHER_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<OtherService> fromServiceId(String serviceId) {
       return Arrays.stream(values())
@@ -442,7 +474,14 @@ public final class Facility implements CanBeEmpty {
     /** Ensure that Jackson can create OtherService enum regardless of capitalization. */
     @JsonCreator
     public static OtherService fromString(String name) {
-      return valueOf(capitalize(name));
+      return isRecognizedAtcServiceName(name)
+          ? fromAtcServiceName(name).get()
+          : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents other service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return OTHER_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents other service. */

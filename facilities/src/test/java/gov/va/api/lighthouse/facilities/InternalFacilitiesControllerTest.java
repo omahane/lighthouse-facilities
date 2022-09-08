@@ -36,8 +36,10 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.AccessToCareCollector;
+import gov.va.api.lighthouse.facilities.collector.AccessToCareMapper;
 import gov.va.api.lighthouse.facilities.collector.AccessToPwtCollector;
 import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
+import gov.va.api.lighthouse.facilities.collector.CmsOverlayMapper;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +54,7 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,9 +73,21 @@ public class InternalFacilitiesControllerTest {
 
   @Autowired CmsOverlayRepository overlayRepository;
 
-  FacilitiesCollector collector = mock(FacilitiesCollector.class);
+  AccessToCareMapper mockAccessToCareMapper;
 
-  CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+  CmsOverlayMapper mockCmsOverlayMapper;
+
+  ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
+
+  ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
+
+  ServiceNameAggregatorV1.ServiceNameAggregate mockServiceNameAggregateV1;
+
+  ServiceNameAggregatorV1 mockServiceNameAggregatorV1;
+
+  FacilitiesCollector mockCollector;
+
+  CmsOverlayCollector mockCmsOverlayCollector;
 
   private static DatamartFacility _facility(
       String id,
@@ -242,9 +257,13 @@ public class InternalFacilitiesControllerTest {
 
   private InternalFacilitiesController _controller() {
     return InternalFacilitiesController.builder()
-        .collector(collector)
+        .collector(mockCollector)
         .facilityRepository(facilityRepository)
         .cmsOverlayRepository(overlayRepository)
+        .accessToCareMapper(mockAccessToCareMapper)
+        .cmsOverlayMapper(mockCmsOverlayMapper)
+        .serviceNameAggregatorV0(mockServiceNameAggregatorV0)
+        .serviceNameAggregatorV1(mockServiceNameAggregatorV1)
         .build();
   }
 
@@ -349,7 +368,7 @@ public class InternalFacilitiesControllerTest {
             9.1,
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f2Old));
-    when(collector.collectFacilities()).thenReturn(datamartFacilities);
+    when(mockCollector.collectFacilities()).thenReturn(datamartFacilities);
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f2"));
@@ -475,7 +494,7 @@ public class InternalFacilitiesControllerTest {
     f1.attributes().longitude(null);
     f1V1.attributes().latitude(null);
     f1V1.attributes().longitude(null);
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.problems())
         .isEqualTo(List.of(ReloadResponse.Problem.of("vha_f1", "Missing coordinates")));
@@ -529,7 +548,7 @@ public class InternalFacilitiesControllerTest {
     facilityRepository.save(_facilityEntity(f2Old));
     facilityRepository.save(_facilityEntity(f3Old));
     facilityRepository.save(_facilityEntity(f4Old));
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.facilitiesMissing()).isEqualTo(List.of("vha_f2", "vha_f3", "vha_f4"));
@@ -571,7 +590,7 @@ public class InternalFacilitiesControllerTest {
             9.1,
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(Instant.now().toEpochMilli()));
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
@@ -600,7 +619,7 @@ public class InternalFacilitiesControllerTest {
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     long early = Instant.now().minusSeconds(60).toEpochMilli();
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(early));
-    when(collector.collectFacilities()).thenReturn(emptyList());
+    when(mockCollector.collectFacilities()).thenReturn(emptyList());
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesMissing()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
@@ -651,7 +670,7 @@ public class InternalFacilitiesControllerTest {
     f1V1.attributes().address().physical().zip(null);
     f1V1.attributes().latitude(BigDecimal.valueOf(91.4));
     f1V1.attributes().longitude(BigDecimal.valueOf(181.4));
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.problems())
@@ -685,7 +704,7 @@ public class InternalFacilitiesControllerTest {
     DatamartFacility f1V1 = _facilityV1("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     f1.attributes().facilityType(va_health_facility);
     f1V1.attributes().facilityType(FacilityType.va_health_facility);
-    when(collector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse responseHealth = _controller().reload().getBody();
     assertThat(responseHealth.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(responseHealth.problems())
@@ -694,7 +713,7 @@ public class InternalFacilitiesControllerTest {
     DatamartFacility f2V1 = _facilityV1("vc_f1", "FL", "32934", 91.4, 181.4, List.of());
     f2.attributes().facilityType(vet_center);
     f2V1.attributes().facilityType(FacilityType.vet_center);
-    when(collector.collectFacilities()).thenReturn(List.of(f2));
+    when(mockCollector.collectFacilities()).thenReturn(List.of(f2));
     ReloadResponse responseVetCenter = _controller().reload().getBody();
     assertThat(responseVetCenter.facilitiesCreated()).isEqualTo(List.of("vc_f1"));
     assertThat(responseVetCenter.problems())
@@ -1493,6 +1512,23 @@ public class InternalFacilitiesControllerTest {
                 .serviceType(OtherService.OnlineScheduling)
                 .name(OtherService.OnlineScheduling.name())
                 .build());
+  }
+
+  @BeforeEach
+  void setup() {
+    mockAccessToCareMapper = mock(AccessToCareMapper.class);
+    mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
+
+    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
+    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
+
+    mockServiceNameAggregateV1 = mock(ServiceNameAggregatorV1.ServiceNameAggregate.class);
+    mockServiceNameAggregatorV1 = mock(ServiceNameAggregatorV1.class);
+    when(mockServiceNameAggregatorV1.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV1);
+
+    mockCollector = mock(FacilitiesCollector.class);
+    mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
   }
 
   @Test

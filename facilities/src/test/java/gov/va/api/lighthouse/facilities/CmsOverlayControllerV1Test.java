@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV1.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
@@ -53,6 +55,10 @@ public class CmsOverlayControllerV1Test {
 
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private ServiceNameAggregatorV1 mockServiceNameAggregator;
+
   private String baseUrl;
 
   private String basePath;
@@ -61,6 +67,7 @@ public class CmsOverlayControllerV1Test {
     return CmsOverlayControllerV1.builder()
         .facilityRepository(mockFacilityRepository)
         .cmsOverlayRepository(mockCmsOverlayRepository)
+        .serviceNameAggregator(mockServiceNameAggregator)
         .baseUrl(baseUrl)
         .basePath(basePath)
         .build();
@@ -73,6 +80,14 @@ public class CmsOverlayControllerV1Test {
     var page = 1;
     var perPage = 10;
     when(mockCmsOverlayRepository.findById(pk)).thenThrow(new NullPointerException("oh noes"));
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     assertThatThrownBy(() -> controller().getExistingOverlayEntity(pk))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
@@ -80,7 +95,11 @@ public class CmsOverlayControllerV1Test {
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
     assertThatThrownBy(
-            () -> controller().saveOverlay(id, CmsOverlayTransformerV1.toCmsOverlay(overlay())))
+            () ->
+                controller()
+                    .saveOverlay(
+                        id,
+                        CmsOverlayTransformerV1.toCmsOverlay(overlay(), mockServiceNameAggregator)))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
     assertThatThrownBy(() -> controller().getDetailedServices("vha_000", page, perPage))
@@ -196,6 +215,8 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     assertThat(controller().getDetailedService(facilityId, serviceId))
         .usingRecursiveComparison()
         .isEqualTo(
@@ -204,7 +225,8 @@ public class CmsOverlayControllerV1Test {
                     .data(
                         DetailedServiceTransformerV1.toDetailedService(
                             getDatamartDetailedService(
-                                DatamartFacility.HealthService.Covid19Vaccine, false)))
+                                DatamartFacility.HealthService.Covid19Vaccine, false),
+                            mockServiceNameAggregator))
                     .build()));
     assertThatThrownBy(() -> controller().getDetailedService("vha_000", "cardiology"))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
@@ -230,6 +252,14 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     // Obtain first page of detailed services - cardiology detailed service
     ResponseEntity<DetailedServicesResponse> test =
         controller().getDetailedServices(facilityId, page, perPage);
@@ -241,7 +271,8 @@ public class CmsOverlayControllerV1Test {
                     .data(
                         DetailedServiceTransformerV1.toDetailedServices(
                             getDatamartDetailedServices(
-                                List.of(DatamartFacility.HealthService.Cardiology), false)))
+                                List.of(DatamartFacility.HealthService.Cardiology), false),
+                            mockServiceNameAggregator))
                     .links(
                         PageLinks.builder()
                             .self("http://foo/bp/v1/facilities/vha_402/services?page=1&per_page=1")
@@ -271,7 +302,8 @@ public class CmsOverlayControllerV1Test {
                     .data(
                         DetailedServiceTransformerV1.toDetailedServices(
                             getDatamartDetailedServices(
-                                List.of(DatamartFacility.HealthService.Covid19Vaccine), false)))
+                                List.of(DatamartFacility.HealthService.Covid19Vaccine), false),
+                            mockServiceNameAggregator))
                     .links(
                         PageLinks.builder()
                             .self("http://foo/bp/v1/facilities/vha_402/services?page=2&per_page=1")
@@ -301,7 +333,8 @@ public class CmsOverlayControllerV1Test {
                     .data(
                         DetailedServiceTransformerV1.toDetailedServices(
                             getDatamartDetailedServices(
-                                List.of(DatamartFacility.HealthService.Urology), false)))
+                                List.of(DatamartFacility.HealthService.Urology), false),
+                            mockServiceNameAggregator))
                     .links(
                         PageLinks.builder()
                             .self("http://foo/bp/v1/facilities/vha_402/services?page=3&per_page=1")
@@ -342,6 +375,14 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
     // exists means that active was true at the time of insertion
     for (DatamartDetailedService d : overlay.detailedServices()) {
@@ -375,6 +416,8 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void populateServiceInfoAndFilterOutInvalid() {
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     Method populateMethod =
         CmsOverlayControllerV1.class.getDeclaredMethod(
             "populateServiceInfoAndFilterOutInvalid", CmsOverlay.class);
@@ -407,7 +450,7 @@ public class CmsOverlayControllerV1Test {
     /*
     Because ServiceInfoBuilder serviceId() in ServiceInfo automatically assign a valid id or an INVALID_ID
     for each service if not specified. We have to explicitly force service id and service type to an empty value after calling the builder above to satisfy
-    the condition inpopulateServiceInfoAndFilterOutInvalid to increase code coverage
+    the condition in populateServiceInfoAndFilterOutInvalid to increase code coverage
     */
     overlayWithoutServiceId.detailedServices().parallelStream()
         .forEach(ds -> ds.serviceInfo().serviceId("").serviceType(null));
@@ -452,6 +495,44 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void serviceIdFromServiceName() {
+    // Benefits services
+    Arrays.stream(Facility.BenefitsService.values())
+        .forEach(
+            bs -> {
+              when(mockServiceNameAggregate.serviceId(bs.name()))
+                  .thenReturn(Optional.of(bs.serviceId()));
+            });
+    Arrays.stream(Facility.BenefitsService.values())
+        .forEach(
+            bs -> {
+              when(mockServiceNameAggregate.isRecognizedServiceName(bs.name())).thenReturn(true);
+            });
+    // Health services
+    Arrays.stream(Facility.HealthService.values())
+        .forEach(
+            hs -> {
+              when(mockServiceNameAggregate.serviceId(hs.name()))
+                  .thenReturn(Optional.of(hs.serviceId()));
+            });
+    Arrays.stream(Facility.HealthService.values())
+        .forEach(
+            hs -> {
+              when(mockServiceNameAggregate.isRecognizedServiceName(hs.name())).thenReturn(true);
+            });
+    // Other services
+    Arrays.stream(Facility.OtherService.values())
+        .forEach(
+            os -> {
+              when(mockServiceNameAggregate.serviceId(os.name()))
+                  .thenReturn(Optional.of(os.serviceId()));
+            });
+    Arrays.stream(Facility.OtherService.values())
+        .forEach(
+            os -> {
+              when(mockServiceNameAggregate.isRecognizedServiceName(os.name())).thenReturn(true);
+            });
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     Method serviceIdFromServiceNameMethod =
         CmsOverlayControllerV1.class.getDeclaredMethod("getServiceIdFromServiceName", String.class);
     serviceIdFromServiceNameMethod.setAccessible(true);
@@ -503,6 +584,8 @@ public class CmsOverlayControllerV1Test {
   void setup() {
     baseUrl = "http://foo/";
     basePath = "bp";
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV1.class);
   }
 
   @Test
@@ -586,7 +669,11 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
+    controller()
+        .saveOverlay(
+            "vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
         updatedCovidPathOverlay.detailedServices();
@@ -607,7 +694,9 @@ public class CmsOverlayControllerV1Test {
     assertThat(facility.attributes().activeStatus()).isEqualTo(Facility.ActiveStatus.T);
     assertThat(facility.attributes().operatingStatus())
         .usingRecursiveComparison()
-        .isEqualTo(CmsOverlayTransformerV1.toCmsOverlay(overlay).operatingStatus());
+        .isEqualTo(
+            CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator)
+                .operatingStatus());
   }
 
   @Test
@@ -629,12 +718,19 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    controller().saveOverlay(pk.toIdString(), CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
+    controller()
+        .saveOverlay(
+            pk.toIdString(),
+            CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     var response = controller().getOverlay(pk.toIdString());
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().overlay().healthCareSystem())
-        .isEqualTo(CmsOverlayTransformerV1.toCmsOverlay(overlay()).healthCareSystem());
+        .isEqualTo(
+            CmsOverlayTransformerV1.toCmsOverlay(overlay(), mockServiceNameAggregator)
+                .healthCareSystem());
   }
 
   @Test
@@ -654,9 +750,14 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(FacilityTransformerV1.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     DatamartCmsOverlay overlay = overlay();
     ResponseEntity<Void> response =
-        controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+        controller()
+            .saveOverlay(
+                "vha_402",
+                CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     Set<String> detailedServices = new HashSet<>();
     for (DatamartDetailedService service : overlay.detailedServices()) {
       if (service.active()) {
@@ -686,8 +787,19 @@ public class CmsOverlayControllerV1Test {
   void updateIsSkippedForUnknownStation() {
     var pk = FacilityEntity.Pk.fromIdString("vha_666");
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.empty());
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     ResponseEntity<Void> response =
-        controller().saveOverlay("vha_666", CmsOverlayTransformerV1.toCmsOverlay(overlay()));
+        controller()
+            .saveOverlay(
+                "vha_666",
+                CmsOverlayTransformerV1.toCmsOverlay(overlay(), mockServiceNameAggregator));
     verifyNoMoreInteractions(mockFacilityRepository);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
   }
@@ -745,7 +857,17 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
+    controller()
+        .saveOverlay(
+            "vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
         updatedCovidPathOverlay.detailedServices();
@@ -793,6 +915,12 @@ public class CmsOverlayControllerV1Test {
             .cmsServices(null)
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    when(mockServiceNameAggregate.serviceName(HealthService.Workshops.serviceId()))
+        .thenReturn(HealthService.Workshops.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Wound.serviceId()))
+        .thenReturn(HealthService.Wound.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     List<DatamartDetailedService> detailedServices =
         List.of(
             DatamartDetailedService.builder()
@@ -814,7 +942,9 @@ public class CmsOverlayControllerV1Test {
                 .active(true)
                 .build());
     overlay.detailedServices(detailedServices);
-    controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    controller()
+        .saveOverlay(
+            "vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
         updatedCovidPathOverlay.detailedServices();
@@ -853,6 +983,18 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
+        .thenReturn(HealthService.Cardiology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
+        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
+    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
+        .thenReturn(HealthService.Urology.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.PrimaryCare.serviceId()))
+        .thenReturn(HealthService.PrimaryCare.name());
+    when(mockServiceNameAggregate.serviceName(HealthService.UrgentCare.serviceId()))
+        .thenReturn(HealthService.UrgentCare.name());
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     List<DatamartDetailedService> additionalServices =
         getDatamartDetailedServices(
             List.of(
@@ -860,7 +1002,9 @@ public class CmsOverlayControllerV1Test {
                 DatamartFacility.HealthService.UrgentCare),
             true);
     overlay.detailedServices(additionalServices);
-    controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
+    controller()
+        .saveOverlay(
+            "vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
         updatedCovidPathOverlay.detailedServices();
@@ -901,6 +1045,8 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(FacilityTransformerV1.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
+
     DatamartCmsOverlay overlay = overlay();
     for (DatamartDetailedService d : overlay.detailedServices()) {
       if (d.serviceInfo()
@@ -909,7 +1055,8 @@ public class CmsOverlayControllerV1Test {
         assertThat(d.path()).isEqualTo("replaceable path here");
       }
     }
-    CmsOverlay cmsOverlay = CmsOverlayTransformerV1.toCmsOverlay(overlay);
+    CmsOverlay cmsOverlay =
+        CmsOverlayTransformerV1.toCmsOverlay(overlay, mockServiceNameAggregator);
     ResponseEntity<Void> response = controller().saveOverlay("vha_402", cmsOverlay);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     for (DetailedService d : cmsOverlay.detailedServices()) {

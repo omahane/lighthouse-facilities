@@ -4,7 +4,10 @@ import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinke
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
@@ -29,24 +32,37 @@ public class FacilitiesByStateTest {
 
   private String linkerUrl;
 
-  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private ServiceNameAggregatorV0 mockServiceNameAggregator;
+
+  private FacilitiesControllerV0 controller(
+      @NonNull String baseUrl,
+      @NonNull String basePath,
+      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
         .baseUrl(baseUrl)
         .basePath(basePath)
+        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .geoFacilitiesByState("oh", "HEALTH", List.of("urology"), false, 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
+                .features(
+                    List.of(
+                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                            .geoFacility("vha_757")))
                 .build());
   }
 
@@ -55,7 +71,7 @@ public class FacilitiesByStateTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByState("FL", null, List.of("unknown"), null, 1, 1));
   }
 
@@ -63,39 +79,56 @@ public class FacilitiesByStateTest {
   void json_invalidType() {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
-        () -> controller(baseUrl, basePath).jsonFacilitiesByState("FL", "xxx", null, null, 1, 1));
+        () ->
+            controller(baseUrl, basePath, mockServiceNameAggregator)
+                .jsonFacilitiesByState("FL", "xxx", null, null, 1, 1));
   }
 
   @Test
   void json_noFilter() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByState("oh", null, null, null, 1, 1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByState("oh", null, List.of("urology"), null, 1, 1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     String linkBase = "http://foo/bp/v0/facilities?services%5B%5D=primarycare&state=oh&type=HEALTH";
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByState("oh", "HEALTH", List.of("primarycare"), null, 1, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")))
+                .data(
+                    List.of(
+                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                            .facility("vha_757")))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=1&per_page=1")
@@ -117,18 +150,27 @@ public class FacilitiesByStateTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath)
+            controller(baseUrl, basePath, mockServiceNameAggregator)
                 .jsonFacilitiesByState("oh", "HEALTH", emptyList(), null, 1, 1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(
+            List.of(
+                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+                    .facility("vha_757")));
   }
 
   @Test
   void jsonperPageZero() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    assertThat(controller(baseUrl, basePath).jsonFacilitiesByState("oh", null, null, null, 100, 0))
+    repo.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
+    assertThat(
+            controller(baseUrl, basePath, mockServiceNameAggregator)
+                .jsonFacilitiesByState("oh", null, null, null, 100, 0))
         .isEqualTo(
             FacilitiesResponse.builder()
                 .data(emptyList())
@@ -154,5 +196,8 @@ public class FacilitiesByStateTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

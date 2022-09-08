@@ -2,8 +2,8 @@ package gov.va.api.lighthouse.facilities;
 
 import static java.util.Collections.emptyList;
 
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV1.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -13,9 +13,12 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV1 {
   /** Transform DatamartDetailedService to version 1 DetailedService. */
-  public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
+  public static DetailedService toDetailedService(
+      @NonNull DatamartDetailedService dds,
+      @NonNull ServiceNameAggregatorV1 serviceNameAggregator) {
     return DetailedService.builder()
-        .serviceInfo(toDetailedServiceInfo(dds.serviceInfo()))
+        .serviceInfo(
+            toDetailedServiceInfo(dds.serviceInfo(), serviceNameAggregator.serviceNameAggregate()))
         .waitTime(toPatientWaitTime(dds.waitTime()))
         .active(dds.active())
         .changed(dds.changed())
@@ -117,10 +120,11 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform DatamartDetailedService ServiceInfo object into DetailedService ServiceInfo. */
   public static DetailedService.ServiceInfo toDetailedServiceInfo(
-      @NonNull DatamartDetailedService.ServiceInfo datamartDetailedServiceInfo) {
+      @NonNull DatamartDetailedService.ServiceInfo datamartDetailedServiceInfo,
+      @NonNull ServiceNameAggregate serviceNameAggregate) {
     return DetailedService.ServiceInfo.builder()
         .serviceId(datamartDetailedServiceInfo.serviceId())
-        .name(toDetailedServiceName(datamartDetailedServiceInfo.name()))
+        .name(serviceNameAggregate.serviceName(datamartDetailedServiceInfo.serviceId()))
         .serviceType(datamartDetailedServiceInfo.serviceType())
         .build();
   }
@@ -158,20 +162,6 @@ public class DetailedServiceTransformerV1 {
   }
 
   /**
-   * If DatamartDetailedService name is recognized as enum name, transform to version 1
-   * DetailedService enum value name. Otherwise, do not alter name.
-   */
-  public static String toDetailedServiceName(String name) {
-    return Facility.HealthService.isRecognizedServiceEnum(name)
-        ? Facility.HealthService.fromString(name).name()
-        : Facility.BenefitsService.isRecognizedServiceEnum(name)
-            ? Facility.BenefitsService.fromString(name).name()
-            : Facility.OtherService.isRecognizedServiceEnum(name)
-                ? Facility.OtherService.fromString(name).name()
-                : name;
-  }
-
-  /**
    * Transform a list of DatamartDetailedService.AppointmentPhoneNumber to a list of version 1
    * DetailedService.AppointmentPhoneNumber.
    */
@@ -188,12 +178,13 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform a list of DatamartDetailedService> to a list of version 1 DetailedService. */
   public static List<DetailedService> toDetailedServices(
-      @Valid List<DatamartDetailedService> detailedServices) {
+      @Valid List<DatamartDetailedService> detailedServices,
+      @NonNull ServiceNameAggregatorV1 serviceNameAggregator) {
     return (detailedServices == null)
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(DetailedServiceTransformerV1::toDetailedService)
+                .map(dds -> toDetailedService(dds, serviceNameAggregator))
                 .collect(Collectors.toList())
             : emptyList();
   }

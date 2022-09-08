@@ -14,6 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -24,9 +25,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -43,11 +44,15 @@ public class NearbyTest {
 
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
-  @Mock RestTemplate restTemplate = mock(RestTemplate.class);
+  private RestTemplate mockRestTemplate;
+
+  private ServiceNameAggregate mockServiceNameAggregate;
+
+  private ServiceNameAggregatorV0 mockServiceNameAggregator;
 
   private NearbyControllerV0 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
-    when(restTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplateProvider.restTemplate()).thenReturn(mockRestTemplate);
     return NearbyControllerV0.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
@@ -155,7 +160,7 @@ public class NearbyTest {
   @Test
   @SneakyThrows
   void address() {
-    when(restTemplate.exchange(
+    when(mockRestTemplate.exchange(
             startsWith("http://bing"),
             eq(HttpMethod.GET),
             Mockito.any(HttpEntity.class),
@@ -222,7 +227,7 @@ public class NearbyTest {
 
   @Test
   void address_bingException() {
-    when(restTemplate.exchange(
+    when(mockRestTemplate.exchange(
             startsWith("http://bing"),
             eq(HttpMethod.GET),
             Mockito.any(HttpEntity.class),
@@ -238,7 +243,7 @@ public class NearbyTest {
   @Test
   @SneakyThrows
   void address_bingNoResults() {
-    when(restTemplate.exchange(
+    when(mockRestTemplate.exchange(
             startsWith("http://bing"),
             eq(HttpMethod.GET),
             Mockito.any(HttpEntity.class),
@@ -281,7 +286,9 @@ public class NearbyTest {
     final var baseUrl = "http://foo/";
     final var basePath = "bp";
     final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    facilityRepository.save(
+        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
+            .facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -369,5 +376,13 @@ public class NearbyTest {
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response).isEqualTo(hitVha666());
+  }
+
+  @BeforeEach
+  void setup() {
+    mockRestTemplate = mock(RestTemplate.class);
+    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
+    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
+    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

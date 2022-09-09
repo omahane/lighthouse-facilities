@@ -26,6 +26,7 @@ public class PhoneSerializer extends NonEmptySerializer<Phone> {
     writeNonEmpty(jgen, "patientAdvocate", value.patientAdvocate());
     writeNonEmpty(jgen, "mentalHealthClinic", value.mentalHealthClinic());
     writeNonEmpty(jgen, "enrollmentCoordinator", value.enrollmentCoordinator());
+    writeNonEmpty(jgen, "healthConnect", value.healthConnect());
     jgen.writeEndObject();
   }
 }

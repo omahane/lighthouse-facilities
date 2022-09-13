@@ -789,6 +789,7 @@ public class CmsOverlayControllerV1Test {
                         .source(Source.CMS)
                         .build(),
                     Service.<HealthService>builder()
+                        .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
                         .serviceType(HealthService.Covid19Vaccine)
                         .source(Source.CMS)
                         .build(),

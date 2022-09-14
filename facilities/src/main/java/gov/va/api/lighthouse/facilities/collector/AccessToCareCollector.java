@@ -12,6 +12,7 @@ import static org.apache.commons.lang3.StringUtils.compareIgnoreCase;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -59,18 +60,23 @@ public class AccessToCareCollector extends BaseAccessToCareHandler {
                 ace -> {
                   final HealthService healthService = healthService(ace);
                   return healthService != null
-                      ? Service.<HealthService>builder().serviceType(healthService).build()
+                      ? Service.<HealthService>builder()
+                          .serviceType(healthService)
+                          .source(Source.ATC)
+                          .build()
                       : null;
                 })
             .filter(Objects::nonNull)
             .collect(toCollection(ArrayList::new));
     if (accessToCareEntries(facilityId).stream()
         .anyMatch(ace -> BooleanUtils.isTrue(ace.emergencyCare()))) {
-      services.add(Service.<HealthService>builder().serviceType(EmergencyCare).build());
+      services.add(
+          Service.<HealthService>builder().serviceType(EmergencyCare).source(Source.ATC).build());
     }
     if (accessToCareEntries(facilityId).stream()
         .anyMatch(ace -> BooleanUtils.isTrue(ace.urgentCare()))) {
-      services.add(Service.<HealthService>builder().serviceType(UrgentCare).build());
+      services.add(
+          Service.<HealthService>builder().serviceType(UrgentCare).source(Source.ATC).build());
     }
     return services;
   }

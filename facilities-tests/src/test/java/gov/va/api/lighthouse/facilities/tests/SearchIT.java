@@ -1,39 +1,16 @@
 package gov.va.api.lighthouse.facilities.tests;
 
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
-import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
 
-import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
-import io.restassured.RestAssured;
-import io.restassured.http.Method;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ExtendWith(RequiresFacilitiesExtension.class)
 public class SearchIT {
-
-  /** To be removed. */
-  @Order(1)
-  @Test
-  void reload() {
-    SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
-    ExpectedResponse.of(
-            RestAssured.given()
-                .baseUri(svcInternal.url())
-                .port(svcInternal.port())
-                .relaxedHTTPSValidation()
-                .header("client-key", System.getProperty("client-key", CLIENT_KEY_DEFAULT))
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
-        .expect(200);
-  }
 
   @Test
   void searchByBoundingBox() {

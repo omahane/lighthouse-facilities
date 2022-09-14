@@ -28,6 +28,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Hours;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientSatisfaction;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Phone;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Satisfaction;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.util.ArrayList;
@@ -279,19 +280,29 @@ final class HealthTransformer {
     List<Service<HealthService>> services = accessToCareCollector.servicesHealth(id());
 
     if (stopCodes().stream().anyMatch(sc -> StopCode.DENTISTRY.contains(trimToEmpty(sc.code())))) {
-      services.add(Service.<HealthService>builder().serviceType(Dental).build());
+      services.add(Service.<HealthService>builder().serviceType(Dental).source(Source.DST).build());
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.NUTRITION.contains(trimToEmpty(sc.code())))) {
-      services.add(Service.<HealthService>builder().serviceType(Nutrition).build());
+      services.add(
+          Service.<HealthService>builder().serviceType(Nutrition).source(Source.DST).build());
     }
     if (stopCodes().stream().anyMatch(sc -> StopCode.PODIATRY.contains(trimToEmpty(sc.code())))) {
-      services.add(Service.<HealthService>builder().serviceType(Podiatry).build());
+      services.add(
+          Service.<HealthService>builder().serviceType(Podiatry).source(Source.DST).build());
     }
     if (hasCaregiverSupport()) {
-      services.add(Service.<HealthService>builder().serviceType(CaregiverSupport).build());
+      services.add(
+          Service.<HealthService>builder()
+              .serviceType(CaregiverSupport)
+              .source(Source.internal)
+              .build());
     }
     if (hasOrthopedics()) {
-      services.add(Service.<HealthService>builder().serviceType(Orthopedics).build());
+      services.add(
+          Service.<HealthService>builder()
+              .serviceType(Orthopedics)
+              .source(Source.internal)
+              .build());
     }
     Collections.sort(services, (left, right) -> left.name().compareToIgnoreCase(right.name()));
     return emptyToNull(services);

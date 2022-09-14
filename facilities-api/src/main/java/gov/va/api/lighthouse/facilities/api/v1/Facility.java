@@ -424,8 +424,7 @@ public final class Facility implements CanBeEmpty, IsAtcAware {
 
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return "DentalServices".equalsIgnoreCase(serviceName)
-          || "MentalHealthCare".equalsIgnoreCase(serviceName)
+      return isRecognizedServiceNameException(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
@@ -436,6 +435,15 @@ public final class Facility implements CanBeEmpty, IsAtcAware {
       return "mentalHealthCare".equals(serviceId)
           || "dentalServices".equals(serviceId)
           || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+    }
+
+    /**
+     * Determine whether specified service name represents known health service whose name changes
+     * between versions.
+     */
+    public static boolean isRecognizedServiceNameException(String serviceName) {
+      return "DentalServices".equalsIgnoreCase(serviceName)
+          || "MentalHealthCare".equalsIgnoreCase(serviceName);
     }
 
     @Override

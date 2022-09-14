@@ -13,6 +13,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility.ActiveStatus;
 import java.lang.reflect.Method;
@@ -194,6 +195,7 @@ public class HealthTransformerTest {
                                         Service.<HealthService>builder()
                                             .serviceType(CaregiverSupport)
                                             .name(CaregiverSupport.name())
+                                            .source(Source.internal)
                                             .build()))
                                 .build())
                         .build())
@@ -255,6 +257,7 @@ public class HealthTransformerTest {
                                         Service.<HealthService>builder()
                                             .serviceType(Orthopedics)
                                             .name(Orthopedics.name())
+                                            .source(Source.internal)
                                             .build()))
                                 .build())
                         .build())

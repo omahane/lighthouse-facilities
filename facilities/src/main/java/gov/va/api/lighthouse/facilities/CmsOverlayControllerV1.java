@@ -363,11 +363,10 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                 toSaveDetailedServices.isEmpty()
                     ? null
                     : toSaveDetailedServices.parallelStream()
-                        .filter(ds -> ds.active())
                         .filter(
-                            ds ->
+                            dds ->
                                 DatamartFacility.HealthService.Covid19Vaccine.serviceId()
-                                    .equals(ds.serviceInfo().serviceId()))
+                                    .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
 
         // Determine which overlay services are inactive

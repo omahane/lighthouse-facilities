@@ -12,7 +12,7 @@ import lombok.experimental.UtilityClass;
 
 /** Utility class for transforming DatamartFacility to version 0 facility object and back. */
 @UtilityClass
-public final class FacilityTransformerV0 extends BaseVersionedTransformer {
+public final class FacilityTransformerV0 {
   /** Transform persisted DatamartFacility to version 0 facility. */
   static Facility toFacility(
       @NonNull DatamartFacility df, @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
@@ -212,10 +212,6 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
                                 !(hs.source != null && hs.source.equals(Source.CMS))
                                     || hs.serviceId()
                                         .equals(HealthService.Covid19Vaccine.serviceId()))
-                        .filter(
-                            e ->
-                                containsValueOfName(Facility.HealthService.values(), e.name())
-                                    || checkHealthServiceNameChange(e))
                         .map(FacilityTransformerV0::toFacilityHealthService)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())
@@ -504,11 +500,6 @@ public final class FacilityTransformerV0 extends BaseVersionedTransformer {
             .health(
                 (facilityServices.health() != null)
                     ? facilityServices.health().parallelStream()
-                        .filter(
-                            e ->
-                                containsValueOfName(
-                                        DatamartFacility.HealthService.values(), e.name())
-                                    || checkHealthServiceNameChange(e))
                         .map(FacilityTransformerV0::toVersionAgnosticFacilityHealthService)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())

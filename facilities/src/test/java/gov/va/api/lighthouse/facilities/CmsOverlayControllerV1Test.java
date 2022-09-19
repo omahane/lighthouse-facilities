@@ -85,12 +85,6 @@ public class CmsOverlayControllerV1Test {
     var page = 1;
     var perPage = 10;
     when(mockCmsOverlayRepository.findById(pk)).thenThrow(new NullPointerException("oh noes"));
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     assertThatThrownBy(() -> controller().getExistingOverlayEntity(pk))
@@ -405,12 +399,6 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     // Obtain first page of detailed services - cardiology detailed service
@@ -528,12 +516,6 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -569,8 +551,6 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void populateServiceInfoAndFilterOutInvalid() {
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
-
     Method populateMethod =
         CmsOverlayControllerV1.class.getDeclaredMethod(
             "populateServiceInfoAndFilterOutInvalid", CmsOverlay.class);
@@ -648,44 +628,6 @@ public class CmsOverlayControllerV1Test {
   @Test
   @SneakyThrows
   void serviceIdFromServiceName() {
-    // Benefits services
-    Arrays.stream(Facility.BenefitsService.values())
-        .forEach(
-            bs -> {
-              when(mockServiceNameAggregate.serviceId(bs.name()))
-                  .thenReturn(Optional.of(bs.serviceId()));
-            });
-    Arrays.stream(Facility.BenefitsService.values())
-        .forEach(
-            bs -> {
-              when(mockServiceNameAggregate.isRecognizedServiceName(bs.name())).thenReturn(true);
-            });
-    // Health services
-    Arrays.stream(Facility.HealthService.values())
-        .forEach(
-            hs -> {
-              when(mockServiceNameAggregate.serviceId(hs.name()))
-                  .thenReturn(Optional.of(hs.serviceId()));
-            });
-    Arrays.stream(Facility.HealthService.values())
-        .forEach(
-            hs -> {
-              when(mockServiceNameAggregate.isRecognizedServiceName(hs.name())).thenReturn(true);
-            });
-    // Other services
-    Arrays.stream(Facility.OtherService.values())
-        .forEach(
-            os -> {
-              when(mockServiceNameAggregate.serviceId(os.name()))
-                  .thenReturn(Optional.of(os.serviceId()));
-            });
-    Arrays.stream(Facility.OtherService.values())
-        .forEach(
-            os -> {
-              when(mockServiceNameAggregate.isRecognizedServiceName(os.name())).thenReturn(true);
-            });
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
-
     Method serviceIdFromServiceNameMethod =
         CmsOverlayControllerV1.class.getDeclaredMethod("getServiceIdFromServiceName", String.class);
     serviceIdFromServiceNameMethod.setAccessible(true);
@@ -822,13 +764,6 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     List<DatamartDetailedService> benefitsServices =
@@ -994,12 +929,6 @@ public class CmsOverlayControllerV1Test {
   void updateIsSkippedForUnknownStation() {
     var pk = FacilityEntity.Pk.fromIdString("vha_666");
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.empty());
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     ResponseEntity<Void> response =
@@ -1064,12 +993,6 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     controller()
@@ -1122,10 +1045,6 @@ public class CmsOverlayControllerV1Test {
             .cmsServices(null)
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    when(mockServiceNameAggregate.serviceName(HealthService.Workshops.serviceId()))
-        .thenReturn(HealthService.Workshops.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Wound.serviceId()))
-        .thenReturn(HealthService.Wound.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     List<DatamartDetailedService> detailedServices =
@@ -1190,16 +1109,6 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
-    when(mockServiceNameAggregate.serviceName(HealthService.Cardiology.serviceId()))
-        .thenReturn(HealthService.Cardiology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregate.serviceName(HealthService.Urology.serviceId()))
-        .thenReturn(HealthService.Urology.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.PrimaryCare.serviceId()))
-        .thenReturn(HealthService.PrimaryCare.name());
-    when(mockServiceNameAggregate.serviceName(HealthService.UrgentCare.serviceId()))
-        .thenReturn(HealthService.UrgentCare.name());
     when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
 
     List<DatamartDetailedService> additionalServices =

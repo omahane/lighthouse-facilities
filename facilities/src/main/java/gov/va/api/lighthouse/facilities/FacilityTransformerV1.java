@@ -106,7 +106,7 @@ public final class FacilityTransformerV1 {
     return benefitsService.isPresent()
         ? Facility.Service.<Facility.BenefitsService>builder()
             .serviceType(benefitsService.get())
-            .name(benefitsService.get().name())
+            .name(datamartFacilityBenefitsService.name())
             .link(buildTypedServiceLink(linkUrl, facilityId, benefitsService.get().serviceId()))
             .build()
         : null;
@@ -123,7 +123,11 @@ public final class FacilityTransformerV1 {
     return healthService.isPresent()
         ? Facility.Service.<Facility.HealthService>builder()
             .serviceType(healthService.get())
-            .name(healthService.get().name())
+            .name(
+                Facility.HealthService.isRecognizedServiceNameException(
+                        datamartFacilityHealthService.name())
+                    ? healthService.get().name()
+                    : datamartFacilityHealthService.name())
             .link(buildTypedServiceLink(linkUrl, facilityId, healthService.get().serviceId()))
             .build()
         : null;
@@ -200,7 +204,7 @@ public final class FacilityTransformerV1 {
     return otherService.isPresent()
         ? Facility.Service.<Facility.OtherService>builder()
             .serviceType(otherService.get())
-            .name(otherService.get().name())
+            .name(datamartFacilityOtherService.name())
             .link(buildTypedServiceLink(linkUrl, facilityId, otherService.get().serviceId()))
             .build()
         : null;
@@ -251,24 +255,27 @@ public final class FacilityTransformerV1 {
       @NonNull String linkUrl,
       List<String> serviceSources,
       @NonNull String facilityId) {
-
     return (datamartFacilityServices != null)
         ? Facility.Services.builder()
             .health(
                 (datamartFacilityServices.health() != null)
-                    ? datamartFacilityServices.health().parallelStream()
-                        .filter(
-                            hs -> (hs.source != null && serviceSources.contains(hs.source.name())))
-                        .map(e -> toFacilityHealthService(e, linkUrl, facilityId))
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .collect(Collectors.toList())
+                    ? filterOutDuplicatesAndBuildFacilityServices(
+                        datamartFacilityServices.health().stream()
+                            .filter(
+                                hs ->
+                                    (hs.source() != null
+                                        && serviceSources.contains(hs.source().name())))
+                            .collect(Collectors.toList()),
+                        linkUrl,
+                        facilityId)
                     : null)
             .benefits(
                 (datamartFacilityServices.benefits() != null)
                     ? datamartFacilityServices.benefits().parallelStream()
                         .filter(
-                            bs -> (bs.source != null && serviceSources.contains(bs.source.name())))
+                            bs ->
+                                (bs.source() != null
+                                    && serviceSources.contains(bs.source().name())))
                         .map(e -> toFacilityBenefitsService(e, linkUrl, facilityId))
                         .filter(Objects::nonNull)
                         .distinct()
@@ -278,7 +285,9 @@ public final class FacilityTransformerV1 {
                 (datamartFacilityServices.other() != null)
                     ? datamartFacilityServices.other().parallelStream()
                         .filter(
-                            os -> (os.source != null && serviceSources.contains(os.source.name())))
+                            os ->
+                                (os.source() != null
+                                    && serviceSources.contains(os.source().name())))
                         .map(e -> toFacilityOtherService(e, linkUrl, facilityId))
                         .filter(Objects::nonNull)
                         .distinct()
@@ -404,7 +413,7 @@ public final class FacilityTransformerV1 {
     return versionAgnosticBenefitsService.isPresent()
         ? DatamartFacility.Service.<DatamartFacility.BenefitsService>builder()
             .serviceType(versionAgnosticBenefitsService.get())
-            .name(versionAgnosticBenefitsService.get().name())
+            .name(facilityBenefitsService.name())
             .build()
         : null;
   }
@@ -427,7 +436,11 @@ public final class FacilityTransformerV1 {
     return versionAgnosticHealthService.isPresent()
         ? DatamartFacility.Service.<DatamartFacility.HealthService>builder()
             .serviceType(versionAgnosticHealthService.get())
-            .name(versionAgnosticHealthService.get().name())
+            .name(
+                DatamartFacility.HealthService.isRecognizedServiceNameException(
+                        facilityHealthService.name())
+                    ? versionAgnosticHealthService.get().name()
+                    : facilityHealthService.name())
             .build()
         : null;
   }
@@ -494,7 +507,7 @@ public final class FacilityTransformerV1 {
     return versionAgnosticOtherService.isPresent()
         ? DatamartFacility.Service.<DatamartFacility.OtherService>builder()
             .serviceType(versionAgnosticOtherService.get())
-            .name(versionAgnosticOtherService.get().name())
+            .name(facilityOtherService.name())
             .build()
         : null;
   }
@@ -606,5 +619,33 @@ public final class FacilityTransformerV1 {
   /** Transform DatamartFacility type to version 1 facility type. */
   private static DatamartFacility.Type toVersionAgnosticType(Facility.Type type) {
     return (type != null) ? DatamartFacility.Type.valueOf(type.name()) : null;
+  }
+
+  private List<Facility.Service<Facility.HealthService>>
+      filterOutDuplicatesAndBuildFacilityServices(
+          @NonNull
+              List<DatamartFacility.Service<DatamartFacility.HealthService>> datamartHealthServices,
+          @NonNull String linkUrl,
+          @NonNull String facilityId) {
+    // Obtain CMS service ids
+    final var cmsServiceIds =
+        datamartHealthServices.parallelStream()
+            .filter(dhs -> DatamartFacility.Service.Source.CMS.equals(dhs.source()))
+            .map(dhs -> dhs.serviceId())
+            .collect(Collectors.toList());
+    // Remove ATC services for which there is a CMS service
+    cmsServiceIds.stream()
+        .forEach(
+            cmsServiceId -> {
+              datamartHealthServices.removeIf(
+                  dhs ->
+                      DatamartFacility.Service.Source.ATC.equals(dhs.source())
+                          && dhs.serviceId().equals(cmsServiceId));
+            });
+    // Build facility health services
+    return datamartHealthServices.parallelStream()
+        .map(dhs -> toFacilityHealthService(dhs, linkUrl, facilityId))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

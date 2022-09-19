@@ -90,11 +90,18 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
     return ResponseEntity.ok(response);
   }
 
-  /** Obtain service id for specified service name. */
+  /**
+   * Obtain service id for specified service name. Used when CMS overlay service is uploaded with no
+   * unique service identifier.
+   */
   private String getServiceIdFromServiceName(@NonNull String serviceName) {
-    return serviceNameAggregator.serviceNameAggregate().isRecognizedServiceName(serviceName)
-        ? serviceNameAggregator.serviceNameAggregate().serviceId(serviceName).get()
-        : INVALID_SVC_ID;
+    return Facility.HealthService.isRecognizedEnumOrCovidService(serviceName)
+        ? Facility.HealthService.fromString(serviceName).serviceId()
+        : Facility.BenefitsService.isRecognizedServiceEnum(serviceName)
+            ? Facility.BenefitsService.fromString(serviceName).serviceId()
+            : Facility.OtherService.isRecognizedServiceEnum(serviceName)
+                ? Facility.OtherService.fromString(serviceName).serviceId()
+                : INVALID_SVC_ID;
   }
 
   @InitBinder

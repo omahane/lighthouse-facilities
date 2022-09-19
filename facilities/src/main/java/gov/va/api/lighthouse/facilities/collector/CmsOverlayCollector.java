@@ -39,8 +39,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class CmsOverlayCollector extends BaseCmsOverlayHandler {
 
-  public CmsOverlayCollector(@Autowired CmsOverlayRepository cmsOverlayRepository) {
+  private final CmsOverlayMapper cmsOverlayMapper;
+
+  public CmsOverlayCollector(
+      @Autowired CmsOverlayRepository cmsOverlayRepository,
+      @Autowired CmsOverlayMapper cmsOverlayMapper) {
     super(cmsOverlayRepository);
+    this.cmsOverlayMapper = cmsOverlayMapper;
   }
 
   /** Method for determining whether Covid service is contained within detailed services. */
@@ -71,25 +76,44 @@ public class CmsOverlayCollector extends BaseCmsOverlayHandler {
         .forEach(
             s -> {
               if (EnumUtils.isValidEnum(BenefitsService.class, capitalize(s))) {
+                final BenefitsService benefitsService = BenefitsService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(benefitsService.serviceId());
                 benefitsServices.add(
                     Service.<BenefitsService>builder()
-                        .serviceType(BenefitsService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent()
+                                ? cmsServiceName.get()
+                                : benefitsService.name())
+                        .serviceType(benefitsService)
                         .source(Source.CMS)
                         .build());
               }
 
               if (EnumUtils.isValidEnum(HealthService.class, capitalize(s))) {
+                final HealthService healthService = HealthService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(healthService.serviceId());
                 healthServices.add(
                     Service.<HealthService>builder()
-                        .serviceType(HealthService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent()
+                                ? cmsServiceName.get()
+                                : healthService.name())
+                        .serviceType(healthService)
                         .source(Source.CMS)
                         .build());
               }
 
               if (EnumUtils.isValidEnum(OtherService.class, capitalize(s))) {
+                final OtherService otherService = OtherService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(otherService.serviceId());
                 otherServices.add(
                     Service.<OtherService>builder()
-                        .serviceType(OtherService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent() ? cmsServiceName.get() : otherService.name())
+                        .serviceType(otherService)
                         .source(Source.CMS)
                         .build());
               }

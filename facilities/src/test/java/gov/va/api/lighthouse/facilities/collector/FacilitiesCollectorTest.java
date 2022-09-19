@@ -267,6 +267,7 @@ public class FacilitiesCollectorTest {
     when(mockInsecureRestTemplateProvider.restTemplate()).thenReturn(insecureRestTemplate);
     JdbcTemplate mockTemplate = mock(JdbcTemplate.class);
     CmsOverlayRepository mockCmsOverlayRepository = mock(CmsOverlayRepository.class);
+    CmsOverlayMapper mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
     when(mockTemplate.query(any(String.class), any(RowMapper.class)))
         .thenThrow(new CollectorExceptions.CollectorException(new Throwable("oh noes")));
     assertThrows(
@@ -275,7 +276,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                     mockInsecureRestTemplateProvider,
                     mockTemplate,
-                    new CmsOverlayCollector(mockCmsOverlayRepository),
+                    new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper),
                     mock(AccessToCareCollector.class),
                     mock(AccessToPwtCollector.class),
                     "http://statecems")
@@ -403,13 +404,14 @@ public class FacilitiesCollectorTest {
               mockOverlays.add(entity);
             });
     CmsOverlayRepository mockCmsOverlayRepository = mock(CmsOverlayRepository.class);
+    CmsOverlayMapper mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
     when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays);
 
     assertThat(
             new FacilitiesCollector(
                     insecureRestTemplateProvider,
                     jdbcTemplate,
-                    new CmsOverlayCollector(mockCmsOverlayRepository),
+                    new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper),
                     mock(AccessToCareCollector.class),
                     mock(AccessToPwtCollector.class),
                     "http://statecems")

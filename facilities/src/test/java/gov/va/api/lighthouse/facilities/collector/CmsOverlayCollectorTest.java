@@ -39,13 +39,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class CmsOverlayCollectorTest {
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
+  @Mock CmsOverlayMapper mockCmsOverlayMapper;
+
   @Test
   public void exceptions() {
     CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
     when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_123"));
     when(mockEntity.cmsServices()).thenThrow(new NullPointerException("oh noes"));
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector collector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     assertThat(collector.loadAndUpdateCmsOverlays()).isEqualTo(Collections.emptyMap());
   }
 
@@ -99,7 +102,8 @@ public class CmsOverlayCollectorTest {
         mock(InsecureRestTemplateProvider.class);
     JdbcTemplate mockTemplate = mock(JdbcTemplate.class);
     when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays); // List.of(overlayEntity));
-    CmsOverlayCollector cmsOverlayCollector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector cmsOverlayCollector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     HashMap<String, DatamartCmsOverlay> cmsOverlays =
         cmsOverlayCollector.loadAndUpdateCmsOverlays();
     // Verify loaded CMS overlay
@@ -161,7 +165,8 @@ public class CmsOverlayCollectorTest {
                         .source(Source.CMS)
                         .build()))
             .build());
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector collector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     HashMap<String, Services> actualCmsServicesMap = collector.getCmsServices();
     assertThat(actualCmsServicesMap.get(id)).isEqualTo(expectedCmsServicesMap.get(id));
   }
@@ -174,7 +179,8 @@ public class CmsOverlayCollectorTest {
     when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
     when(mockEntity.overlayServices()).thenReturn(Set.of());
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector collector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     assertThat(collector.getCmsServices()).isEmpty();
   }
 
@@ -202,7 +208,8 @@ public class CmsOverlayCollectorTest {
                     .code(DatamartFacility.OperatingStatusCode.NORMAL)
                     .build())
             .build());
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector collector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     assertThat(collector.loadAndUpdateCmsOverlays())
         .usingRecursiveComparison()
         .isEqualTo(expectedOverlays);
@@ -266,7 +273,8 @@ public class CmsOverlayCollectorTest {
                     + "  ]")
             .build();
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(cmsOverlayEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
+    CmsOverlayCollector collector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     collector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     List<CmsOverlayEntity> cmsOverlayEntities =
         (List<CmsOverlayEntity>) mockCmsOverlayRepository.findAll();
@@ -295,80 +303,76 @@ public class CmsOverlayCollectorTest {
   @Test
   @SneakyThrows
   void verifyContainsCovidService() {
+    final var cmsOverlayCollector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     assertThat(
-            new CmsOverlayCollector(mockCmsOverlayRepository)
-                .containsCovidService(
-                    List.of(
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(
-                                        DatamartFacility.HealthService.Covid19Vaccine.serviceId())
-                                    .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Covid19Vaccine.serviceType())
-                                    .build())
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(
-                                        DatamartFacility.HealthService.Cardiology.serviceId())
-                                    .name(DatamartFacility.HealthService.Cardiology.name())
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Cardiology.serviceType())
-                                    .build())
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(
-                                        DatamartFacility.HealthService.Dermatology.serviceId())
-                                    .name(DatamartFacility.HealthService.Dermatology.name())
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Dermatology.serviceType())
-                                    .build())
-                            .build())))
+            cmsOverlayCollector.containsCovidService(
+                List.of(
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(
+                                    DatamartFacility.HealthService.Covid19Vaccine.serviceId())
+                                .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
+                                .serviceType(
+                                    DatamartFacility.HealthService.Covid19Vaccine.serviceType())
+                                .build())
+                        .build(),
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(DatamartFacility.HealthService.Cardiology.serviceId())
+                                .name(DatamartFacility.HealthService.Cardiology.name())
+                                .serviceType(
+                                    DatamartFacility.HealthService.Cardiology.serviceType())
+                                .build())
+                        .build(),
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(DatamartFacility.HealthService.Dermatology.serviceId())
+                                .name(DatamartFacility.HealthService.Dermatology.name())
+                                .serviceType(
+                                    DatamartFacility.HealthService.Dermatology.serviceType())
+                                .build())
+                        .build())))
         .isTrue();
   }
 
   @Test
   void verifyDoesNotContainCovidService() {
+    final var cmsOverlayCollector =
+        new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
     assertThat(
-            new CmsOverlayCollector(mockCmsOverlayRepository)
-                .containsCovidService(
-                    List.of(
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(DatamartFacility.HealthService.Optometry.serviceId())
-                                    .name(DatamartFacility.HealthService.Optometry.name())
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Optometry.serviceType())
-                                    .build())
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(
-                                        DatamartFacility.HealthService.Cardiology.serviceId())
-                                    .name(DatamartFacility.HealthService.Cardiology.name())
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Cardiology.serviceType())
-                                    .build())
-                            .build(),
-                        DatamartDetailedService.builder()
-                            .serviceInfo(
-                                DatamartDetailedService.ServiceInfo.builder()
-                                    .serviceId(
-                                        DatamartFacility.HealthService.Dermatology.serviceId())
-                                    .name(DatamartFacility.HealthService.Dermatology.name())
-                                    .serviceType(
-                                        DatamartFacility.HealthService.Dermatology.serviceType())
-                                    .build())
-                            .build())))
+            cmsOverlayCollector.containsCovidService(
+                List.of(
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(DatamartFacility.HealthService.Optometry.serviceId())
+                                .name(DatamartFacility.HealthService.Optometry.name())
+                                .serviceType(DatamartFacility.HealthService.Optometry.serviceType())
+                                .build())
+                        .build(),
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(DatamartFacility.HealthService.Cardiology.serviceId())
+                                .name(DatamartFacility.HealthService.Cardiology.name())
+                                .serviceType(
+                                    DatamartFacility.HealthService.Cardiology.serviceType())
+                                .build())
+                        .build(),
+                    DatamartDetailedService.builder()
+                        .serviceInfo(
+                            DatamartDetailedService.ServiceInfo.builder()
+                                .serviceId(DatamartFacility.HealthService.Dermatology.serviceId())
+                                .name(DatamartFacility.HealthService.Dermatology.name())
+                                .serviceType(
+                                    DatamartFacility.HealthService.Dermatology.serviceType())
+                                .build())
+                        .build())))
         .isFalse();
-    assertThat(new CmsOverlayCollector(mockCmsOverlayRepository).containsCovidService(null))
-        .isFalse();
+    assertThat(cmsOverlayCollector.containsCovidService(null)).isFalse();
   }
 }

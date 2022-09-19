@@ -112,7 +112,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -152,7 +152,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -192,7 +192,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -232,7 +232,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -272,7 +272,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -312,7 +312,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -372,14 +372,11 @@ public class CmsOverlayIT {
         .expect(200);
   }
 
-  private List<DetailedService> detailedServices(boolean hasReloadBeenPerformedAfterOverlayUpload) {
+  private List<DetailedService> detailedServices() {
     return List.of(
         DetailedService.builder()
             .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-            .name(
-                hasReloadBeenPerformedAfterOverlayUpload
-                    ? "COVID-19 vaccines"
-                    : Facility.HealthService.Covid19Vaccine.name())
+            .name("COVID-19 vaccines")
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
             .path("https://www.va.gov/bay-pines-health-care/programs/covid-19-vaccines/")
@@ -552,7 +549,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -564,7 +561,7 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
@@ -586,7 +583,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -628,7 +625,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
@@ -732,7 +729,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -744,7 +741,7 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
@@ -766,7 +763,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -808,7 +805,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
@@ -912,7 +909,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -924,7 +921,7 @@ public class CmsOverlayIT {
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecification()
                 .contentType("application/json")
@@ -946,7 +943,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -988,7 +985,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
         .ignoringFields("serviceId")
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))

@@ -20,7 +20,7 @@ public class DetailedServiceTransformerV0 {
       @NonNull DatamartDetailedService dds, @NonNull ServiceNameAggregate serviceNameAggregate) {
     return DetailedService.builder()
         .serviceId(dds.serviceInfo().serviceId())
-        .name(serviceNameAggregate.serviceName(dds.serviceInfo().serviceId()))
+        .name(toDetailedServiceName(dds.serviceInfo().name()))
         .active(dds.active())
         .changed(dds.changed())
         .appointmentLeadIn(dds.appointmentLeadIn())
@@ -149,6 +149,20 @@ public class DetailedServiceTransformerV0 {
                 .map(DetailedServiceTransformerV0::toDetailedServiceLocation)
                 .collect(Collectors.toList())
             : emptyList();
+  }
+
+  /**
+   * If DatamartDetailedService name is recognized as enum name, transform to version 0
+   * DetailedService enum value name. Otherwise, do not alter name.
+   */
+  public static String toDetailedServiceName(String name) {
+    return Facility.HealthService.isRecognizedServiceEnum(name)
+        ? Facility.HealthService.fromString(name).name()
+        : Facility.BenefitsService.isRecognizedServiceEnum(name)
+            ? Facility.BenefitsService.fromString(name).name()
+            : Facility.OtherService.isRecognizedServiceEnum(name)
+                ? Facility.OtherService.fromString(name).name()
+                : name;
   }
 
   /**

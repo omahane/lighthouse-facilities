@@ -111,7 +111,7 @@ public class CmsOverlayIT {
             .expectValid(CmsOverlayResponse.class);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -150,7 +150,7 @@ public class CmsOverlayIT {
             .expectValid(CmsOverlayResponse.class);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -189,7 +189,7 @@ public class CmsOverlayIT {
             .expectValid(CmsOverlayResponse.class);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     // Remove overlay
     ExpectedResponse.of(
             requestSpecificationInternal()
@@ -253,16 +253,13 @@ public class CmsOverlayIT {
    * Without performing a daily reload, the uploaded services will appear with the established
    * service name. In this case, "COVID-19 vaccines" will appear with serice name "Covid19Vaccine".
    */
-  private List<DetailedService> detailedServices(boolean hasReloadBeenPerformedAfterOverlayUpload) {
+  private List<DetailedService> detailedServices() {
     return List.of(
         DetailedService.builder()
             .serviceInfo(
                 DetailedService.ServiceInfo.builder()
                     .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
-                    .name(
-                        hasReloadBeenPerformedAfterOverlayUpload
-                            ? "COVID-19 vaccines"
-                            : Facility.HealthService.Covid19Vaccine.name())
+                    .name("COVID-19 vaccines")
                     .build())
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
             .onlineSchedulingAvailable("Unknown")
@@ -496,7 +493,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -525,7 +522,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(healthCareSystem);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -557,7 +554,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isNull();
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
@@ -659,7 +656,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -688,7 +685,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(healthCareSystem);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -720,7 +717,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isNull();
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
@@ -822,7 +819,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().operatingStatus()).isEqualTo(ops);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -851,7 +848,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isEqualTo(healthCareSystem);
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(false));
+        .isEqualTo(detailedServices());
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -883,7 +880,7 @@ public class CmsOverlayIT {
     assertThat(cmsOverlay.overlay().healthCareSystem()).isNull();
     assertThat(cmsOverlay.overlay().detailedServices())
         .usingRecursiveComparison()
-        .isEqualTo(detailedServices(true));
+        .isEqualTo(detailedServices());
     ExpectedResponse.of(
             requestSpecificationInternal()
                 .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))

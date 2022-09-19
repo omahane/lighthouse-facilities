@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -36,7 +37,8 @@ import lombok.NonNull;
   "online_scheduling_available",
   "referral_required",
   "walk_ins_accepted",
-  "service_locations"
+  "service_locations",
+  "last_updated"
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService {
@@ -53,12 +55,20 @@ public class DetailedService {
   @Schema(hidden = true)
   boolean active;
 
-  @JsonIgnore
   @Schema(
-      description = "Timestamp of last time detailed service was updated.",
+      description = "Timestamp of last time detailed service was updated on CMS side.",
       example = "2021-02-04T22:36:49+00:00",
       nullable = true)
+  @JsonIgnore
   String changed;
+
+  @Schema(
+      description = "Date of most recent upload of detailed service from CMS.",
+      example = "2021-02-04",
+      nullable = true)
+  @JsonProperty("last_updated")
+  @JsonAlias("lastUpdated")
+  LocalDate lastUpdated;
 
   @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
   @JsonProperty("description_facility")

@@ -271,6 +271,7 @@ public class InternalFacilitiesControllerTest {
     return new FacilitiesCollector(
         mock(InsecureRestTemplateProvider.class),
         mock(JdbcTemplate.class),
+        mockCmsOverlayMapper,
         mockCmsOverlayCollector,
         mock(AccessToCareCollector.class),
         mock(AccessToPwtCollector.class),
@@ -775,6 +776,7 @@ public class InternalFacilitiesControllerTest {
         new FacilitiesCollector(
             mock(InsecureRestTemplateProvider.class),
             mock(JdbcTemplate.class),
+            mockCmsOverlayMapper,
             mockCmsOverlayCollector,
             mock(AccessToCareCollector.class),
             mock(AccessToPwtCollector.class),

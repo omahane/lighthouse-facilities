@@ -57,7 +57,8 @@ import org.apache.commons.lang3.StringUtils;
   "onlineSchedulingAvailable",
   "referralRequired",
   "walkInsAccepted",
-  "serviceLocations"
+  "serviceLocations",
+  "lastUpdated"
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService implements CanBeEmpty {
@@ -73,12 +74,19 @@ public class DetailedService implements CanBeEmpty {
   @Schema(hidden = true)
   boolean active;
 
-  @JsonIgnore
   @Schema(
-      description = "Timestamp of last time service was updated.",
+      description = "Timestamp of last time service was updated on CMS side.",
       example = "2021-02-04T22:36:49+00:00",
       nullable = true)
+  @JsonIgnore
   String changed;
+
+  @Schema(
+      description = "Date of most recent upload of detailed service from CMS.",
+      example = "2021-02-04",
+      nullable = true)
+  @JsonAlias("last_updated")
+  LocalDate lastUpdated;
 
   @Schema(
       description =
@@ -138,6 +146,7 @@ public class DetailedService implements CanBeEmpty {
   public boolean isEmpty() {
     return (serviceInfo() == null || serviceInfo().isEmpty())
         && isBlank(changed())
+        && (lastUpdated() == null)
         && isBlank(appointmentLeadIn())
         && isBlank(onlineSchedulingAvailable())
         && isBlank(path())

@@ -6,6 +6,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.api.UrlFormatHelper.withTrailingSlash;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -54,6 +56,8 @@ public class FacilitiesCollector {
 
   protected final String cemeteriesBaseUrl;
 
+  private final CmsOverlayMapper cmsOverlayMapper;
+
   private final CmsOverlayCollector cmsOverlayCollector;
 
   private final AccessToCareCollector accessToCareCollector;
@@ -64,6 +68,7 @@ public class FacilitiesCollector {
   public FacilitiesCollector(
       @Autowired @NonNull InsecureRestTemplateProvider insecureRestTemplateProvider,
       @Autowired @NonNull JdbcTemplate jdbcTemplate,
+      @Autowired @NonNull CmsOverlayMapper cmsOverlayMapper,
       @Autowired @NonNull CmsOverlayCollector cmsOverlayCollector,
       @Autowired @NonNull AccessToCareCollector accessToCareCollector,
       @Autowired @NonNull AccessToPwtCollector accessToPwtCollector,
@@ -71,6 +76,7 @@ public class FacilitiesCollector {
     this.insecureRestTemplateProvider = insecureRestTemplateProvider;
     this.jdbcTemplate = jdbcTemplate;
     this.cemeteriesBaseUrl = withTrailingSlash(cemeteriesBaseUrl);
+    this.cmsOverlayMapper = cmsOverlayMapper;
     this.cmsOverlayCollector = cmsOverlayCollector;
     this.accessToCareCollector = accessToCareCollector;
     this.accessToPwtCollector = accessToPwtCollector;
@@ -326,34 +332,106 @@ public class FacilitiesCollector {
               }
 
               if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).benefits())) {
-                List<Service<BenefitsService>> facilityBenefitsServices =
-                    facilityCmsServicesMap.get(df.id()).benefits();
+                Set<Service<BenefitsService>> facilityBenefitsServicesSet =
+                    facilityCmsServicesMap.get(df.id()).benefits().stream().collect(toSet());
                 if (df.attributes().services().benefits() != null) {
-                  facilityBenefitsServices.addAll(df.attributes().services().benefits());
+                  // Add CMS sourced equivalent for existing facility benefits services
+                  facilityBenefitsServicesSet.addAll(
+                      df.attributes().services().benefits().stream()
+                          .filter(
+                              dfhs ->
+                                  cmsOverlayMapper
+                                      .serviceNameForServiceId(dfhs.serviceId())
+                                      .isPresent())
+                          .map(
+                              dfhs ->
+                                  Service.<BenefitsService>builder()
+                                      .name(
+                                          cmsOverlayMapper
+                                              .serviceNameForServiceId(dfhs.serviceId())
+                                              .get())
+                                      .serviceId(dfhs.serviceId())
+                                      .serviceType(
+                                          BenefitsService.fromServiceId(dfhs.serviceId()).get())
+                                      .source(Service.Source.CMS)
+                                      .build())
+                          .collect(toSet()));
+                  // Add all existing facility benefits services
+                  facilityBenefitsServicesSet.addAll(df.attributes().services().benefits());
                 }
 
+                List<Service<BenefitsService>> facilityBenefitsServices =
+                    facilityBenefitsServicesSet.stream().collect(toList());
                 Collections.sort(facilityBenefitsServices);
                 df.attributes().services().benefits(facilityBenefitsServices);
               }
 
               if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).health())) {
-                List<Service<HealthService>> facilityHealthServices =
-                    facilityCmsServicesMap.get(df.id()).health();
+                Set<Service<HealthService>> facilityHealthServicesSet =
+                    facilityCmsServicesMap.get(df.id()).health().stream().collect(toSet());
                 if (df.attributes().services().health() != null) {
-                  facilityHealthServices.addAll(df.attributes().services().health());
+                  // Add CMS sourced equivalent for existing facility health services
+                  facilityHealthServicesSet.addAll(
+                      df.attributes().services().health().stream()
+                          .filter(
+                              dfhs ->
+                                  cmsOverlayMapper
+                                      .serviceNameForServiceId(dfhs.serviceId())
+                                      .isPresent())
+                          .map(
+                              dfhs ->
+                                  Service.<HealthService>builder()
+                                      .name(
+                                          cmsOverlayMapper
+                                              .serviceNameForServiceId(dfhs.serviceId())
+                                              .get())
+                                      .serviceId(dfhs.serviceId())
+                                      .serviceType(
+                                          HealthService.fromServiceId(dfhs.serviceId()).get())
+                                      .source(Service.Source.CMS)
+                                      .build())
+                          .collect(toSet()));
+                  // Add all existing facility health services
+                  facilityHealthServicesSet.addAll(df.attributes().services().health());
                 }
 
+                List<Service<HealthService>> facilityHealthServices =
+                    facilityHealthServicesSet.stream().collect(toList());
                 Collections.sort(facilityHealthServices);
                 df.attributes().services().health(facilityHealthServices);
               }
 
               if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).other())) {
-                List<Service<OtherService>> facilityOtherServices =
-                    facilityCmsServicesMap.get(df.id()).other();
+                Set<Service<OtherService>> facilityOtherServicesSet =
+                    facilityCmsServicesMap.get(df.id()).other().stream().collect(toSet());
                 if (df.attributes().services().other() != null) {
-                  facilityOtherServices.addAll(df.attributes().services().other());
+                  // Add CMS sourced equivalent for existing facility other services
+                  facilityOtherServicesSet.addAll(
+                      df.attributes().services().other().stream()
+                          .filter(
+                              dfhs ->
+                                  cmsOverlayMapper
+                                      .serviceNameForServiceId(dfhs.serviceId())
+                                      .isPresent())
+                          .map(
+                              dfhs ->
+                                  Service.<OtherService>builder()
+                                      .name(
+                                          cmsOverlayMapper
+                                              .serviceNameForServiceId(dfhs.serviceId())
+                                              .get())
+                                      .serviceId(dfhs.serviceId())
+                                      .serviceType(
+                                          OtherService.fromServiceId(dfhs.serviceId()).get())
+                                      .source(Service.Source.CMS)
+                                      .build())
+                          .collect(toSet()));
+                  // Add all existing facility other services
+                  facilityOtherServicesSet.addAll(df.attributes().services().other());
                 }
 
+                List<Service<OtherService>> facilityOtherServices =
+                    facilityOtherServicesSet.stream().collect(toList());
                 Collections.sort(facilityOtherServices);
                 df.attributes().services().other(facilityOtherServices);
               }

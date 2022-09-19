@@ -201,6 +201,7 @@ public class FacilitiesCollectorTest {
     InsecureRestTemplateProvider mockInsecureRestTemplateProvider =
         mock(InsecureRestTemplateProvider.class);
     JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+    CmsOverlayMapper mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
     CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
     AccessToCareCollector mockAtc = mock(AccessToCareCollector.class);
     AccessToPwtCollector mockAtp = mock(AccessToPwtCollector.class);
@@ -211,6 +212,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                 mockInsecureRestTemplateProvider,
                 mockJdbcTemplate,
+                mockCmsOverlayMapper,
                 mockCmsOverlayCollector,
                 null,
                 mockAtp,
@@ -221,6 +223,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                 mockInsecureRestTemplateProvider,
                 mockJdbcTemplate,
+                mockCmsOverlayMapper,
                 mockCmsOverlayCollector,
                 mockAtc,
                 null,
@@ -231,6 +234,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                 mockInsecureRestTemplateProvider,
                 mockJdbcTemplate,
+                mockCmsOverlayMapper,
                 mockCmsOverlayCollector,
                 mockAtc,
                 mockAtp,
@@ -242,6 +246,7 @@ public class FacilitiesCollectorTest {
         new FacilitiesCollector(
             mockInsecureRestTemplateProvider,
             mockJdbcTemplate,
+            mockCmsOverlayMapper,
             mockCmsOverlayCollector,
             mockAtc,
             mockAtp,
@@ -276,6 +281,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                     mockInsecureRestTemplateProvider,
                     mockTemplate,
+                    mockCmsOverlayMapper,
                     new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper),
                     mock(AccessToCareCollector.class),
                     mock(AccessToPwtCollector.class),
@@ -411,6 +417,7 @@ public class FacilitiesCollectorTest {
             new FacilitiesCollector(
                     insecureRestTemplateProvider,
                     jdbcTemplate,
+                    mockCmsOverlayMapper,
                     new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper),
                     mock(AccessToCareCollector.class),
                     mock(AccessToPwtCollector.class),

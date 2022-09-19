@@ -14,6 +14,8 @@ import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -117,6 +119,18 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
         || super.isRecognizedServiceId(serviceId);
   }
 
+  /** Record date when CMS uploaded overlay services. */
+  private void markDateWhenCmsUploadedOverlayServices(@NonNull DatamartCmsOverlay overlay) {
+    if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
+      final var currentDate = LocalDate.now(ZoneId.of("America/New_York"));
+      overlay.detailedServices().stream()
+          .forEach(
+              dds -> {
+                dds.lastUpdated(currentDate);
+              });
+    }
+  }
+
   /**
    * Populate service id based on service name and filter out services with unrecognized service
    * ids.
@@ -159,6 +173,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
   ResponseEntity<Void> saveOverlay(
       @PathVariable("id") String id, @Valid @RequestBody DatamartCmsOverlay overlay) {
     populateServiceIdAndFilterOutInvalid(overlay);
+    markDateWhenCmsUploadedOverlayServices(overlay);
     Optional<CmsOverlayEntity> existingCmsOverlayEntity =
         getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
     updateCmsOverlayData(existingCmsOverlayEntity, id, overlay);
@@ -188,11 +203,9 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
           findServicesToSave(
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
-
     final Set<Service<BenefitsService>> facilityBenefitsServices = new HashSet<>();
     final Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
     final Set<Service<OtherService>> facilityOtherServices = new HashSet<>();
-
     if (!toSaveDetailedServices.isEmpty()) {
       final Set<String> detailedServiceIds = new HashSet<>();
       toSaveDetailedServices.stream()
@@ -204,7 +217,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                   if (facilityEntity.services() == null) {
                     facilityEntity.services(new HashSet<>());
                   }
-
                   if (TypeOfService.Benefits.equals(service.serviceInfo().serviceType())) {
                     Optional<DatamartFacility.BenefitsService> benefitsService =
                         DatamartFacility.BenefitsService.fromServiceId(
@@ -217,7 +229,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                               .serviceType(benefitsService.get())
                               .source(Source.CMS)
                               .build());
-
                       // Update column services in table facility_services
                       facilityEntity
                           .services()
@@ -241,7 +252,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                               .serviceType(healthService.get())
                               .source(Source.CMS)
                               .build());
-
                       // Update column services in table facility_services
                       facilityEntity
                           .services()
@@ -265,7 +275,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                               .serviceType(otherService.get())
                               .source(Source.CMS)
                               .build());
-
                       // Update column services in table facility_services
                       facilityEntity
                           .services()
@@ -284,10 +293,8 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               });
       facilityEntity.overlayServices(detailedServiceIds);
     }
-
     DatamartFacility facility =
         DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
-
     if (facility != null) {
       DatamartFacility.OperatingStatus operatingStatus = overlay.operatingStatus();
       if (operatingStatus != null) {
@@ -299,7 +306,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                     ? DatamartFacility.ActiveStatus.T
                     : DatamartFacility.ActiveStatus.A);
       }
-
       if (overlay.detailedServices() != null) {
         // Only add Covid-19 detailed service, if present, to facility attributes detailed_services
         // list
@@ -314,13 +320,11 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                                 HealthService.Covid19Vaccine.serviceId()
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
-
         List<String> disabledCmsServiceIds =
             overlay.detailedServices().stream()
                 .filter(dds -> !dds.active())
                 .map(dds -> dds.serviceInfo().serviceId())
                 .collect(Collectors.toList());
-
         // Remove inactive benefits services
         if (facility.attributes().services().benefits() != null) {
           facilityBenefitsServices.addAll(
@@ -351,7 +355,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                               && os.source().equals(Source.CMS)))
                   .collect(Collectors.toList()));
         }
-
         // Remove deactivated service from facility_services table
         disabledCmsServiceIds.stream()
             .forEach(
@@ -370,16 +373,13 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
           new ArrayList<>(facilityBenefitsServices);
       Collections.sort(facilityBenefitsServiceList);
       facility.attributes().services().benefits(facilityBenefitsServiceList);
-
       List<Service<HealthService>> facilityHealthServiceList =
           new ArrayList<>(facilityHealthServices);
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().health(facilityHealthServiceList);
-
       List<Service<OtherService>> facilityOtherServiceList = new ArrayList<>(facilityOtherServices);
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().other(facilityOtherServiceList);
-
       facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
     }
     facilityRepository.save(facilityEntity);

@@ -1087,6 +1087,7 @@ public class CmsOverlayControllerV1Test {
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
+        .usingElementComparatorIgnoringFields("lastUpdated")
         .containsAll(detailedServices);
   }
 
@@ -1141,6 +1142,7 @@ public class CmsOverlayControllerV1Test {
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
+        .usingElementComparatorIgnoringFields("lastUpdated")
         .containsAll(combinedServices);
   }
 

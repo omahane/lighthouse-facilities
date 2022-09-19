@@ -46,7 +46,8 @@ import org.apache.commons.lang3.StringUtils;
   "online_scheduling_available",
   "referral_required",
   "walk_ins_accepted",
-  "service_locations"
+  "service_locations",
+  "last_updated"
 })
 public class DatamartDetailedService {
   @NonNull ServiceInfo serviceInfo;
@@ -57,6 +58,9 @@ public class DatamartDetailedService {
   boolean active;
 
   @JsonIgnore String changed;
+
+  @JsonProperty("last_updated")
+  LocalDate lastUpdated;
 
   @JsonProperty("appointment_leadin")
   String appointmentLeadIn;

@@ -438,6 +438,7 @@ public class CmsOverlayControllerV0Test {
     // services overlay for facility
     assertThat(facility.attributes().detailedServices())
         .usingRecursiveComparison()
+        .ignoringFields("lastUpdated")
         .isEqualTo(
             DetailedServiceTransformerV0.toDetailedServices(
                 datamartDetailedServices.parallelStream()
@@ -684,6 +685,7 @@ public class CmsOverlayControllerV0Test {
     assertThat(
             DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
+        .usingElementComparatorIgnoringFields("lastUpdated")
         .containsAll(
             updatedCovidPathOverlay.detailedServices().stream()
                 .filter(

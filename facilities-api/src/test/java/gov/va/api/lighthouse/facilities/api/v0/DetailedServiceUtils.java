@@ -9,7 +9,6 @@ public class DetailedServiceUtils {
         .serviceId(healthService.serviceId())
         .name(healthService.name())
         .active(true)
-        .changed(null)
         .descriptionFacility("Most advanced healthcare facility nationally.")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")

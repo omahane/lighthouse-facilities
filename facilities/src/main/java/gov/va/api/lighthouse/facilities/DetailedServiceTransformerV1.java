@@ -13,6 +13,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV1 {
   /** Transform DatamartDetailedService to version 1 DetailedService. */
+  @SuppressWarnings("deprecation")
   public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
         .serviceInfo(toDetailedServiceInfo(dds.serviceInfo()))
@@ -214,6 +215,7 @@ public class DetailedServiceTransformerV1 {
   }
 
   /** Transform version 1 DetailedService to version agnostic DatamartDetailedService. */
+  @SuppressWarnings("deprecation")
   public static DatamartDetailedService toVersionAgnosticDetailedService(
       @NonNull DetailedService ds) {
     return DatamartDetailedService.builder()

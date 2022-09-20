@@ -57,7 +57,7 @@ public class DatamartDetailedService {
 
   boolean active;
 
-  @JsonIgnore String changed;
+  @JsonIgnore @Deprecated String changed;
 
   @JsonProperty("last_updated")
   LocalDate lastUpdated;

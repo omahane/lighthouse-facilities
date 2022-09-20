@@ -2,8 +2,6 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
@@ -11,38 +9,27 @@ import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class CmsOverlayTransformerV0Test {
-  private ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
-
-  private ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
-
   @Test
   public void cmsOverlayRoundtrip() {
     CmsOverlay overlay = overlay();
     assertThat(
             CmsOverlayTransformerV0.toCmsOverlay(
-                CmsOverlayTransformerV0.toVersionAgnostic(overlay), mockServiceNameAggregatorV0))
+                CmsOverlayTransformerV0.toVersionAgnostic(overlay)))
         .usingRecursiveComparison()
         .isEqualTo(overlay);
   }
 
   @Test
   public void cmsOverlayVisitorRoundtrip() {
-    final var mockServiceNameAggregateV1 = mock(ServiceNameAggregatorV1.ServiceNameAggregate.class);
-    final var mockServiceNameAggregatorV1 = mock(ServiceNameAggregatorV1.class);
-    when(mockServiceNameAggregatorV1.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV1);
-
     CmsOverlay overlay = overlay();
     assertThat(
             CmsOverlayTransformerV0.toCmsOverlay(
                 CmsOverlayTransformerV1.toVersionAgnostic(
                     CmsOverlayTransformerV1.toCmsOverlay(
-                        CmsOverlayTransformerV0.toVersionAgnostic(overlay),
-                        mockServiceNameAggregatorV1)),
-                mockServiceNameAggregatorV0))
+                        CmsOverlayTransformerV0.toVersionAgnostic(overlay)))))
         .usingRecursiveComparison()
         .isEqualTo(overlay);
   }
@@ -79,8 +66,7 @@ public class CmsOverlayTransformerV0Test {
     DatamartCmsOverlay datamartCmsOverlay = datamartCmsOverlay();
     assertThat(
             CmsOverlayTransformerV0.toVersionAgnostic(
-                CmsOverlayTransformerV0.toCmsOverlay(
-                    datamartCmsOverlay, mockServiceNameAggregatorV0)))
+                CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay)))
         .usingRecursiveComparison()
         .isEqualTo(datamartCmsOverlay);
   }
@@ -310,20 +296,6 @@ public class CmsOverlayTransformerV0Test {
         .build();
   }
 
-  @BeforeEach
-  void setup() {
-    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Cardiology.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.Cardiology.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-
-    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
-  }
-
   @Test
   public void transformCmsOverlay() {
     DatamartCmsOverlay expected = datamartCmsOverlay();
@@ -354,8 +326,7 @@ public class CmsOverlayTransformerV0Test {
     assertThat(CmsOverlayTransformerV0.toVersionAgnostic(overlay))
         .usingRecursiveComparison()
         .isEqualTo(datamartCmsOverlay);
-    assertThat(
-            CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay, mockServiceNameAggregatorV0))
+    assertThat(CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay))
         .usingRecursiveComparison()
         .isEqualTo(overlay);
   }
@@ -364,8 +335,7 @@ public class CmsOverlayTransformerV0Test {
   public void transformDatamartCmsOverlay() {
     CmsOverlay expected = overlay();
     DatamartCmsOverlay datamartCmsOverlay = datamartCmsOverlay();
-    assertThat(
-            CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay, mockServiceNameAggregatorV0))
+    assertThat(CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay))
         .usingRecursiveComparison()
         .isEqualTo(expected);
   }
@@ -377,8 +347,7 @@ public class CmsOverlayTransformerV0Test {
     assertThat(CmsOverlayTransformerV0.toVersionAgnostic(overlay))
         .usingRecursiveComparison()
         .isEqualTo(datamartCmsOverlay);
-    assertThat(
-            CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay, mockServiceNameAggregatorV0))
+    assertThat(CmsOverlayTransformerV0.toCmsOverlay(datamartCmsOverlay))
         .usingRecursiveComparison()
         .isEqualTo(overlay);
   }

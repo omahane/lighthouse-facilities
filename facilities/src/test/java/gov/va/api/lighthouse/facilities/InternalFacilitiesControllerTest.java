@@ -77,14 +77,6 @@ public class InternalFacilitiesControllerTest {
 
   CmsOverlayMapper mockCmsOverlayMapper;
 
-  ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
-
-  ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
-
-  ServiceNameAggregatorV1.ServiceNameAggregate mockServiceNameAggregateV1;
-
-  ServiceNameAggregatorV1 mockServiceNameAggregatorV1;
-
   FacilitiesCollector mockCollector;
 
   CmsOverlayCollector mockCmsOverlayCollector;
@@ -262,8 +254,6 @@ public class InternalFacilitiesControllerTest {
         .cmsOverlayRepository(overlayRepository)
         .accessToCareMapper(mockAccessToCareMapper)
         .cmsOverlayMapper(mockCmsOverlayMapper)
-        .serviceNameAggregatorV0(mockServiceNameAggregatorV0)
-        .serviceNameAggregatorV1(mockServiceNameAggregatorV1)
         .build();
   }
 
@@ -1520,14 +1510,6 @@ public class InternalFacilitiesControllerTest {
   void setup() {
     mockAccessToCareMapper = mock(AccessToCareMapper.class);
     mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
-
-    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
-
-    mockServiceNameAggregateV1 = mock(ServiceNameAggregatorV1.ServiceNameAggregate.class);
-    mockServiceNameAggregatorV1 = mock(ServiceNameAggregatorV1.class);
-    when(mockServiceNameAggregatorV1.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV1);
 
     mockCollector = mock(FacilitiesCollector.class);
     mockCmsOverlayCollector = mock(CmsOverlayCollector.class);

@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -46,10 +45,6 @@ public class NearbyTest {
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
   private RestTemplate mockRestTemplate;
-
-  private ServiceNameAggregate mockServiceNameAggregate;
-
-  private ServiceNameAggregatorV0 mockServiceNameAggregator;
 
   private NearbyControllerV0 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
@@ -289,9 +284,7 @@ public class NearbyTest {
     final var baseUrl = "http://foo/";
     final var basePath = "bp";
     final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    facilityRepository.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -384,8 +377,5 @@ public class NearbyTest {
   @BeforeEach
   void setup() {
     mockRestTemplate = mock(RestTemplate.class);
-    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
-    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

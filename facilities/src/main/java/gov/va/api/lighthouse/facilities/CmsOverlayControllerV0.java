@@ -48,15 +48,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v0")
 public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
-  private final ServiceNameAggregatorV0 serviceNameAggregator;
-
   @Builder
   CmsOverlayControllerV0(
       @Autowired FacilityRepository facilityRepository,
-      @Autowired CmsOverlayRepository cmsOverlayRepository,
-      @Autowired ServiceNameAggregatorV0 serviceNameAggregator) {
+      @Autowired CmsOverlayRepository cmsOverlayRepository) {
     super(facilityRepository, cmsOverlayRepository);
-    this.serviceNameAggregator = serviceNameAggregator;
   }
 
   @GetMapping(
@@ -86,8 +82,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
-                        .build(),
-                    serviceNameAggregator))
+                        .build()))
             .build();
     return ResponseEntity.ok(response);
   }

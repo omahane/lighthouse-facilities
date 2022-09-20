@@ -59,19 +59,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v1")
 public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
-  private final ServiceNameAggregatorV1 serviceNameAggregator;
-
   private final String linkerUrl;
 
   @Builder
   CmsOverlayControllerV1(
       @Autowired FacilityRepository facilityRepository,
       @Autowired CmsOverlayRepository cmsOverlayRepository,
-      @Autowired ServiceNameAggregatorV1 serviceNameAggregator,
       @Value("${facilities.url}") String baseUrl,
       @Value("${facilities.base-path}") String basePath) {
     super(facilityRepository, cmsOverlayRepository);
-    this.serviceNameAggregator = serviceNameAggregator;
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
   }
 
@@ -85,7 +81,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         DetailedServiceResponse.builder()
             .data(
                 DetailedServiceTransformerV1.toDetailedService(
-                    getOverlayDetailedService(facilityId, serviceId), serviceNameAggregator))
+                    getOverlayDetailedService(facilityId, serviceId)))
             .build());
   }
 
@@ -98,8 +94,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
     List<DetailedService> services =
-        DetailedServiceTransformerV1.toDetailedServices(
-            getOverlayDetailedServices(facilityId), serviceNameAggregator);
+        DetailedServiceTransformerV1.toDetailedServices(getOverlayDetailedServices(facilityId));
     PageLinkerV1 linker =
         PageLinkerV1.builder()
             .url(buildServicesLink(linkerUrl, facilityId))
@@ -146,8 +141,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
-                        .build(),
-                    serviceNameAggregator))
+                        .build()))
             .build();
     return ResponseEntity.ok(response);
   }
@@ -235,8 +229,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
         getExistingOverlayEntity(FacilityEntity.Pk.fromIdString(id));
     updateCmsOverlayData(existingCmsOverlayEntity, id, datamartCmsOverlay);
     overlay.detailedServices(
-        DetailedServiceTransformerV1.toDetailedServices(
-            datamartCmsOverlay.detailedServices(), serviceNameAggregator));
+        DetailedServiceTransformerV1.toDetailedServices(datamartCmsOverlay.detailedServices()));
     Optional<FacilityEntity> existingFacilityEntity =
         facilityRepository.findById(FacilityEntity.Pk.fromIdString(id));
     if (existingFacilityEntity.isEmpty()) {

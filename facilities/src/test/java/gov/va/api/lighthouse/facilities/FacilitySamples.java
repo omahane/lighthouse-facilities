@@ -21,10 +21,7 @@ public class FacilitySamples {
 
   @SneakyThrows
   @Builder
-  FacilitySamples(
-      @NonNull List<String> resources,
-      @NonNull String linkerUrl,
-      @NonNull ServiceNameAggregatorV0 serviceNameAggregatorV0) {
+  FacilitySamples(@NonNull List<String> resources, @NonNull String linkerUrl) {
     final var datamartFacilitiesMapper = DatamartFacilitiesJacksonConfig.createMapper();
     datamartFacilities =
         resources.stream()
@@ -36,7 +33,7 @@ public class FacilitySamples {
             .collect(Collectors.toList());
     facilities =
         datamartFacilities.stream()
-            .map(df -> FacilityTransformerV0.toFacility(df, serviceNameAggregatorV0))
+            .map(df -> FacilityTransformerV0.toFacility(df))
             .collect(
                 Collectors.toMap(
                     gov.va.api.lighthouse.facilities.api.v0.Facility::id, Function.identity()));
@@ -51,12 +48,10 @@ public class FacilitySamples {
                     gov.va.api.lighthouse.facilities.api.v1.Facility::id, Function.identity()));
   }
 
-  static FacilitySamples defaultSamples(
-      @NonNull String linkerUrl, @NonNull ServiceNameAggregatorV0 serviceNameAggregatorV0) {
+  static FacilitySamples defaultSamples(@NonNull String linkerUrl) {
     return FacilitySamples.builder()
         .resources(List.of("/vha_691GB.json", "/vha_740GA.json", "/vha_757.json"))
         .linkerUrl(linkerUrl)
-        .serviceNameAggregatorV0(serviceNameAggregatorV0)
         .build();
   }
 

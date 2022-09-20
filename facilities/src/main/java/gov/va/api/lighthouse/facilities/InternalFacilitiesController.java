@@ -103,10 +103,6 @@ public class InternalFacilitiesController {
 
   private final CmsOverlayMapper cmsOverlayMapper;
 
-  private final ServiceNameAggregatorV0 serviceNameAggregatorV0;
-
-  private final ServiceNameAggregatorV1 serviceNameAggregatorV1;
-
   // Max distance in miles where two facilities are considered to be duplicates
   private final Double duplicateFacilityOverlapRange = 0.02;
 
@@ -452,11 +448,9 @@ public class InternalFacilitiesController {
   /** Reload all facility information. */
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
-    // Reload ATC and CMS mapping helpers then reload versioned service name aggregators
-    if (accessToCareMapper.reload() && cmsOverlayMapper.reload()) {
-      serviceNameAggregatorV0.reloadMapping();
-      serviceNameAggregatorV1.reloadMapping();
-    }
+    // Reload ATC and CMS mapping helpers
+    accessToCareMapper.reload();
+    cmsOverlayMapper.reload();
     // Reload facilities
     var response = ReloadResponse.start();
     var collectedFacilities =

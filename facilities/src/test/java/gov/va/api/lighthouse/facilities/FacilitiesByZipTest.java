@@ -4,10 +4,7 @@ import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinke
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
@@ -32,37 +29,24 @@ public class FacilitiesByZipTest {
 
   private String linkerUrl;
 
-  private ServiceNameAggregate mockServiceNameAggregate;
-
-  private ServiceNameAggregatorV0 mockServiceNameAggregator;
-
-  private FacilitiesControllerV0 controller(
-      @NonNull String baseUrl,
-      @NonNull String basePath,
-      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
         .baseUrl(baseUrl)
         .basePath(basePath)
-        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
   @Test
   void geoFacilitiesByZip() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByZip("43219", "HEALTH", List.of("urology"), false, 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_757")))
+                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
                 .build());
   }
 
@@ -71,7 +55,7 @@ public class FacilitiesByZipTest {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
         () ->
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip("33333", null, List.of("unknown"), null, 1, 1));
   }
 
@@ -79,34 +63,23 @@ public class FacilitiesByZipTest {
   void jsonFacilitiesByZip_invalidType() {
     assertThrows(
         ExceptionsUtils.InvalidParameter.class,
-        () ->
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .jsonFacilitiesByZip("33333", "xxx", null, null, 1, 1));
+        () -> controller(baseUrl, basePath).jsonFacilitiesByZip("33333", "xxx", null, null, 1, 1));
   }
 
   @Test
   void jsonFacilitiesByZip_noFilter() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip("43219", null, null, null, 1, 1)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void jsonFacilitiesByZip_perPageZero() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
-    assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .jsonFacilitiesByZip("43219", null, null, null, 100, 0))
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath).jsonFacilitiesByZip("43219", null, null, null, 100, 0))
         .isEqualTo(
             FacilitiesResponse.builder()
                 .data(emptyList())
@@ -129,33 +102,23 @@ public class FacilitiesByZipTest {
 
   @Test
   void jsonFacilitiesByZip_serviceOnly() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip("43219", null, List.of("urology"), null, 1, 1)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @Test
   void jsonFacilitiesByZip_typeAndService() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip("43219", "HEALTH", List.of("primarycare"), null, 1, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_757")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -180,17 +143,12 @@ public class FacilitiesByZipTest {
 
   @Test
   void jsonFacilitiesByZip_typeOnly() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip("43219", "HEALTH", emptyList(), null, 1, 1)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facility("vha_757")));
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @BeforeEach
@@ -198,8 +156,5 @@ public class FacilitiesByZipTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
-    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

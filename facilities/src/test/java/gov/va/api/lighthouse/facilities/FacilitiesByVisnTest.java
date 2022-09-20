@@ -2,10 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
 import java.util.List;
 import lombok.NonNull;
@@ -27,53 +24,30 @@ public class FacilitiesByVisnTest {
 
   private String linkerUrl;
 
-  private ServiceNameAggregatorV0 mockServiceNameAggregator;
-
-  private ServiceNameAggregate mockServiceNameAggregate;
-
-  private FacilitiesControllerV0 controller(
-      @NonNull String baseUrl,
-      @NonNull String basePath,
-      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(repo)
         .baseUrl(baseUrl)
         .basePath(basePath)
-        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
   @Test
   void geoFacilities() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
-    assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .geoFacilitiesByVisn("10", 1, 1))
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath).geoFacilitiesByVisn("10", 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_757")))
+                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
                 .build());
   }
 
   @Test
   void json_searchVisn() {
-    repo.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_757"));
-    assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .jsonFacilitiesByVisn("10", 1, 1)
-                .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facility("vha_757")));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    assertThat(controller(baseUrl, basePath).jsonFacilitiesByVisn("10", 1, 1).data())
+        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
   }
 
   @BeforeEach
@@ -81,8 +55,5 @@ public class FacilitiesByVisnTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
-    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

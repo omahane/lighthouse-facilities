@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.lighthouse.facilities.DatamartDetailedService.DetailedServiceLocation;
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -16,8 +15,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV0 {
   /** Transform DatamartDetailedService to version 0 DetailedService. */
-  public static DetailedService toDetailedService(
-      @NonNull DatamartDetailedService dds, @NonNull ServiceNameAggregate serviceNameAggregate) {
+  public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
         .serviceId(dds.serviceInfo().serviceId())
         .name(toDetailedServiceName(dds.serviceInfo().name()))
@@ -183,13 +181,12 @@ public class DetailedServiceTransformerV0 {
 
   /** Transform a list of DatamartDetailedService to a list of version 0 DetailedService. */
   public static List<DetailedService> toDetailedServices(
-      @Valid List<DatamartDetailedService> detailedServices,
-      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+      @Valid List<DatamartDetailedService> detailedServices) {
     return (detailedServices == null)
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(dds -> toDetailedService(dds, serviceNameAggregator.serviceNameAggregate()))
+                .map(dds -> toDetailedService(dds))
                 .collect(Collectors.toList())
             : emptyList();
   }

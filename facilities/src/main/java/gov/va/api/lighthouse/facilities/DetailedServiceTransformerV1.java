@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities;
 
 import static java.util.Collections.emptyList;
 
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV1.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
@@ -14,12 +13,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV1 {
   /** Transform DatamartDetailedService to version 1 DetailedService. */
-  public static DetailedService toDetailedService(
-      @NonNull DatamartDetailedService dds,
-      @NonNull ServiceNameAggregatorV1 serviceNameAggregator) {
+  public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
-        .serviceInfo(
-            toDetailedServiceInfo(dds.serviceInfo(), serviceNameAggregator.serviceNameAggregate()))
+        .serviceInfo(toDetailedServiceInfo(dds.serviceInfo()))
         .waitTime(toPatientWaitTime(dds.waitTime()))
         .active(dds.active())
         .changed(dds.changed())
@@ -122,8 +118,7 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform DatamartDetailedService ServiceInfo object into DetailedService ServiceInfo. */
   public static DetailedService.ServiceInfo toDetailedServiceInfo(
-      @NonNull DatamartDetailedService.ServiceInfo datamartDetailedServiceInfo,
-      @NonNull ServiceNameAggregate serviceNameAggregate) {
+      @NonNull DatamartDetailedService.ServiceInfo datamartDetailedServiceInfo) {
     return DetailedService.ServiceInfo.builder()
         .serviceId(datamartDetailedServiceInfo.serviceId())
         .name(datamartDetailedServiceInfo.name())
@@ -194,13 +189,12 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform a list of DatamartDetailedService> to a list of version 1 DetailedService. */
   public static List<DetailedService> toDetailedServices(
-      @Valid List<DatamartDetailedService> detailedServices,
-      @NonNull ServiceNameAggregatorV1 serviceNameAggregator) {
+      @Valid List<DatamartDetailedService> detailedServices) {
     return (detailedServices == null)
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(dds -> toDetailedService(dds, serviceNameAggregator))
+                .map(dds -> toDetailedService(dds))
                 .collect(Collectors.toList())
             : emptyList();
   }

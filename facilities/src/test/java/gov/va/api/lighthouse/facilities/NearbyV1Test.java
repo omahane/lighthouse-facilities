@@ -44,10 +44,6 @@ public class NearbyV1Test {
 
   private RestTemplate mockRestTemplate;
 
-  private ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
-
-  private ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
-
   private String baseUrl;
 
   private String basePath;
@@ -188,9 +184,7 @@ public class NearbyV1Test {
 
   @Test
   void empty() {
-    facilityRepository.save(
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregatorV0)
-            .facilityEntity("vha_757"));
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -310,9 +304,6 @@ public class NearbyV1Test {
     basePath = "bp";
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
     mockRestTemplate = mock(RestTemplate.class);
-    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
   }
 
   @Test

@@ -8,8 +8,6 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
@@ -570,17 +568,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
 
   @Test
   public void losslessFacilityVisitorRoundtrip() {
-    final var mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    final var mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
-
     Facility facility = facility(linkerUrl, facilityId);
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facility),
-                        mockServiceNameAggregatorV0)),
+                        FacilityTransformerV1.toVersionAgnostic(facility))),
                 linkerUrl,
                 List.of("ATC", "CMS", "DST", "internal", "BISL")))
         .usingRecursiveComparison()
@@ -686,16 +679,11 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             linkerUrl,
             facilityId);
 
-    final var mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    final var mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
-
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
-                        FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth),
-                        mockServiceNameAggregatorV0)),
+                        FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
                 linkerUrl,
                 List.of("ATC", "CMS", "DST", "internal", "BISL")))
         .usingRecursiveComparison()

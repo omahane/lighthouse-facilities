@@ -6,17 +6,15 @@ import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toFacilityO
 import static gov.va.api.lighthouse.facilities.FacilityTransformerV1.toVersionAgnosticFacilityOperatingStatus;
 
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
-import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class CmsOverlayTransformerV1 {
   /** Transform version agnostic CMS overlay to V1 CMS overlay. */
-  public static CmsOverlay toCmsOverlay(
-      DatamartCmsOverlay dc, @NonNull ServiceNameAggregatorV1 serviceNameAggregator) {
+  public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(toDetailedServices(dc.detailedServices(), serviceNameAggregator))
+        .detailedServices(toDetailedServices(dc.detailedServices()))
         .healthCareSystem(toHealthCareSystem(dc.healthCareSystem()))
         .build();
   }

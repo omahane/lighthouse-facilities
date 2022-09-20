@@ -12,11 +12,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class CmsOverlayTransformerV0 {
   /** Transform version agnostic CMS overlay to V0 CMS overlay. */
-  public static CmsOverlay toCmsOverlay(
-      @NonNull DatamartCmsOverlay dc, @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+  public static CmsOverlay toCmsOverlay(@NonNull DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
-        .detailedServices(toDetailedServices(dc.detailedServices(), serviceNameAggregator))
+        .detailedServices(toDetailedServices(dc.detailedServices()))
         .healthCareSystem(toHeatlhCareSystem(dc.healthCareSystem()))
         .build();
   }

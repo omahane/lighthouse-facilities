@@ -14,8 +14,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class FacilityTransformerV0 {
   /** Transform persisted DatamartFacility to version 0 facility. */
-  static Facility toFacility(
-      @NonNull DatamartFacility df, @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+  static Facility toFacility(@NonNull DatamartFacility df) {
     return Facility.builder()
         .id(df.id())
         .type(toType(df.type()))
@@ -41,7 +40,7 @@ public final class FacilityTransformerV0 {
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
                     .detailedServices(
                         DetailedServiceTransformerV0.toDetailedServices(
-                            df.attributes().detailedServices(), serviceNameAggregator))
+                            df.attributes().detailedServices()))
                     .operationalHoursSpecialInstructions(
                         df.attributes().operationalHoursSpecialInstructions())
                     .build()

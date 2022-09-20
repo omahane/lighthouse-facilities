@@ -14,7 +14,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
-import gov.va.api.lighthouse.facilities.ServiceNameAggregatorV0.ServiceNameAggregate;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.FacilityReadResponse;
@@ -56,34 +55,30 @@ public class FacilitiesControllerV0Test {
 
   private String linkerUrl;
 
-  private ServiceNameAggregate mockServiceNameAggregate;
-
-  private ServiceNameAggregatorV0 mockServiceNameAggregator;
-
   @Test
   @SneakyThrows
   void all() {
-    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator);
+    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl);
     when(fr.findAllProjectedBy())
         .thenReturn(
             List.of(
                 samples.facilityEntity("vha_691GB"),
                 samples.facilityEntity("vha_740GA"),
                 samples.facilityEntity("vha_757")));
-    String actual = controller(baseUrl, basePath, mockServiceNameAggregator).all();
+    String actual = controller(baseUrl, basePath).all();
     assertThat(MAPPER_V0.readValue(actual, GeoFacilitiesResponse.class).features()).hasSize(3);
   }
 
   @Test
   void allCsv() {
-    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator);
+    FacilitySamples samples = FacilitySamples.defaultSamples(linkerUrl);
     when(fr.findAllProjectedBy())
         .thenReturn(
             List.of(
                 samples.facilityEntity("vha_691GB"),
                 samples.facilityEntity("vha_740GA"),
                 samples.facilityEntity("vha_757")));
-    String actual = controller(baseUrl, basePath, mockServiceNameAggregator).allCsv();
+    String actual = controller(baseUrl, basePath).allCsv();
     List<String> actualLines = Splitter.onPattern("\\r?\\n").omitEmptyStrings().splitToList(actual);
     assertThat(actualLines.size()).isEqualTo(4);
     assertThat(actualLines.get(0)).isEqualTo(Joiner.on(",").join(CsvTransformerV0.HEADERS));
@@ -110,15 +105,11 @@ public class FacilitiesControllerV0Test {
                 + "730AM-600PM,730AM-600PM,730AM-600PM,730AM-600PM,800AM-400PM,800AM-400PM,NORMAL,");
   }
 
-  private FacilitiesControllerV0 controller(
-      @NonNull String baseUrl,
-      @NonNull String basePath,
-      @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
+  private FacilitiesControllerV0 controller(@NonNull String baseUrl, @NonNull String basePath) {
     return FacilitiesControllerV0.builder()
         .facilityRepository(fr)
         .baseUrl(baseUrl)
         .basePath(basePath)
-        .serviceNameAggregator(serviceNameAggregator)
         .build();
   }
 
@@ -126,24 +117,18 @@ public class FacilitiesControllerV0Test {
   @SneakyThrows
   void exceptions() {
     Method facilityMethod =
-        FacilitiesControllerV0.class.getDeclaredMethod(
-            "facility", HasFacilityPayload.class, ServiceNameAggregatorV0.class);
+        FacilitiesControllerV0.class.getDeclaredMethod("facility", HasFacilityPayload.class);
     facilityMethod.setAccessible(true);
     HasFacilityPayload nullPayload = null;
-    assertThatThrownBy(() -> facilityMethod.invoke(null, nullPayload, mockServiceNameAggregator))
+    assertThatThrownBy(() -> facilityMethod.invoke(null, nullPayload))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new NullPointerException("entity is marked non-null but is null"));
-    ServiceNameAggregatorV0 nullAggregator = null;
-    assertThatThrownBy(() -> facilityMethod.invoke(null, nullPayload, nullAggregator))
+    assertThatThrownBy(() -> facilityMethod.invoke(null, nullPayload))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new NullPointerException("entity is marked non-null but is null"));
     when(fr.findAllProjectedBy()).thenThrow(new NullPointerException("oh noes"));
-    assertThrows(
-        NullPointerException.class,
-        () -> controller(baseUrl, basePath, mockServiceNameAggregator).all());
-    assertThrows(
-        NullPointerException.class,
-        () -> controller(baseUrl, basePath, mockServiceNameAggregator).allCsv());
+    assertThrows(NullPointerException.class, () -> controller(baseUrl, basePath).all());
+    assertThrows(NullPointerException.class, () -> controller(baseUrl, basePath).allCsv());
     // Nested exception ExceptionsUtils.InvalidParameter
     Method entitiesByBoundingBoxMethod =
         FacilitiesControllerV0.class.getDeclaredMethod(
@@ -152,11 +137,7 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByBoundingBoxMethod.invoke(
-                    controller(baseUrl, basePath, mockServiceNameAggregator),
-                    new ArrayList<BigDecimal>(),
-                    null,
-                    null,
-                    null))
+                    controller(baseUrl, basePath), new ArrayList<BigDecimal>(), null, null, null))
         .isInstanceOf(InvocationTargetException.class)
         .hasCause(new ExceptionsUtils.InvalidParameter("bbox", "[]"));
     List<BigDecimal> bbox = new ArrayList<>();
@@ -167,7 +148,7 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByBoundingBoxMethod.invoke(
-                    controller(baseUrl, basePath, mockServiceNameAggregator),
+                    controller(baseUrl, basePath),
                     bbox,
                     null,
                     new ArrayList<>(Collections.singleton("InvalidService")),
@@ -177,7 +158,7 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByBoundingBoxMethod.invoke(
-                    controller(baseUrl, basePath, mockServiceNameAggregator),
+                    controller(baseUrl, basePath),
                     bbox,
                     null,
                     new ArrayList<>(Collections.singleton("InvalidService")),
@@ -199,7 +180,7 @@ public class FacilitiesControllerV0Test {
     assertThatThrownBy(
             () ->
                 entitiesByLatLongMethod.invoke(
-                    controller(baseUrl, basePath, mockServiceNameAggregator),
+                    controller(baseUrl, basePath),
                     BigDecimal.valueOf(0.0),
                     BigDecimal.valueOf(0.0),
                     null,
@@ -262,12 +243,9 @@ public class FacilitiesControllerV0Test {
                 .services(facilityServices())
                 .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -283,9 +261,7 @@ public class FacilitiesControllerV0Test {
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -298,22 +274,17 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_691GB")));
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB")));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -326,13 +297,10 @@ public class FacilitiesControllerV0Test {
                 .services(facilityServices())
                 .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(26.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -347,16 +315,14 @@ public class FacilitiesControllerV0Test {
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
     // Given that each degree of latitude is approximately 69 miles, query for facilities within a
     // 75 mile radius of (27.1745479800001, -97.6667188), which is north of VA Health Care Center in
     // Harlingen, TX: (26.1745479800001, -97.6667188). Confirm that one facility is found in current
     // test scenario.
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -371,14 +337,12 @@ public class FacilitiesControllerV0Test {
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
     // Query for facilities within 50 miles of (27.1745479800001, -97.6667188). Confirm no
     // facilities are found in current test scenario.
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -401,16 +365,12 @@ public class FacilitiesControllerV0Test {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(fr.findAll(
             FacilityRepository.StateSpecification.builder()
@@ -422,7 +382,7 @@ public class FacilitiesControllerV0Test {
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByState(
                     "FL",
                     "health",
@@ -434,29 +394,20 @@ public class FacilitiesControllerV0Test {
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
   @Test
   void geoFacilitiesByVisn() {
     when(fr.findByVisn("test_visn"))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
-    assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .geoFacilitiesByVisn("test_visn", 1, 1))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
+    assertThat(controller(baseUrl, basePath).geoFacilitiesByVisn("test_visn", 1, 1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -465,16 +416,12 @@ public class FacilitiesControllerV0Test {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(fr.findAll(
             FacilityRepository.ZipSpecification.builder()
@@ -486,7 +433,7 @@ public class FacilitiesControllerV0Test {
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .geoFacilitiesByZip(
                     "32934",
                     "health",
@@ -498,9 +445,7 @@ public class FacilitiesControllerV0Test {
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
                 .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .geoFacility("vha_740GA")))
+                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
                 .build());
   }
 
@@ -516,12 +461,9 @@ public class FacilitiesControllerV0Test {
                 .services(facilityServices())
                 .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -535,10 +477,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -563,7 +502,7 @@ public class FacilitiesControllerV0Test {
                 .build());
     // Test empty list if from index is larger than size of data.
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -579,7 +518,7 @@ public class FacilitiesControllerV0Test {
         .isEmpty();
     // Test with empty service list
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
                     List.of(
                         BigDecimal.valueOf(-97.65),
@@ -604,21 +543,15 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_691GB"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_757")));
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757")));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -654,14 +587,11 @@ public class FacilitiesControllerV0Test {
                 FacilityEntity.Pk.of(FacilityEntity.Type.vha, "757"))))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_691GB"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_757")));
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757")));
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByIds("x,vha_691GB,,x,,vha_740GA,vha_757", 2, 0))
         .isEqualTo(
             FacilitiesResponse.builder()
@@ -693,13 +623,10 @@ public class FacilitiesControllerV0Test {
                 .services(facilityServices())
                 .mobile(Boolean.FALSE)
                 .build()))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     // Query for facilities without constraining to a specified radius
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(26.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -712,10 +639,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -749,7 +673,7 @@ public class FacilitiesControllerV0Test {
     // Harlingen, TX: (26.1745479800001, -97.6667188). Confirm that one facility is found in current
     // test scenario.
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -762,10 +686,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -799,7 +720,7 @@ public class FacilitiesControllerV0Test {
     // Query for facilities within 50 miles of (27.1745479800001, -97.6667188). Confirm no
     // facilities are found in current test scenario.
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
                     BigDecimal.valueOf(27.1745479800001),
                     BigDecimal.valueOf(-97.6667188),
@@ -843,16 +764,12 @@ public class FacilitiesControllerV0Test {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(fr.findAll(
             FacilityRepository.StateSpecification.builder()
@@ -864,7 +781,7 @@ public class FacilitiesControllerV0Test {
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByState(
                     "FL",
                     "health",
@@ -874,10 +791,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -906,19 +820,11 @@ public class FacilitiesControllerV0Test {
   @Test
   void jsonFacilitiesByVisn() {
     when(fr.findByVisn("test_visn"))
-        .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA")));
-    assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
-                .jsonFacilitiesByVisn("test_visn", 1, 1))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
+    assertThat(controller(baseUrl, basePath).jsonFacilitiesByVisn("test_visn", 1, 1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self("http://foo/bp/v0/facilities?visn=test_visn&page=1&per_page=1")
@@ -945,16 +851,12 @@ public class FacilitiesControllerV0Test {
     Page mockPage = mock(Page.class);
     when(mockPage.get())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(mockPage.getTotalElements()).thenReturn(1L);
     when(mockPage.stream())
         .thenReturn(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                    .facilityEntity("vha_740GA"))
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
                 .stream());
     when(fr.findAll(
             FacilityRepository.ZipSpecification.builder()
@@ -966,7 +868,7 @@ public class FacilitiesControllerV0Test {
             PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
         .thenReturn(mockPage);
     assertThat(
-            controller(baseUrl, basePath, mockServiceNameAggregator)
+            controller(baseUrl, basePath)
                 .jsonFacilitiesByZip(
                     "32934",
                     "health",
@@ -976,10 +878,7 @@ public class FacilitiesControllerV0Test {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-                            .facility("vha_740GA")))
+                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")))
                 .links(
                     PageLinks.builder()
                         .self(
@@ -1007,43 +906,34 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void readGeoJson() {
-    GeoFacility geo =
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .geoFacility("vha_691GB");
-    FacilityEntity entity =
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_691GB");
+    GeoFacility geo = FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_691GB");
+    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB");
     when(fr.findById(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "691GB")))
         .thenReturn(Optional.of(entity));
-    assertThat(controller(baseUrl, basePath, mockServiceNameAggregator).readGeoJson("vha_691GB"))
+    assertThat(controller(baseUrl, basePath).readGeoJson("vha_691GB"))
         .isEqualTo(GeoFacilityReadResponse.of(geo));
   }
 
   @Test
   void readJson() {
-    Facility facility =
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator).facility("vha_691GB");
-    FacilityEntity entity =
-        FacilitySamples.defaultSamples(linkerUrl, mockServiceNameAggregator)
-            .facilityEntity("vha_691GB");
+    Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB");
+    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB");
     when(fr.findById(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "691GB")))
         .thenReturn(Optional.of(entity));
-    assertThat(controller(baseUrl, basePath, mockServiceNameAggregator).readJson("vha_691GB"))
+    assertThat(controller(baseUrl, basePath).readJson("vha_691GB"))
         .isEqualTo(FacilityReadResponse.builder().facility(facility).build());
   }
 
   @Test
   void readJson_malformed() {
     assertThrows(
-        ExceptionsUtils.NotFound.class,
-        () -> controller(baseUrl, basePath, mockServiceNameAggregator).readJson("xxx"));
+        ExceptionsUtils.NotFound.class, () -> controller(baseUrl, basePath).readJson("xxx"));
   }
 
   @Test
   void readJson_notFound() {
     assertThrows(
-        ExceptionsUtils.NotFound.class,
-        () -> controller(baseUrl, basePath, mockServiceNameAggregator).readJson("vha_691GB"));
+        ExceptionsUtils.NotFound.class, () -> controller(baseUrl, basePath).readJson("vha_691GB"));
   }
 
   @BeforeEach
@@ -1051,8 +941,5 @@ public class FacilitiesControllerV0Test {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    mockServiceNameAggregate = mock(ServiceNameAggregate.class);
-    mockServiceNameAggregator = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregator.serviceNameAggregate()).thenReturn(mockServiceNameAggregate);
   }
 }

@@ -64,8 +64,6 @@ public class FacilitiesControllerV0 {
 
   private final FacilityRepository facilityRepository;
 
-  private final ServiceNameAggregatorV0 serviceNameAggregator;
-
   private final String linkerUrl;
 
   private final List<String> serviceSources;
@@ -73,11 +71,9 @@ public class FacilitiesControllerV0 {
   @Builder
   FacilitiesControllerV0(
       @Autowired FacilityRepository facilityRepository,
-      @Autowired ServiceNameAggregatorV0 serviceNameAggregator,
       @Value("${facilities.url}") String baseUrl,
       @Value("${facilities.base-path}") String basePath) {
     this.facilityRepository = facilityRepository;
-    this.serviceNameAggregator = serviceNameAggregator;
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
     this.serviceSources =
         List.of(
@@ -88,9 +84,8 @@ public class FacilitiesControllerV0 {
   }
 
   @SneakyThrows
-  private static Facility facility(
-      @NonNull HasFacilityPayload entity, @NonNull ServiceNameAggregatorV0 serviceNameAggregator) {
-    return FACILITY_OVERLAY.apply(entity, serviceNameAggregator);
+  private static Facility facility(@NonNull HasFacilityPayload entity) {
+    return FACILITY_OVERLAY.apply(entity);
   }
 
   private static GeoFacility geoFacility(Facility facility) {
@@ -111,7 +106,7 @@ public class FacilitiesControllerV0 {
           .map(
               e ->
                   FacilitiesJacksonConfigV0.quietlyWriteValueAsString(
-                      MAPPER_V0, geoFacility(facility(e, serviceNameAggregator))))
+                      MAPPER_V0, geoFacility(facility(e))))
           .forEachOrdered(g -> sb.append(g).append(","));
       sb.deleteCharAt(sb.length() - 1);
     }
@@ -126,12 +121,7 @@ public class FacilitiesControllerV0 {
     List<List<String>> rows =
         facilityRepository.findAllProjectedBy().stream()
             .parallel()
-            .map(
-                e ->
-                    CsvTransformerV0.builder()
-                        .facility(facility(e, serviceNameAggregator))
-                        .build()
-                        .toRow())
+            .map(e -> CsvTransformerV0.builder().facility(facility(e)).build().toRow())
             .collect(toList());
     StringBuilder sb = new StringBuilder();
     try (CSVPrinter printer =
@@ -250,7 +240,6 @@ public class FacilitiesControllerV0 {
             e ->
                 DistanceEntity.builder()
                     .entity(e)
-                    .serviceNameAggregator(serviceNameAggregator)
                     .distance(BigDecimal.valueOf(haversine(e, lng, lat)))
                     .build())
         .filter(
@@ -353,7 +342,7 @@ public class FacilitiesControllerV0 {
         .type(GeoFacilitiesResponse.Type.FeatureCollection)
         .features(
             page(entitiesByBoundingBox(bbox, type, services, mobile), page, perPage).stream()
-                .map(e -> geoFacility(facility(e, serviceNameAggregator)))
+                .map(e -> geoFacility(facility(e)))
                 .collect(toList()))
         .build();
   }
@@ -371,7 +360,7 @@ public class FacilitiesControllerV0 {
         .type(GeoFacilitiesResponse.Type.FeatureCollection)
         .features(
             page(entitiesByIds(ids), page, perPage).stream()
-                .map(e -> geoFacility(facility(e, serviceNameAggregator)))
+                .map(e -> geoFacility(facility(e)))
                 .collect(toList()))
         .build();
   }
@@ -432,7 +421,7 @@ public class FacilitiesControllerV0 {
             perPage == 0
                 ? emptyList()
                 : entitiesPageByState(state, type, services, mobile, page, perPage).stream()
-                    .map(e -> geoFacility(facility(e, serviceNameAggregator)))
+                    .map(e -> geoFacility(facility(e)))
                     .collect(toList()))
         .build();
   }
@@ -450,7 +439,7 @@ public class FacilitiesControllerV0 {
         .type(GeoFacilitiesResponse.Type.FeatureCollection)
         .features(
             page(facilityRepository.findByVisn(visn), page, perPage).stream()
-                .map(e -> geoFacility(facility(e, serviceNameAggregator)))
+                .map(e -> geoFacility(facility(e)))
                 .collect(toList()))
         .build();
   }
@@ -473,7 +462,7 @@ public class FacilitiesControllerV0 {
             perPage == 0
                 ? emptyList()
                 : entitiesPageByZip(zip, type, services, mobile, page, perPage).stream()
-                    .map(e -> geoFacility(facility(e, serviceNameAggregator)))
+                    .map(e -> geoFacility(facility(e)))
                     .collect(toList()))
         .build();
   }
@@ -506,10 +495,7 @@ public class FacilitiesControllerV0 {
             .totalEntries(entities.size())
             .build();
     return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, serviceNameAggregator))
-                .collect(toList()))
+        .data(page(entities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -538,10 +524,7 @@ public class FacilitiesControllerV0 {
             .totalEntries(entities.size())
             .build();
     return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, serviceNameAggregator))
-                .collect(toList()))
+        .data(page(entities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -638,9 +621,7 @@ public class FacilitiesControllerV0 {
         .data(
             perPage == 0
                 ? emptyList()
-                : entitiesPage.stream()
-                    .map(e -> facility(e, serviceNameAggregator))
-                    .collect(toList()))
+                : entitiesPage.stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -669,10 +650,7 @@ public class FacilitiesControllerV0 {
             .totalEntries(entities.size())
             .build();
     return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, serviceNameAggregator))
-                .collect(toList()))
+        .data(page(entities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -711,9 +689,7 @@ public class FacilitiesControllerV0 {
         .data(
             perPage == 0
                 ? emptyList()
-                : entitiesPage.stream()
-                    .map(e -> facility(e, serviceNameAggregator))
-                    .collect(toList()))
+                : entitiesPage.stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -725,15 +701,13 @@ public class FacilitiesControllerV0 {
       value = "/facilities/{id}",
       produces = {"application/geo+json", "application/vnd.geo+json"})
   GeoFacilityReadResponse readGeoJson(@PathVariable("id") String id) {
-    return GeoFacilityReadResponse.of(geoFacility(facility(entityById(id), serviceNameAggregator)));
+    return GeoFacilityReadResponse.of(geoFacility(facility(entityById(id))));
   }
 
   /** Read facility. */
   @GetMapping(value = "/facilities/{id}", produces = "application/json")
   FacilityReadResponse readJson(@PathVariable("id") String id) {
-    return FacilityReadResponse.builder()
-        .facility(facility(entityById(id), serviceNameAggregator))
-        .build();
+    return FacilityReadResponse.builder().facility(facility(entityById(id))).build();
   }
 
   @Data
@@ -741,15 +715,13 @@ public class FacilitiesControllerV0 {
   private static final class DistanceEntity {
     final FacilityEntity entity;
 
-    final ServiceNameAggregatorV0 serviceNameAggregator;
-
     final BigDecimal distance;
 
     Facility facility;
 
     Facility facility() {
       if (facility == null) {
-        facility = FacilitiesControllerV0.facility(entity, serviceNameAggregator);
+        facility = FacilitiesControllerV0.facility(entity);
       }
       return facility;
     }

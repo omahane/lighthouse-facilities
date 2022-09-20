@@ -5,8 +5,6 @@ import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -18,14 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
-  private ServiceNameAggregatorV0 mockServiceNameAggregatorV0;
-
-  private ServiceNameAggregatorV0.ServiceNameAggregate mockServiceNameAggregateV0;
-
   private DatamartFacility datamartFacility(
       List<DatamartFacility.Service<DatamartFacility.HealthService>> healthForServices,
       List<DatamartFacility.HealthService> healthForDetailedServices,
@@ -164,19 +157,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
 
   @Test
   public void datamartFacilityRoundtrip() {
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.PrimaryCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.PrimaryCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.UrgentCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.UrgentCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.EmergencyCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.EmergencyCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-
     DatamartFacility datamartFacility =
         datamartFacility(
             List.of(
@@ -196,7 +176,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             true);
     assertThat(
             FacilityTransformerV0.toVersionAgnostic(
-                FacilityTransformerV0.toFacility(datamartFacility, mockServiceNameAggregatorV0)))
+                FacilityTransformerV0.toFacility(datamartFacility)))
         .usingRecursiveComparison()
         .isEqualTo(datamartFacility);
   }
@@ -321,19 +301,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
 
   @Test
   public void facilityRoundtrip() {
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.PrimaryCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.PrimaryCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.UrgentCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.UrgentCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.EmergencyCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.EmergencyCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-
     Facility facility =
         facility(
             List.of(
@@ -342,9 +309,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 Facility.HealthService.EmergencyCare),
             List.of(Facility.HealthService.Covid19Vaccine),
             true);
-    assertThat(
-            FacilityTransformerV0.toFacility(
-                FacilityTransformerV0.toVersionAgnostic(facility), mockServiceNameAggregatorV0))
+    assertThat(FacilityTransformerV0.toFacility(FacilityTransformerV0.toVersionAgnostic(facility)))
         .usingRecursiveComparison()
         .isEqualTo(facility);
   }
@@ -663,8 +628,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     FacilityTransformerV1.toFacility(
                         FacilityTransformerV0.toVersionAgnostic(facility),
                         linkerUrl,
-                        List.of("ATC", "CMS", "DST", "internal", "BISL"))),
-                mockServiceNameAggregatorV0))
+                        List.of("ATC", "CMS", "DST", "internal", "BISL")))))
         .usingRecursiveComparison()
         .ignoringFields(
             "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
@@ -673,22 +637,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
 
   @Test
   public void losslessFacilityVisitorRoundtripWithMultipleHealthServices() {
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.PrimaryCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.PrimaryCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.UrgentCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.UrgentCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.EmergencyCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.EmergencyCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Cardiology.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.Cardiology.name());
-
     final var linkerUrl = buildLinkerUrlV0("http://foo/", "bar");
     Facility facilityWithSpecialtyCare =
         facility(
@@ -733,8 +681,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     FacilityTransformerV1.toFacility(
                         FacilityTransformerV0.toVersionAgnostic(facilityWithSpecialtyCare),
                         linkerUrl,
-                        List.of("ATC", "CMS", "DST", "internal", "BISL"))),
-                mockServiceNameAggregatorV0))
+                        List.of("ATC", "CMS", "DST", "internal", "BISL")))))
         .usingRecursiveComparison()
         .ignoringFields("attributes.detailedServices")
         .ignoringFields("attributes.activeStatus")
@@ -808,8 +755,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     // Facility transformers do not filter detailed services contained in V0 facility attributes
     assertThat(
             FacilityTransformerV0.toVersionAgnostic(
-                FacilityTransformerV0.toFacility(
-                    facilityWithMoreThanJustCovid, mockServiceNameAggregatorV0)))
+                FacilityTransformerV0.toFacility(facilityWithMoreThanJustCovid)))
         .usingRecursiveComparison()
         .isEqualTo(facilityWithMoreThanJustCovid);
   }
@@ -817,7 +763,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
   @Test
   @SneakyThrows
   public void nullArgs() {
-    assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toFacility(null, null));
+    assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toFacility(null));
     assertThrows(NullPointerException.class, () -> FacilityTransformerV0.toVersionAgnostic(null));
     final Method transformDatmartFacilityBenefitsServiceMethod =
         FacilityTransformerV0.class.getDeclaredMethod(
@@ -1029,13 +975,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 .build());
   }
 
-  @BeforeEach
-  void setup() {
-    mockServiceNameAggregateV0 = mock(ServiceNameAggregatorV0.ServiceNameAggregate.class);
-    mockServiceNameAggregatorV0 = mock(ServiceNameAggregatorV0.class);
-    when(mockServiceNameAggregatorV0.serviceNameAggregate()).thenReturn(mockServiceNameAggregateV0);
-  }
-
   @Test
   void toFacilityOperatingStatus() {
     DatamartFacility.OperatingStatus os =
@@ -1058,19 +997,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
 
   @Test
   public void transformDatamartFacility() {
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.PrimaryCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.PrimaryCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.UrgentCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.UrgentCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.EmergencyCare.serviceId()))
-        .thenReturn(DatamartFacility.HealthService.EmergencyCare.name());
-    when(mockServiceNameAggregateV0.serviceName(
-            DatamartFacility.HealthService.Covid19Vaccine.serviceId()))
-        .thenReturn(CMS_OVERLAY_SERVICE_NAME_COVID_19);
-
     Facility expected =
         facility(
             List.of(
@@ -1096,7 +1022,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                     .build()),
             List.of(DatamartFacility.HealthService.Covid19Vaccine),
             true);
-    assertThat(FacilityTransformerV0.toFacility(datamartFacility, mockServiceNameAggregatorV0))
+    assertThat(FacilityTransformerV0.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(expected);
   }
@@ -1128,7 +1054,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV0.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(datamartFacility);
-    assertThat(FacilityTransformerV0.toFacility(datamartFacility, mockServiceNameAggregatorV0))
+    assertThat(FacilityTransformerV0.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(facility);
   }
@@ -1256,7 +1182,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV0.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(datamartFacility);
-    assertThat(FacilityTransformerV0.toFacility(datamartFacility, mockServiceNameAggregatorV0))
+    assertThat(FacilityTransformerV0.toFacility(datamartFacility))
         .usingRecursiveComparison()
         .isEqualTo(facility);
   }

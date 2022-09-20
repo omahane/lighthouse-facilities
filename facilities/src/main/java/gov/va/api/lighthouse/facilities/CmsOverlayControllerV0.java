@@ -117,7 +117,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
   /** Record date when CMS uploaded overlay services. */
   private void markDateWhenCmsUploadedOverlayServices(@NonNull DatamartCmsOverlay overlay) {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
-      final var currentDate = LocalDate.now(ZoneId.of("America/New_York"));
+      final var currentDate = LocalDate.now(ZoneId.of("UTC").normalized());
       overlay.detailedServices().stream()
           .forEach(
               dds -> {

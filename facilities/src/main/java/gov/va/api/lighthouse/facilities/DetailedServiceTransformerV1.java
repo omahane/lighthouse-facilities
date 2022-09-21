@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -155,20 +154,6 @@ public class DetailedServiceTransformerV1 {
                 .map(DetailedServiceTransformerV1::toDetailedServiceLocation)
                 .collect(Collectors.toList())
             : emptyList();
-  }
-
-  /**
-   * If DatamartDetailedService name is recognized as enum name, transform to version 1
-   * DetailedService enum value name. Otherwise, do not alter name.
-   */
-  public static String toDetailedServiceName(String name) {
-    return Facility.HealthService.isRecognizedServiceNameException(name)
-        ? Facility.HealthService.fromString(name).name()
-        : Facility.BenefitsService.isRecognizedServiceEnum(name)
-            ? Facility.BenefitsService.fromString(name).name()
-            : Facility.OtherService.isRecognizedServiceEnum(name)
-                ? Facility.OtherService.fromString(name).name()
-                : name;
   }
 
   /**

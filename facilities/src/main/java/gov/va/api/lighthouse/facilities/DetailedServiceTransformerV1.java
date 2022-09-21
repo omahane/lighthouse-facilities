@@ -13,13 +13,11 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DetailedServiceTransformerV1 {
   /** Transform DatamartDetailedService to version 1 DetailedService. */
-  @SuppressWarnings("deprecation")
   public static DetailedService toDetailedService(@NonNull DatamartDetailedService dds) {
     return DetailedService.builder()
         .serviceInfo(toDetailedServiceInfo(dds.serviceInfo()))
         .waitTime(toPatientWaitTime(dds.waitTime()))
         .active(dds.active())
-        .changed(dds.changed())
         .lastUpdated(dds.lastUpdated())
         .appointmentLeadIn(dds.appointmentLeadIn())
         .onlineSchedulingAvailable(dds.onlineSchedulingAvailable())
@@ -215,14 +213,12 @@ public class DetailedServiceTransformerV1 {
   }
 
   /** Transform version 1 DetailedService to version agnostic DatamartDetailedService. */
-  @SuppressWarnings("deprecation")
   public static DatamartDetailedService toVersionAgnosticDetailedService(
       @NonNull DetailedService ds) {
     return DatamartDetailedService.builder()
         .serviceInfo(toVersionAgnosticServiceInfo(ds.serviceInfo()))
         .waitTime(toVersionAgnosticPatientWaitTime(ds.waitTime()))
         .active(ds.active())
-        .changed(ds.changed())
         .lastUpdated(ds.lastUpdated())
         .appointmentLeadIn(ds.appointmentLeadIn())
         .onlineSchedulingAvailable(ds.onlineSchedulingAvailable())

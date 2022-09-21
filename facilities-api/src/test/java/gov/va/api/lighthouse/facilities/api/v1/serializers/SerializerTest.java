@@ -352,7 +352,6 @@ public class SerializerTest {
                     .serviceType(TypeOfService.Health)
                     .build())
             .waitTime(null)
-            .changed("")
             .appointmentLeadIn("")
             .path("")
             .build();

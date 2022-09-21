@@ -4,7 +4,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -56,8 +55,6 @@ public class DatamartDetailedService {
   PatientWaitTime waitTime;
 
   boolean active;
-
-  @JsonIgnore @Deprecated String changed;
 
   @JsonProperty("last_updated")
   LocalDate lastUpdated;

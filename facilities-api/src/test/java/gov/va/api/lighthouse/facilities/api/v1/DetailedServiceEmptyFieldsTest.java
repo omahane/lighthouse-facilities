@@ -311,7 +311,6 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .changed(blank)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -410,7 +409,6 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .changed(nonBlank)
                 .build()
                 .isEmpty())
         .isFalse();

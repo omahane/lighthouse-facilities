@@ -154,7 +154,6 @@ public class CmsOverlayTransformerV1Test {
                             .wingFloorOrRoomNumber("Wing East")
                             .build())
                     .build()))
-        .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
 
@@ -257,7 +256,6 @@ public class CmsOverlayTransformerV1Test {
                             .wingFloorOrRoomNumber("Wing East")
                             .build())
                     .build()))
-        .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
 

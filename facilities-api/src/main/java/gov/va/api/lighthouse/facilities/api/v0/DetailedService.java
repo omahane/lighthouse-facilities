@@ -2,7 +2,6 @@ package gov.va.api.lighthouse.facilities.api.v0;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -54,14 +53,6 @@ public class DetailedService {
 
   @Schema(hidden = true)
   boolean active;
-
-  @Schema(
-      description = "Timestamp of last time detailed service was updated on CMS side.",
-      example = "2021-02-04T22:36:49+00:00",
-      nullable = true)
-  @JsonIgnore
-  @Deprecated
-  String changed;
 
   @Schema(
       description = "Date of most recent upload of detailed service from CMS.",

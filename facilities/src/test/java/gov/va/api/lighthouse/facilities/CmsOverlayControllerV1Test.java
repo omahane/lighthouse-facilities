@@ -107,7 +107,6 @@ public class CmsOverlayControllerV1Test {
                             .serviceType(bs.serviceType())
                             .build())
                     .active(isActive)
-                    .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
                     .onlineSchedulingAvailable("True")
@@ -181,7 +180,6 @@ public class CmsOverlayControllerV1Test {
                 .serviceType(healthService.serviceType())
                 .build())
         .active(isActive)
-        .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")
         .path("replaceable path here")
@@ -271,7 +269,6 @@ public class CmsOverlayControllerV1Test {
                             .serviceType(os.serviceType())
                             .build())
                     .active(isActive)
-                    .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
                     .onlineSchedulingAvailable("True")

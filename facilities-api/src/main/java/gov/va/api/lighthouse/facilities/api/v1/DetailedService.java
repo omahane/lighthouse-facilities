@@ -75,14 +75,6 @@ public class DetailedService implements CanBeEmpty {
   boolean active;
 
   @Schema(
-      description = "Timestamp of last time service was updated on CMS side.",
-      example = "2021-02-04T22:36:49+00:00",
-      nullable = true)
-  @JsonIgnore
-  @Deprecated
-  String changed;
-
-  @Schema(
       description = "Date of most recent upload of detailed service from CMS.",
       example = "2021-02-04",
       nullable = true)
@@ -146,7 +138,6 @@ public class DetailedService implements CanBeEmpty {
   @JsonIgnore
   public boolean isEmpty() {
     return (serviceInfo() == null || serviceInfo().isEmpty())
-        && isBlank(changed())
         && (lastUpdated() == null)
         && isBlank(appointmentLeadIn())
         && isBlank(onlineSchedulingAvailable())

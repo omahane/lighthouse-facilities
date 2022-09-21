@@ -36,10 +36,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
 import gov.va.api.lighthouse.facilities.collector.AccessToCareCollector;
-import gov.va.api.lighthouse.facilities.collector.AccessToCareMapper;
 import gov.va.api.lighthouse.facilities.collector.AccessToPwtCollector;
 import gov.va.api.lighthouse.facilities.collector.CmsOverlayCollector;
-import gov.va.api.lighthouse.facilities.collector.CmsOverlayMapper;
 import gov.va.api.lighthouse.facilities.collector.FacilitiesCollector;
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.lang.reflect.InvocationTargetException;
@@ -72,10 +70,6 @@ public class InternalFacilitiesControllerTest {
   @Autowired FacilityRepository facilityRepository;
 
   @Autowired CmsOverlayRepository overlayRepository;
-
-  AccessToCareMapper mockAccessToCareMapper;
-
-  CmsOverlayMapper mockCmsOverlayMapper;
 
   FacilitiesCollector mockCollector;
 
@@ -252,8 +246,6 @@ public class InternalFacilitiesControllerTest {
         .collector(mockCollector)
         .facilityRepository(facilityRepository)
         .cmsOverlayRepository(overlayRepository)
-        .accessToCareMapper(mockAccessToCareMapper)
-        .cmsOverlayMapper(mockCmsOverlayMapper)
         .build();
   }
 
@@ -261,7 +253,6 @@ public class InternalFacilitiesControllerTest {
     return new FacilitiesCollector(
         mock(InsecureRestTemplateProvider.class),
         mock(JdbcTemplate.class),
-        mockCmsOverlayMapper,
         mockCmsOverlayCollector,
         mock(AccessToCareCollector.class),
         mock(AccessToPwtCollector.class),
@@ -359,7 +350,7 @@ public class InternalFacilitiesControllerTest {
             9.1,
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f2Old));
-    when(mockCollector.collectFacilities()).thenReturn(datamartFacilities);
+    when(mockCollector.collectFacilities(true)).thenReturn(datamartFacilities);
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f2"));
@@ -485,7 +476,7 @@ public class InternalFacilitiesControllerTest {
     f1.attributes().longitude(null);
     f1V1.attributes().latitude(null);
     f1V1.attributes().longitude(null);
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.problems())
         .isEqualTo(List.of(ReloadResponse.Problem.of("vha_f1", "Missing coordinates")));
@@ -539,7 +530,7 @@ public class InternalFacilitiesControllerTest {
     facilityRepository.save(_facilityEntity(f2Old));
     facilityRepository.save(_facilityEntity(f3Old));
     facilityRepository.save(_facilityEntity(f4Old));
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.facilitiesMissing()).isEqualTo(List.of("vha_f2", "vha_f3", "vha_f4"));
@@ -581,7 +572,7 @@ public class InternalFacilitiesControllerTest {
             9.1,
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(Instant.now().toEpochMilli()));
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
@@ -610,7 +601,7 @@ public class InternalFacilitiesControllerTest {
             List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     long early = Instant.now().minusSeconds(60).toEpochMilli();
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(early));
-    when(mockCollector.collectFacilities()).thenReturn(emptyList());
+    when(mockCollector.collectFacilities(true)).thenReturn(emptyList());
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesMissing()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
@@ -661,7 +652,7 @@ public class InternalFacilitiesControllerTest {
     f1V1.attributes().address().physical().zip(null);
     f1V1.attributes().latitude(BigDecimal.valueOf(91.4));
     f1V1.attributes().longitude(BigDecimal.valueOf(181.4));
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(response.problems())
@@ -695,7 +686,7 @@ public class InternalFacilitiesControllerTest {
     DatamartFacility f1V1 = _facilityV1("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     f1.attributes().facilityType(va_health_facility);
     f1V1.attributes().facilityType(FacilityType.va_health_facility);
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f1));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f1));
     ReloadResponse responseHealth = _controller().reload().getBody();
     assertThat(responseHealth.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
     assertThat(responseHealth.problems())
@@ -704,7 +695,7 @@ public class InternalFacilitiesControllerTest {
     DatamartFacility f2V1 = _facilityV1("vc_f1", "FL", "32934", 91.4, 181.4, List.of());
     f2.attributes().facilityType(vet_center);
     f2V1.attributes().facilityType(FacilityType.vet_center);
-    when(mockCollector.collectFacilities()).thenReturn(List.of(f2));
+    when(mockCollector.collectFacilities(true)).thenReturn(List.of(f2));
     ReloadResponse responseVetCenter = _controller().reload().getBody();
     assertThat(responseVetCenter.facilitiesCreated()).isEqualTo(List.of("vc_f1"));
     assertThat(responseVetCenter.problems())
@@ -766,7 +757,6 @@ public class InternalFacilitiesControllerTest {
         new FacilitiesCollector(
             mock(InsecureRestTemplateProvider.class),
             mock(JdbcTemplate.class),
-            mockCmsOverlayMapper,
             mockCmsOverlayCollector,
             mock(AccessToCareCollector.class),
             mock(AccessToPwtCollector.class),
@@ -1508,9 +1498,6 @@ public class InternalFacilitiesControllerTest {
 
   @BeforeEach
   void setup() {
-    mockAccessToCareMapper = mock(AccessToCareMapper.class);
-    mockCmsOverlayMapper = mock(CmsOverlayMapper.class);
-
     mockCollector = mock(FacilitiesCollector.class);
     mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
   }

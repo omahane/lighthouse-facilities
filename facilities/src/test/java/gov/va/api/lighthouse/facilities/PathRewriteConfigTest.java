@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -67,6 +68,7 @@ public class PathRewriteConfigTest {
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class HealthCheckStatus {
     @JsonProperty(value = "status")
     private String status;

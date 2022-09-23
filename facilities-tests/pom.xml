@@ -131,6 +131,7 @@
                 <argument>-Dbing.url=http://localhost:8666</argument>
                 <argument>-Dinternal.client-key=axolotl</argument>
                 <argument>-Dcemeteries.url=http://localhost:8666</argument>
+                <argument>-Dfacilities.url=http://localhost:8085</argument>
                 <argument>-Dspring.datasource.driver-class-name=org.h2.Driver</argument>
                 <argument>-Dspring.datasource.password=sa</argument>
                 <argument>-Dspring.datasource.url=jdbc:h2:mem:facilities</argument>

@@ -37,7 +37,7 @@ public class WebExceptionHandlerV0Test {
   void bing() {
     assertThat(new WebExceptionHandlerV0().handleBing(new ExceptionsUtilsV0.BingException("foo")))
         .isEqualTo(
-            ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .headers(jsonHeaders())
                 .body(
                     ApiError.builder()
@@ -46,8 +46,8 @@ public class WebExceptionHandlerV0Test {
                                 ApiError.ErrorMessage.builder()
                                     .title("Bing error")
                                     .detail("Bing error: foo")
-                                    .code("503")
-                                    .status("503")
+                                    .code("400")
+                                    .status("400")
                                     .build()))
                         .build()));
   }
@@ -201,6 +201,36 @@ public class WebExceptionHandlerV0Test {
                                     .title("Missing parameter")
                                     .detail(
                                         "Parameter conditions \"hello\" not met for actual request parameters: foo={bar}")
+                                    .code("108")
+                                    .status("400")
+                                    .build()))
+                        .build()));
+  }
+
+  // Test nearby search, we should see the search by address parameters being stripped from the
+  // error response as it
+  // is no longer supported
+  @Test
+  void unsatisfiedServletRequestParameterNearbyAddress() {
+    assertThat(
+            new WebExceptionHandlerV0()
+                .handleUnsatisfiedServletRequestParameter(
+                    new UnsatisfiedServletRequestParameterException(
+                        List.of(
+                            new String[] {"lat", "lng"},
+                            new String[] {"street_address", "city", "state", "zip"}),
+                        ImmutableMap.of("foo", new String[] {"bar"}))))
+        .isEqualTo(
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .headers(jsonHeaders())
+                .body(
+                    ApiError.builder()
+                        .errors(
+                            List.of(
+                                ApiError.ErrorMessage.builder()
+                                    .title("Missing parameter")
+                                    .detail(
+                                        "Parameter conditions \"lat, lng\" not met for actual request parameters: foo={bar}")
                                     .code("108")
                                     .status("400")
                                     .build()))

@@ -113,8 +113,7 @@ public class NearbyControllerV0 {
   }
 
   /**
-   * Nearby facilities by address - No longer supported. Passing parameters to BingException to
-   * avoid Maven error for unused variables
+   * Nearby facilities by address - No longer supported.
    */
   @GetMapping(
       produces = "application/json",

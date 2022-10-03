@@ -23,8 +23,7 @@ public interface FacilitiesNearbyApi {
               + "within the specified time period",
       description =
           "Retrieve all VA health facilities that are located within a specified drive time from "
-              + "a specified location based on address (`street_address`, "
-              + "`city`, `state`, and `zip`) or coordinates (`lat` and `lng`). "
+              + "a specified location based coordinates (`lat` and `lng`). "
               + "Optional filter parameters include `drive_time` and `services[]`. "
               + "\n\n"
               + "The \"attributes\" element has information about the "
@@ -34,7 +33,10 @@ public interface FacilitiesNearbyApi {
               + "`max_time` of 20 is a 10 to 20 minute drive from the requested location."
               + "\n\n"
               + "To retrieve full details for nearby facilities, "
-              + "see the documentation for `/facilities?ids`.",
+              + "see the documentation for `/facilities?ids`."
+              + "\n\n"
+              + "Please note that searching by address "
+              + "(`street_name` + `state` + `city` + `zip`) is no longer supported",
       security = @SecurityRequirement(name = "apikey"))
   @GET
   @Path("nearby")
@@ -81,34 +83,6 @@ public interface FacilitiesNearbyApi {
               mediaType = "application/json",
               schema = @Schema(implementation = ApiError.class)))
   NearbyResponse getNearbyFacilities(
-      @Parameter(
-              name = "street_address",
-              in = ParameterIn.QUERY,
-              description =
-                  "Street address of the location from which drive time will be calculated.",
-              examples = @ExampleObject(name = "address", value = "1350 I St. NW"))
-          String streetAddress,
-      @Parameter(
-              name = "city",
-              in = ParameterIn.QUERY,
-              description = "City of the location from which drive time will be calculated.",
-              examples = @ExampleObject(name = "address", value = "Washington"))
-          String city,
-      @Parameter(
-              name = "state",
-              in = ParameterIn.QUERY,
-              description =
-                  "Two character state code of the location from which "
-                      + "drive time will be calculated.",
-              examples = @ExampleObject(name = "address", value = "DC"))
-          String state,
-      @Parameter(
-              name = "zip",
-              in = ParameterIn.QUERY,
-              description = "Zip code of the location from which drive time will be calculated.",
-              schema = @Schema(description = "##### or #####-####"),
-              examples = @ExampleObject(name = "address", value = "20005-3305"))
-          String zip,
       @Parameter(
               name = "lat",
               in = ParameterIn.QUERY,

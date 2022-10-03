@@ -112,9 +112,7 @@ public class NearbyControllerV0 {
     return monthYear;
   }
 
-  /**
-   * Nearby facilities by address - No longer supported.
-   */
+  /** Nearby facilities by address - No longer supported. */
   @GetMapping(
       produces = "application/json",
       params = {"street_address", "city", "state", "zip"})

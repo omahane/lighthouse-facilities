@@ -28,8 +28,6 @@ public final class WebExceptionHandlerV0 {
     "street_address", "city", "state", "zip"
   };
 
-  private static final String[] nearbyLatlngRequestParams = {"lat", "lng"};
-
   private static final String nearbyAddressMessageRegex =
       "(?:OR)? \"street_address, city, state, zip\" (?:OR)?";
 
@@ -40,15 +38,6 @@ public final class WebExceptionHandlerV0 {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     return ResponseEntity.status(status).headers(headers).body(error);
-  }
-
-  private boolean areNearbyParameters(List<String[]> paramConditionGroups) {
-    return paramConditionGroups != null
-        && paramConditionGroups.size() >= 2
-        && ((Arrays.equals(paramConditionGroups.get(0), nearbyAddressRequestParams)
-                || Arrays.equals(paramConditionGroups.get(0), nearbyLatlngRequestParams))
-            && (Arrays.equals(paramConditionGroups.get(1), nearbyAddressRequestParams)
-                || Arrays.equals(paramConditionGroups.get(1), nearbyLatlngRequestParams)));
   }
 
   @ExceptionHandler(ExceptionsUtilsV0.BingException.class)
@@ -167,11 +156,17 @@ public final class WebExceptionHandlerV0 {
     return response(HttpStatus.INTERNAL_SERVER_ERROR, ex, response);
   }
 
+  /*
+  Logic in place to catch & strip nearby search by address parameters from USRe message
+  as this functionality has been deprecated and should not show up in the supported endpoints
+   */
   @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
   ResponseEntity<ApiError> handleUnsatisfiedServletRequestParameter(
       UnsatisfiedServletRequestParameterException ex) {
     String message = ex.getMessage();
-    if (message != null && areNearbyParameters(ex.getParamConditionGroups())) {
+    if (message != null
+        && ex.getParamConditionGroups().stream()
+            .anyMatch(e -> Arrays.equals(e, nearbyAddressRequestParams))) {
       message = message.replaceAll(nearbyAddressMessageRegex, "");
     }
     ApiError response =

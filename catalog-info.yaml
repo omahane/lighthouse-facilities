@@ -21,6 +21,6 @@ spec:
   type: openapi
   lifecycle: production
   owner: lighthouse-axolotl
-  system: vets-api
+  system: digital-veterans-platform
   definition:
     $text: https://dev-api.va.gov/services/va_facilities/docs/v0/api

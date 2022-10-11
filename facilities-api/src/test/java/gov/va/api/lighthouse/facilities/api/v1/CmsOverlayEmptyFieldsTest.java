@@ -59,7 +59,11 @@ public class CmsOverlayEmptyFieldsTest {
         getExpectedJson("v1/CmsOverlay/overlayWithDetailedServicesNullOpStatus.json");
     // Null operating status
     CmsOverlay overlayWithEmptyOperatingStatus =
-        CmsOverlay.builder().operatingStatus(null).detailedServices(getDetailedServices()).build();
+        CmsOverlay.builder()
+            .operatingStatus(null)
+            .detailedServices(getDetailedServices())
+            .healthCareSystem(getHealthcareSystem())
+            .build();
     assertThat(
             createMapper()
                 .writerWithDefaultPrettyPrinter()
@@ -72,6 +76,15 @@ public class CmsOverlayEmptyFieldsTest {
         getDetailedService(Facility.HealthService.Cardiology),
         getDetailedService(Facility.HealthService.CaregiverSupport),
         getDetailedService(Facility.HealthService.EmergencyCare));
+  }
+
+  private CmsOverlay.HealthCareSystem getHealthcareSystem() {
+    return CmsOverlay.HealthCareSystem.builder()
+        .name("VA Pittsburgh health care")
+        .url("https://www.va.gov/pittsburgh-health-care/")
+        .covidUrl("https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/")
+        .healthConnectPhone("555-555-5555 x123")
+        .build();
   }
 
   private Facility.OperatingStatus getOperatingStatus() {

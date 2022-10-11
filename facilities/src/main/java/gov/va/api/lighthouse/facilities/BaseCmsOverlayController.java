@@ -158,7 +158,7 @@ public abstract class BaseCmsOverlayController {
     Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
-            .findFirst();
+            .findAny();
     if (detailedService.isPresent()) {
       return detailedService.get();
     } else {

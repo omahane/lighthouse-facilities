@@ -80,7 +80,7 @@ public final class Facility {
       return Arrays.stream(values())
           .parallel()
           .filter(bs -> bs.serviceId().equals(serviceId))
-          .findFirst();
+          .findAny();
     }
 
     /** Ensure that Jackson can create BenefitsService enum regardless of capitalization. */
@@ -152,7 +152,7 @@ public final class Facility {
               : Arrays.stream(values())
                   .parallel()
                   .filter(hs -> hs.serviceId().equals(serviceId))
-                  .findFirst();
+                  .findAny();
     }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
@@ -221,7 +221,7 @@ public final class Facility {
       return Arrays.stream(values())
           .parallel()
           .filter(os -> os.serviceId().equals(serviceId))
-          .findFirst();
+          .findAny();
     }
 
     /** Ensure that Jackson can create OtherService enum regardless of capitalization. */

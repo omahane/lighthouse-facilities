@@ -13,7 +13,6 @@ import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import gov.va.api.lighthouse.facilities.api.v1.Facility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatusCode;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
@@ -40,8 +39,7 @@ public class CmsOverlayIT {
   private static final ObjectMapper MAPPER = JacksonConfig.createMapper();
 
   @SneakyThrows
-  private static void assertUpdate(
-      OperatingStatusCode code, String message, ActiveStatus expectedActiveStatus) {
+  private static void assertUpdate(OperatingStatusCode code, String message) {
     var id = systemDefinition().ids().facility();
     log.info("Updating facility {} operating status to be {}", id, code);
     OperatingStatus op =
@@ -61,7 +59,6 @@ public class CmsOverlayIT {
             .expect(200)
             .expectValid(FacilityReadResponse.class);
     assertThat(facility.facility().attributes().operatingStatus()).isEqualTo(op);
-    assertThat(facility.facility().attributes().activeStatus()).isEqualTo(expectedActiveStatus);
   }
 
   @BeforeAll
@@ -205,10 +202,10 @@ public class CmsOverlayIT {
   @Test
   void canApplyOverlay() {
     var message = getClass().getSimpleName() + " " + Instant.now();
-    assertUpdate(OperatingStatusCode.CLOSED, message, ActiveStatus.T);
-    assertUpdate(OperatingStatusCode.LIMITED, message, ActiveStatus.A);
-    assertUpdate(OperatingStatusCode.NOTICE, message, ActiveStatus.A);
-    assertUpdate(OperatingStatusCode.NORMAL, message, ActiveStatus.A);
+    assertUpdate(OperatingStatusCode.CLOSED, message);
+    assertUpdate(OperatingStatusCode.LIMITED, message);
+    assertUpdate(OperatingStatusCode.NOTICE, message);
+    assertUpdate(OperatingStatusCode.NORMAL, message);
   }
 
   @Test

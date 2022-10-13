@@ -765,7 +765,6 @@ public class CmsOverlayControllerV1Test {
     Facility facility =
         FacilityTransformerV1.toFacility(
             datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL"));
-    assertThat(facility.attributes().activeStatus()).isEqualTo(Facility.ActiveStatus.T);
     assertThat(facility.attributes().operatingStatus())
         .usingRecursiveComparison()
         .isEqualTo(CmsOverlayTransformerV1.toCmsOverlay(overlay).operatingStatus());

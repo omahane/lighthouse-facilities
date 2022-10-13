@@ -48,7 +48,6 @@ public final class FacilityTransformerV1 {
                     .services(
                         toFacilityServices(
                             df.attributes().services(), linkerUrl, serviceSources, df.id()))
-                    .activeStatus(toFacilityActiveStatus(df.attributes().activeStatus()))
                     .visn(df.attributes().visn())
                     .satisfaction(toFacilitySatisfaction(df.attributes().satisfaction()))
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
@@ -58,14 +57,6 @@ public final class FacilityTransformerV1 {
                     .build()
                 : null)
         .build();
-  }
-
-  /** Transform DatamartFacility active status to version 1 facility active status. */
-  private static Facility.ActiveStatus toFacilityActiveStatus(
-      DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
-    return (datamartFacilityActiveStatus != null)
-        ? Facility.ActiveStatus.valueOf(datamartFacilityActiveStatus.name())
-        : null;
   }
 
   /** Transform DatamartFacility address to version 1 facility address. */
@@ -346,8 +337,6 @@ public final class FacilityTransformerV1 {
                     .timeZone(f.attributes().timeZone())
                     .mobile(f.attributes().mobile())
                     .services(toVersionAgnosticFacilityServices(f.attributes().services()))
-                    .activeStatus(
-                        toVersionAgnosticFacilityActiveStatus(f.attributes().activeStatus()))
                     .visn(f.attributes().visn())
                     .satisfaction(
                         toVersionAgnosticFacilitySatisfaction(f.attributes().satisfaction()))
@@ -359,14 +348,6 @@ public final class FacilityTransformerV1 {
                     .build()
                 : null)
         .build();
-  }
-
-  /** Transform version 1 facility active status to DatamartFacility active status. */
-  private static DatamartFacility.ActiveStatus toVersionAgnosticFacilityActiveStatus(
-      Facility.ActiveStatus facilityActiveStatus) {
-    return (facilityActiveStatus != null)
-        ? DatamartFacility.ActiveStatus.valueOf(facilityActiveStatus.name())
-        : null;
   }
 
   /** Transform version 1 facility address to DatamartFacility address. */

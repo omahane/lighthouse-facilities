@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import lombok.AllArgsConstructor;
@@ -79,7 +80,7 @@ public class PathEncoder {
     return Arrays.copyOf(compressed, size);
   }
 
-  private Path2D decode(byte[] compressPath) {
+  private Optional<Path2D> decode(byte[] compressPath) {
     byte[] pathData = decompress(compressPath);
     ByteBuffer buffer = ByteBuffer.wrap(pathData);
     check(buffer.getInt() == MAGIC_NUMBER, "Unknown magic number");
@@ -89,35 +90,38 @@ public class PathEncoder {
      * supported. Database entries will already exist and we will need to keep supporting them.
      * Should that day come, this is where we'd switch deserializers on version number.
      */
-    int numberOfRings = buffer.getInt();
-    check(numberOfRings > 0, "Number of rings");
-    Path2D path = new Path2D.Double();
-    for (int ringNumber = 0; ringNumber < numberOfRings; ringNumber++) {
-      int numberOfCoordinates = buffer.getInt();
-      check(
-          numberOfCoordinates > 0,
-          "Number of coordinates for ring " + ringNumber + ": " + numberOfCoordinates);
-      for (int coordNumber = 0; coordNumber < numberOfCoordinates; coordNumber++) {
-        int scaledLong = buffer.getInt();
-        int scaledLat = buffer.getInt();
-        double longitude = unscale(scaledLong);
-        double latitude = unscale(scaledLat);
-        if (coordNumber == 0) {
-          path.moveTo(longitude, latitude);
-        } else {
-          path.lineTo(longitude, latitude);
+    if (buffer.hasRemaining()) {
+      int numberOfRings = buffer.getInt();
+      check(numberOfRings > 0, "Number of rings");
+      Path2D path = new Path2D.Double();
+      for (int ringNumber = 0; ringNumber < numberOfRings; ringNumber++) {
+        int numberOfCoordinates = buffer.getInt();
+        check(
+            numberOfCoordinates > 0,
+            "Number of coordinates for ring " + ringNumber + ": " + numberOfCoordinates);
+        for (int coordNumber = 0; coordNumber < numberOfCoordinates; coordNumber++) {
+          int scaledLong = buffer.getInt();
+          int scaledLat = buffer.getInt();
+          double longitude = unscale(scaledLong);
+          double latitude = unscale(scaledLat);
+          if (coordNumber == 0) {
+            path.moveTo(longitude, latitude);
+          } else {
+            path.lineTo(longitude, latitude);
+          }
         }
+        path.closePath();
       }
-      path.closePath();
+      return Optional.of(path);
     }
-    return path;
+    return Optional.empty();
   }
 
   /**
    * Decode a Path from Base 64 encoded binary representation created by {@link
    * #encodeToBase64(PssgDriveTimeBand)}.
    */
-  public Path2D decodeFromBase64(@NonNull String path64) {
+  public Optional<Path2D> decodeFromBase64(@NonNull String path64) {
     return decode(Base64.getDecoder().decode(path64));
   }
 

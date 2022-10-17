@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.stream.Collectors.toList;
@@ -43,8 +44,8 @@ public class NearbyUtils {
     int count = 0;
     for (DriveTimeBandEntity entity : entities) {
       count++;
-      Path2D path2D = toPath(entity);
-      if (path2D.contains(point)) {
+      Optional<Path2D> path2D = toPath(entity);
+      if (path2D.isPresent() && path2D.get().contains(point)) {
         log.info(
             "Found {} intersection in {} ms, looked at {} of {} options",
             entity.id().stationNumber(),
@@ -52,6 +53,9 @@ public class NearbyUtils {
             count,
             entities.size());
         return Optional.of(entity);
+      }
+      else {
+        log.info("No path available for DTB {}", sanitize(entity.id().name()));
       }
     }
     log.info("No matches found in {} options", entities.size());
@@ -81,9 +85,9 @@ public class NearbyUtils {
   }
 
   @SneakyThrows
-  static Path2D toPath(DriveTimeBandEntity entity) {
+  static Optional<Path2D> toPath(DriveTimeBandEntity entity) {
     if (deprecatedPssgDriveTimeBandSupport.isPssgDriveTimeBand(entity)) {
-      return deprecatedPssgDriveTimeBandSupport.toPath(entity);
+      return Optional.of(deprecatedPssgDriveTimeBandSupport.toPath(entity));
     }
     try {
       return PathEncoder.create().decodeFromBase64(entity.band());

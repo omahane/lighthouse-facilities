@@ -1,8 +1,8 @@
 package gov.va.api.lighthouse.facilities;
 
-import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -53,8 +53,7 @@ public class NearbyUtils {
             count,
             entities.size());
         return Optional.of(entity);
-      }
-      else {
+      } else {
         log.info("No path available for DTB {}", sanitize(entity.id().name()));
       }
     }

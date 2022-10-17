@@ -349,7 +349,7 @@ public class CmsOverlayIT {
             requestSpecification()
                 .request(
                     Method.GET,
-                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    svc.urlWithApiPath() + "v1/facilities/{facilityId}/services/{serviceId}/",
                     "vba_1234",
                     "COVID-19%20vaccines"))
         .expect(404);
@@ -359,7 +359,7 @@ public class CmsOverlayIT {
                 .accept("application/xml")
                 .request(
                     Method.GET,
-                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    svc.urlWithApiPath() + "v1/facilities/{facilityId}/services/{serviceId}/",
                     "vha_558GA",
                     "COVID-19%20vaccines"))
         .expect(406);
@@ -382,14 +382,18 @@ public class CmsOverlayIT {
     ExpectedResponse.of(
             requestSpecification()
                 .request(
-                    Method.GET, svc.urlWithApiPath() + "v1/facilities/{id}/services", "vba_1234"))
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facilityId}/services",
+                    "vba_1234"))
         .expect(404);
     // 406 - Request Format Unavailable
     ExpectedResponse.of(
             requestSpecification()
                 .accept("application/xml")
                 .request(
-                    Method.GET, svc.urlWithApiPath() + "v1/facilities/{id}/services", "vha_558GA"))
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facilityId}/services",
+                    "vha_558GA"))
         .expect(406);
   }
 

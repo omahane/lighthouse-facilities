@@ -319,49 +319,6 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   @SneakyThrows
-  void collect_createUpdate() {
-    DatamartFacility f1 =
-        _facility(
-            "vha_f1",
-            "FL",
-            "South",
-            1.2,
-            3.4,
-            List.of(
-                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
-    DatamartFacility f2 =
-        _facility(
-            "vha_f2",
-            "NEAT",
-            "32934",
-            5.6,
-            6.7,
-            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
-    List<DatamartFacility> datamartFacilities = List.of(f1, f2);
-    DatamartFacility f2Old =
-        _facility(
-            "vha_f2",
-            "NO",
-            "666",
-            9.0,
-            9.1,
-            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
-    facilityRepository.save(_facilityEntity(f2Old));
-    when(collector.collectFacilities()).thenReturn(datamartFacilities);
-    ReloadResponse response = _controller().reload().getBody();
-    assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
-    assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f2"));
-    RecursiveComparisonConfiguration comparisonConfig =
-        RecursiveComparisonConfiguration.builder()
-            .withIgnoredFields("version", "lastUpdated")
-            .build();
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveFieldByFieldElementComparator(comparisonConfig)
-        .containsExactlyInAnyOrder(_facilityEntity(f1), _facilityEntity(f2));
-  }
-
-  @Test
-  @SneakyThrows
   void collect_doNotInferOperatingStatus() {
     DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
     DatamartCmsOverlay overlay = _overlay();

@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
 import gov.va.api.lighthouse.facilities.api.TypedService;
+import java.util.Arrays;
 import java.util.List;
 import lombok.NonNull;
 
@@ -70,5 +71,22 @@ public class DetailedServiceUtils {
                     .additionalHoursInfo("")
                     .build()))
         .build();
+  }
+
+  private static DetailedService.ServiceType getServiceTypeForServiceName(String serviceName) {
+    return Arrays.stream(Facility.HealthService.values())
+            .parallel()
+            .anyMatch(hs -> hs.name().equals(serviceName))
+        ? DetailedService.ServiceType.Health
+        : Arrays.stream(Facility.BenefitsService.values())
+                .parallel()
+                .anyMatch(bs -> bs.name().equals(serviceName))
+            ? DetailedService.ServiceType.Benefits
+            : Arrays.stream(Facility.OtherService.values())
+                    .parallel()
+                    .anyMatch(os -> os.name().equals(serviceName))
+                ? DetailedService.ServiceType.Other
+                : // Default to Health service type
+                DetailedService.ServiceType.Health;
   }
 }

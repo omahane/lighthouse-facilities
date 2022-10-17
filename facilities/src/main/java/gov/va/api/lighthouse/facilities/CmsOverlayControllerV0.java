@@ -306,7 +306,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                                 HealthService.Covid19Vaccine.serviceId()
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
-
         List<String> disabledCmsServiceIds =
             overlay.detailedServices().stream()
                 .filter(dds -> !dds.active())

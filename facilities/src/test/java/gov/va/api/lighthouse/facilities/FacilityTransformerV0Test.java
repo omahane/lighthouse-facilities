@@ -638,6 +638,9 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
         .isEqualTo(facility);
   }
 
+  /**
+   * Revisit this test once final determination has been made concerning SpecialtyCare and V1 FAPI.
+   */
   @Test
   public void losslessFacilityVisitorRoundtripWithMultipleHealthServices() {
     final var linkerUrl = buildLinkerUrlV0("http://foo/", "bar");

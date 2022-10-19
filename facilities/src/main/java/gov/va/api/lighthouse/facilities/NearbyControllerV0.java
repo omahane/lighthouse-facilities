@@ -167,17 +167,12 @@ public class NearbyControllerV0 {
         .build();
   }
 
-  private String getMonthYearFromBandIds(List<NearbyId> ids) {
-    String monthYear;
-    if (!ids.isEmpty() && driveTimeBandRepository.findById(ids.get(0).bandId).isPresent()) {
-      monthYear = driveTimeBandRepository.findById(ids.get(0).bandId).get().monthYear();
-    } else {
-      monthYear = driveTimeBandRepository.getDefaultBandVersion();
-    }
-    if (monthYear == null) {
-      monthYear = "Unknown";
-    }
-    return monthYear;
+  private String getMonthYearFromBandIds(final List<NearbyId> ids) {
+    final Optional<DriveTimeBandEntity> dtb =
+        ids.isEmpty() ? Optional.empty() : driveTimeBandRepository.findById(ids.get(0).bandId());
+    final String monthYear =
+        dtb.isPresent() ? dtb.get().monthYear() : driveTimeBandRepository.getDefaultBandVersion();
+    return (monthYear == null) ? "Unknown" : monthYear;
   }
 
   /** Nearby facilities by address. */

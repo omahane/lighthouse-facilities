@@ -73,6 +73,12 @@ public class CmsOverlayControllerV1Test {
         .build();
   }
 
+  private DatamartCmsOverlay.Core core() {
+    return DatamartCmsOverlay.Core.builder()
+        .facilityUrl("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic")
+        .build();
+  }
+
   @Test
   public void exceptions() {
     var id = "vha_041";
@@ -714,6 +720,7 @@ public class CmsOverlayControllerV1Test {
             .healthCareSystem(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(overlay.healthCareSystem()))
+            .core(DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString(overlay.core()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -725,6 +732,7 @@ public class CmsOverlayControllerV1Test {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(CmsOverlayTransformerV1.toVersionAgnostic(response.getBody().overlay()))
+        .usingRecursiveComparison()
         .isEqualTo(overlay);
   }
 
@@ -737,6 +745,7 @@ public class CmsOverlayControllerV1Test {
 
   private DatamartCmsOverlay overlay() {
     return DatamartCmsOverlay.builder()
+        .core(core())
         .operatingStatus(
             DatamartFacility.OperatingStatus.builder()
                 .code(DatamartFacility.OperatingStatusCode.NOTICE)
@@ -1180,16 +1189,16 @@ public class CmsOverlayControllerV1Test {
     List<DatamartDetailedService> datamartDetailedServiceList =
         CmsOverlayHelper.getDetailedServices(savedCmsOverlayEntity.cmsServices());
     datamartDetailedServiceList.stream()
-        .filter(ds -> !ds.serviceInfo().serviceId.equals(HealthService.Covid19Vaccine.name()))
+        .filter(ds -> !ds.serviceInfo().serviceId.equals(HealthService.Covid19Vaccine.serviceId()))
         .forEach(
             ds -> {
-              if (ds.serviceInfo().serviceId().equals(HealthService.Cardiology.name())) {
+              if (ds.serviceInfo().serviceId().equals(HealthService.Cardiology.serviceId())) {
                 assertThat(ds.waitTime().newPatientWaitTime()).isEqualTo(BigDecimal.valueOf(34.4));
                 assertThat(ds.waitTime().establishedPatientWaitTime())
                     .isEqualTo(BigDecimal.valueOf(3.25));
                 assertThat(ds.waitTime().effectiveDate()).isEqualTo(LocalDate.parse("2020-03-09"));
               }
-              if (ds.serviceInfo().serviceId().equals(HealthService.Urology.name())) {
+              if (ds.serviceInfo().serviceId().equals(HealthService.Urology.serviceId())) {
                 assertThat(ds.waitTime().newPatientWaitTime()).isEqualTo(BigDecimal.valueOf(23.6));
                 assertThat(ds.waitTime().establishedPatientWaitTime())
                     .isEqualTo(BigDecimal.valueOf(20.0));
@@ -1301,6 +1310,10 @@ public class CmsOverlayControllerV1Test {
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
         .containsAll(combinedServices);
+    // Verify that facility_url was saved in database
+    CmsOverlayEntity savedCmsOverlayEntity = mockCmsOverlayRepository.findById(pk).get();
+    assertThat(CmsOverlayHelper.getCore(savedCmsOverlayEntity.core()).facilityUrl())
+        .isEqualTo("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic");
   }
 
   @Test

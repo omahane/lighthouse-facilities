@@ -69,8 +69,13 @@ public class InternalFacilitiesControllerTest {
   @Autowired CmsOverlayRepository overlayRepository;
 
   FacilitiesCollector collector = mock(FacilitiesCollector.class);
-
   CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+
+  private static DatamartCmsOverlay.Core _core() {
+    return DatamartCmsOverlay.Core.builder()
+        .facilityUrl("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic")
+        .build();
+  }
 
   private static DatamartFacility _facility(
       String id,
@@ -143,6 +148,7 @@ public class InternalFacilitiesControllerTest {
 
   private static DatamartCmsOverlay _overlay() {
     return DatamartCmsOverlay.builder()
+        .core(_core())
         .operatingStatus(_overlay_operating_status())
         .detailedServices(_overlay_detailed_services())
         .healthCareSystem(_overlay_health_care_system())
@@ -302,6 +308,10 @@ public class InternalFacilitiesControllerTest {
   private CmsOverlayEntity _overlayEntity(DatamartCmsOverlay overlay, String id) {
     return CmsOverlayEntity.builder()
         .id(FacilityEntity.Pk.fromIdString(id))
+        .core(
+            overlay.core() == null
+                ? null
+                : JacksonConfig.createMapper().writeValueAsString(overlay.core()))
         .cmsOperatingStatus(
             overlay.operatingStatus() == null
                 ? null
@@ -845,6 +855,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .detailedServices(_overlay_detailed_services())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -865,6 +876,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -879,6 +891,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .detailedServices(_overlay_detailed_services())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -888,6 +901,34 @@ public class InternalFacilitiesControllerTest {
     overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", "system");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    // Deleting core node
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "core");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .operatingStatus(_overlay_operating_status())
+                        .detailedServices(_overlay_detailed_services())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    // Test deleting system node when core node does not exist
+    datamartCmsOverlay = _overlay();
+    datamartCmsOverlay.core(null);
+    overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "core");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    assertThatThrownBy(() -> _controller().deleteCmsOverlayById("vha_f1", "invalid field"))
+        .isInstanceOf(ExceptionsUtils.NotFound.class)
+        .hasMessage("The record identified by invalid field could not be found");
     overlayRepository.deleteAll();
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", null);
@@ -968,6 +1009,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .detailedServices(_overlay_detailed_services())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -997,6 +1039,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();

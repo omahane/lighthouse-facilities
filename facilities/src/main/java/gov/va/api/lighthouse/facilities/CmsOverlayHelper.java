@@ -4,6 +4,7 @@ import static gov.va.api.lighthouse.facilities.DatamartCmsOverlay.HealthCareSyst
 import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay.Core;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,8 +14,13 @@ import lombok.experimental.UtilityClass;
 /** Helper class for CMS overlay operating status and detailed services. */
 @UtilityClass
 public final class CmsOverlayHelper {
-
   private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
+  /** Obtain DatamarOverlay core from JSON string. */
+  @SneakyThrows
+  public static Core getCore(String core) {
+    return (core == null) ? null : DATAMART_MAPPER.readValue(core, Core.class);
+  }
 
   /** Obtain list of detailed services from JSON string. */
   @SneakyThrows
@@ -41,6 +47,12 @@ public final class CmsOverlayHelper {
     return (operatingStatus == null)
         ? null
         : DATAMART_MAPPER.readValue(operatingStatus, OperatingStatus.class);
+  }
+
+  /** Obtain JSON string representation of DatamartOverlay core. */
+  @SneakyThrows
+  public static String serializeCore(Core core) {
+    return (core == null) ? null : DATAMART_MAPPER.writeValueAsString(core);
   }
 
   /** Obtain JSON string representation of detailed service list. */

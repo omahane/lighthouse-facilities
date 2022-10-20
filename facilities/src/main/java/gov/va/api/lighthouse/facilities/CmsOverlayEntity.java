@@ -33,6 +33,11 @@ public class CmsOverlayEntity {
 
   @Lob
   @Basic(fetch = FetchType.EAGER)
+  @Column(name = "core")
+  private String core;
+
+  @Lob
+  @Basic(fetch = FetchType.EAGER)
   @Column(name = "cms_operating_status")
   private String cmsOperatingStatus;
 

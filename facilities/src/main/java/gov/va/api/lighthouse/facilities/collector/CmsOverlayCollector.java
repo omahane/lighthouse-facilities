@@ -10,12 +10,18 @@ import gov.va.api.lighthouse.facilities.CmsOverlayRepository;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.time.LocalDate;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,25 +60,58 @@ public class CmsOverlayCollector {
         HashMap::new);
   }
 
-  private AbstractMap.SimpleEntry<String, HealthService> filterCovid19ServiceFromCmsOverlayServices(
+  private AbstractMap.SimpleEntry<String, Services> filterCmsOverlayServices(
       CmsOverlayEntity cmsOverlayEntity) {
-    Optional<HealthService> opt =
-        cmsOverlayEntity.overlayServices().stream()
-            .filter(s -> EnumUtils.isValidEnum(HealthService.class, capitalize(s)))
-            .map(s -> HealthService.fromString(s))
-            .filter(s -> s.equals(HealthService.Covid19Vaccine))
-            .findFirst();
-    if (opt.isPresent()) {
-      return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), opt.get());
+    List<Service<BenefitsService>> benefitsServices = new ArrayList<>();
+    List<Service<HealthService>> healthServices = new ArrayList<>();
+    List<Service<OtherService>> otherServices = new ArrayList<>();
+
+    cmsOverlayEntity.overlayServices().stream()
+        .forEach(
+            s -> {
+              if (EnumUtils.isValidEnum(BenefitsService.class, capitalize(s))) {
+                benefitsServices.add(
+                    Service.<BenefitsService>builder()
+                        .serviceType(BenefitsService.fromString(capitalize(s)))
+                        .source(Source.CMS)
+                        .build());
+              }
+
+              if (EnumUtils.isValidEnum(HealthService.class, capitalize(s))) {
+                healthServices.add(
+                    Service.<HealthService>builder()
+                        .serviceType(HealthService.fromString(capitalize(s)))
+                        .source(Source.CMS)
+                        .build());
+              }
+
+              if (EnumUtils.isValidEnum(OtherService.class, capitalize(s))) {
+                otherServices.add(
+                    Service.<OtherService>builder()
+                        .serviceType(OtherService.fromString(capitalize(s)))
+                        .source(Source.CMS)
+                        .build());
+              }
+            });
+
+    if (healthServices.isEmpty() && benefitsServices.isEmpty() && otherServices.isEmpty()) {
+      return null;
     }
-    return null;
+
+    return new AbstractMap.SimpleEntry<>(
+        cmsOverlayEntity.id().toIdString(),
+        Services.builder()
+            .benefits(benefitsServices)
+            .health(healthServices)
+            .other(otherServices)
+            .build());
   }
 
   /** Return a map of facilities that have covid 19 vaccines. This is a V0 utility function. */
-  public HashMap<String, HealthService> getCovid19VaccineServices() {
-    HashMap<String, HealthService> cmsOverlayServices =
+  public HashMap<String, Services> getCmsServices() {
+    HashMap<String, Services> cmsOverlayServices =
         Streams.stream(cmsOverlayRepository.findAll())
-            .map(this::filterCovid19ServiceFromCmsOverlayServices)
+            .map(this::filterCmsOverlayServices)
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
     return cmsOverlayServices;
@@ -96,6 +135,7 @@ public class CmsOverlayCollector {
     try {
       overlay =
           DatamartCmsOverlay.builder()
+              .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
               .operatingStatus(
                   CmsOverlayHelper.getOperatingStatus(cmsOverlayEntity.cmsOperatingStatus()))
               .detailedServices(
@@ -115,6 +155,7 @@ public class CmsOverlayCollector {
         cmsOverlayRepository.save(
             CmsOverlayEntity.builder()
                 .id(cmsOverlayEntity.id())
+                .core(CmsOverlayHelper.serializeCore(overlay.core()))
                 .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
                 .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
                 .overlayServices(cmsOverlayEntity.overlayServices())
@@ -143,9 +184,8 @@ public class CmsOverlayCollector {
                     cmsOverlayEntity -> cmsOverlayEntity.id().toIdString(), Function.identity()));
     datamartFacilities.stream()
         .filter(df -> overlayEntityMap.containsKey(df.id()))
-        .filter(
-            df ->
-                df.attributes().waitTimes() != null && df.attributes().waitTimes().health() != null)
+        .filter(df -> df.attributes().waitTimes() != null)
+        .filter(df -> df.attributes().waitTimes().health() != null)
         .forEach(
             datamartFacility -> {
               WaitTimes atcWaitTimes = datamartFacility.attributes().waitTimes();

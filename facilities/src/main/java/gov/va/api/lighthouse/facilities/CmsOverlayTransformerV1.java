@@ -13,26 +13,25 @@ public class CmsOverlayTransformerV1 {
   /** Transform version agnostic CMS overlay to V1 CMS overlay. */
   public static CmsOverlay toCmsOverlay(DatamartCmsOverlay dc) {
     return CmsOverlay.builder()
+        .core(toCore(dc.core()))
         .operatingStatus(toFacilityOperatingStatus(dc.operatingStatus()))
         .detailedServices(toDetailedServices(dc.detailedServices()))
-        .healthCareSystem(transformHealthCareSystem(dc.healthCareSystem()))
+        .healthCareSystem(toHealthCareSystem(dc.healthCareSystem()))
         .build();
   }
 
-  /** Transform V1 CMS overlay to version agnostic CMS overlay. */
-  public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
-    return DatamartCmsOverlay.builder()
-        .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
-        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
-        .healthCareSystem(transformHealthCareSystem(overlay.healthCareSystem()))
-        .build();
+  /** Transform DatamartCmsOverlay.Core to version 1 CmsOverlay.Core. */
+  public static CmsOverlay.Core toCore(DatamartCmsOverlay.Core core) {
+    return (core != null)
+        ? CmsOverlay.Core.builder().facilityUrl(core.facilityUrl()).build()
+        : null;
   }
 
   /**
    * Transform DatamartCmsOverlay.HealthCareSystem object to version 0 CmsOverlay.HealthCareSystem
    * object
    */
-  public static CmsOverlay.HealthCareSystem transformHealthCareSystem(
+  public static CmsOverlay.HealthCareSystem toHealthCareSystem(
       DatamartCmsOverlay.HealthCareSystem healthCareSystem) {
     return (healthCareSystem != null)
         ? CmsOverlay.HealthCareSystem.builder()
@@ -44,11 +43,28 @@ public class CmsOverlayTransformerV1 {
         : null;
   }
 
+  /** Transform V1 CMS overlay to version agnostic CMS overlay. */
+  public static DatamartCmsOverlay toVersionAgnostic(CmsOverlay overlay) {
+    return DatamartCmsOverlay.builder()
+        .core(toVersionAgnosticCore(overlay.core()))
+        .operatingStatus(toVersionAgnosticFacilityOperatingStatus(overlay.operatingStatus()))
+        .detailedServices(toVersionAgnosticDetailedServices(overlay.detailedServices()))
+        .healthCareSystem(toVersionAgnosticHealthCareSystem(overlay.healthCareSystem()))
+        .build();
+  }
+
+  /** Transform version 1 CmsOverlay.Core to DatamartCmsOverlay.Core. */
+  public static DatamartCmsOverlay.Core toVersionAgnosticCore(CmsOverlay.Core core) {
+    return (core != null)
+        ? DatamartCmsOverlay.Core.builder().facilityUrl(core.facilityUrl()).build()
+        : null;
+  }
+
   /**
    * Transform version 0 CmsOverlay.HealthCareSystem object to DatamartCmsOverlay.HealthCareSystem
    * object
    */
-  public static DatamartCmsOverlay.HealthCareSystem transformHealthCareSystem(
+  public static DatamartCmsOverlay.HealthCareSystem toVersionAgnosticHealthCareSystem(
       CmsOverlay.HealthCareSystem healthCareSystem) {
     return (healthCareSystem != null)
         ? DatamartCmsOverlay.HealthCareSystem.builder()

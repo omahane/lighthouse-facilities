@@ -1,9 +1,11 @@
 package gov.va.api.lighthouse.facilities;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import gov.va.api.lighthouse.facilities.api.TypeOfService;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +14,21 @@ import org.junit.jupiter.api.Test;
 public class DetailedServiceTransformerV0Test {
   @Test
   void datamartDetailedServiceWithEmptyAttributesRoundTrip() {
-    assertThatThrownBy(
-            () ->
-                DatamartDetailedServicesTestUtils
-                    .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
-        .isInstanceOf(Exception.class)
-        .hasMessage("Unrecognized service id: emptyService");
+    assertThat(
+            DatamartDetailedServicesTestUtils
+                .datamartDetailedServiceWithInvalidServiceIdEmptyAttributes())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(TypedService.INVALID_SVC_ID)
+                        .serviceType(TypeOfService.Health)
+                        .build())
+                .phoneNumbers(emptyList())
+                .serviceLocations(emptyList())
+                .build());
+
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
@@ -29,12 +40,19 @@ public class DetailedServiceTransformerV0Test {
 
   @Test
   void datamartDetailedServiceWithNullAttributesRoundTrip() {
-    assertThatThrownBy(
-            () ->
-                DatamartDetailedServicesTestUtils
-                    .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
-        .isInstanceOf(Exception.class)
-        .hasMessage("Unrecognized service id: emptyService");
+    assertThat(
+            DatamartDetailedServicesTestUtils
+                .datamartDetailedServiceWithInvalidServiceIdNullAttributes())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            DatamartDetailedService.builder()
+                .serviceInfo(
+                    DatamartDetailedService.ServiceInfo.builder()
+                        .serviceId(TypedService.INVALID_SVC_ID)
+                        .serviceType(TypeOfService.Health)
+                        .build())
+                .build());
+
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(

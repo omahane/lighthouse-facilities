@@ -7,6 +7,8 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
+import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,7 +87,10 @@ public abstract class BaseCmsOverlayController {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
       overlay.detailedServices(
           overlay.detailedServices().parallelStream()
+              // Filter out services with unrecognized service ids
               .filter(ds -> isRecognizedServiceId(ds.serviceInfo().serviceId()))
+              // Filter out services with invalid service types
+              .filter(ds -> ds.serviceInfo().serviceType() != null)
               .collect(Collectors.toList()));
     }
     return overlay;
@@ -153,14 +158,18 @@ public abstract class BaseCmsOverlayController {
     if (!isValidService(serviceId)) {
       throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
     }
-    List<DatamartDetailedService> detailedServices =
+    if (!isValidService(serviceId)) {
+      throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
+    }
+    Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
-            .collect(Collectors.toList());
-    if (detailedServices.isEmpty()) {
-      throw new ExceptionsUtils.NotFound(facilityId, serviceId);
+            .findFirst();
+    if (detailedService.isPresent()) {
+      return detailedService.get();
+    } else {
+      throw new ExceptionsUtils.NotFound(serviceId, facilityId);
     }
-    return detailedServices.get(0);
   }
 
   @SneakyThrows
@@ -178,8 +187,24 @@ public abstract class BaseCmsOverlayController {
     return CmsOverlayHelper.getDetailedServices(existingOverlayEntity.get().cmsServices());
   }
 
-  /** Determine whether specified service id matches that for service. */
-  protected abstract boolean isRecognizedServiceId(String serviceId);
+  /** Obtain typed service for specified service id. */
+  protected Optional<? extends TypedService> getTypedServiceForServiceId(
+      @NonNull String serviceId) {
+    return DatamartFacility.HealthService.isRecognizedServiceId(serviceId)
+        ? DatamartFacility.HealthService.fromServiceId(serviceId)
+        : DatamartFacility.BenefitsService.isRecognizedServiceId(serviceId)
+            ? DatamartFacility.BenefitsService.fromServiceId(serviceId)
+            : DatamartFacility.OtherService.isRecognizedServiceId(serviceId)
+                ? DatamartFacility.OtherService.fromServiceId(serviceId)
+                : Optional.empty();
+  }
+
+  /** Determine whether specified service id matches that for V1 service. */
+  protected boolean isRecognizedServiceId(String serviceId) {
+    return Facility.HealthService.isRecognizedServiceId(serviceId)
+        || Facility.BenefitsService.isRecognizedServiceId(serviceId)
+        || Facility.OtherService.isRecognizedServiceId(serviceId);
+  }
 
   protected boolean isValidService(String serviceId) {
     return DatamartFacility.HealthService.isRecognizedEnumOrCovidService(serviceId)
@@ -201,6 +226,7 @@ public abstract class BaseCmsOverlayController {
       cmsOverlayEntity =
           CmsOverlayEntity.builder()
               .id(FacilityEntity.Pk.fromIdString(id))
+              .core(CmsOverlayHelper.serializeCore(overlay.core()))
               .cmsOperatingStatus(
                   CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
               .cmsServices(CmsOverlayHelper.serializeDetailedServices(activeServices))
@@ -231,6 +257,13 @@ public abstract class BaseCmsOverlayController {
       if (overlay.healthCareSystem() != null) {
         cmsOverlayEntity.healthCareSystem(
             CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()));
+      }
+
+      if (overlay.core() != null) {
+        cmsOverlayEntity.core(
+            overlay.core().facilityUrl() != null
+                ? CmsOverlayHelper.serializeCore(overlay.core())
+                : null);
       }
     }
     cmsOverlayRepository.save(cmsOverlayEntity);

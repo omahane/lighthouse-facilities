@@ -17,6 +17,8 @@ import lombok.Data;
 @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
 @Schema(description = "Data provided by CMS to Facilities to be applied on top of known data.")
 public class CmsOverlay {
+  @Valid Core core;
+
   @Valid
   @JsonProperty("operating_status")
   @JsonAlias("operatingStatus")
@@ -36,19 +38,16 @@ public class CmsOverlay {
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(description = "Describes the Health Care System for a facility.", nullable = true)
   public static final class HealthCareSystem {
-
     @Schema(
         description = "Health care system name",
         example = "VA Pittsburgh health care",
         nullable = true)
-    @JsonProperty("name")
     String name;
 
     @Schema(
         description = "Health care system website url",
         example = "https://www.va.gov/pittsburgh-health-care/",
         nullable = true)
-    @JsonProperty("url")
     String url;
 
     @Schema(
@@ -56,6 +55,7 @@ public class CmsOverlay {
         example = "https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/",
         nullable = true)
     @JsonProperty("covid_url")
+    @JsonAlias("covidUrl")
     String covidUrl;
 
     @Schema(
@@ -63,6 +63,22 @@ public class CmsOverlay {
         example = "555-555-5555 x123",
         nullable = true)
     @JsonProperty("va_health_connect_phone")
+    @JsonAlias("vaHealthConnectPhone")
     String healthConnectPhone;
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(description = "Contain information on core facility fields", nullable = true)
+  public static final class Core {
+    @Schema(
+        description = "Facility url",
+        example = "https://www.va.gov/phoenix-health-care/locations/payson-va-clinic",
+        nullable = true)
+    @JsonProperty("facility_url")
+    @JsonAlias("facilityUrl")
+    String facilityUrl;
   }
 }

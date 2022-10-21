@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -74,6 +75,14 @@ public final class Facility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain service for unique service id. */
+    public static Optional<BenefitsService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(bs -> bs.serviceId().equals(serviceId))
+          .findFirst();
+    }
+
     /** Ensure that Jackson can create BenefitsService enum regardless of capitalization. */
     @JsonCreator
     public static BenefitsService fromString(String name) {
@@ -84,7 +93,9 @@ public final class Facility {
 
     /** Determine whether specified service name represents benefits service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(bs -> bs.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents benefits service. */
@@ -132,6 +143,18 @@ public final class Facility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain service for unique service id. */
+    public static Optional<HealthService> fromServiceId(String serviceId) {
+      return "mentalHealth".equals(serviceId)
+          ? Optional.of(MentalHealthCare)
+          : "dental".equals(serviceId)
+              ? Optional.of(DentalServices)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
+    }
+
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
     @JsonCreator
     public static HealthService fromString(String name) {
@@ -158,8 +181,7 @@ public final class Facility {
 
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return "dental".equalsIgnoreCase(serviceName)
-          || "mentalHealth".equalsIgnoreCase(serviceName)
+      return isRecognizedServiceNameException(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
@@ -167,7 +189,17 @@ public final class Facility {
 
     /** Determine whether specified service id represents health service. */
     public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+      return "mentalHealth".equals(serviceId)
+          || "dental".equals(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+    }
+
+    /**
+     * Determine whether specified service name represents known health service whose name changes
+     * between versions.
+     */
+    public static boolean isRecognizedServiceNameException(String serviceName) {
+      return "dental".equalsIgnoreCase(serviceName) || "mentalHealth".equalsIgnoreCase(serviceName);
     }
 
     public String serviceId() {
@@ -184,6 +216,14 @@ public final class Facility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain service for unique service id. */
+    public static Optional<OtherService> fromServiceId(String serviceId) {
+      return Arrays.stream(values())
+          .parallel()
+          .filter(os -> os.serviceId().equals(serviceId))
+          .findFirst();
+    }
+
     /** Ensure that Jackson can create OtherService enum regardless of capitalization. */
     @JsonCreator
     public static OtherService fromString(String name) {
@@ -192,7 +232,9 @@ public final class Facility {
 
     /** Determine whether specified service name represents other service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(os -> os.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents other service. */

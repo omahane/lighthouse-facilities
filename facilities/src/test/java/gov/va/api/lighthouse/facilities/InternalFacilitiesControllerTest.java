@@ -8,6 +8,8 @@ import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPEC
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_1;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_2;
 import static gov.va.api.lighthouse.facilities.InternalFacilitiesController.SPECIAL_INSTRUCTION_UPDATED_3;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.capitalize;
@@ -29,6 +31,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityType;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.ReloadResponse;
@@ -66,8 +69,13 @@ public class InternalFacilitiesControllerTest {
   @Autowired CmsOverlayRepository overlayRepository;
 
   FacilitiesCollector collector = mock(FacilitiesCollector.class);
-
   CmsOverlayCollector mockCmsOverlayCollector = mock(CmsOverlayCollector.class);
+
+  private static DatamartCmsOverlay.Core _core() {
+    return DatamartCmsOverlay.Core.builder()
+        .facilityUrl("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic")
+        .build();
+  }
 
   private static DatamartFacility _facility(
       String id,
@@ -75,21 +83,29 @@ public class InternalFacilitiesControllerTest {
       String zip,
       double latitude,
       double longitude,
-      List<Facility.HealthService> health) {
+      List<gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService> health) {
     return FacilityTransformerV0.toVersionAgnostic(
-        Facility.builder()
+        gov.va.api.lighthouse.facilities.api.v0.Facility.builder()
             .id(id)
             .attributes(
-                Facility.FacilityAttributes.builder()
+                gov.va.api.lighthouse.facilities.api.v0.Facility.FacilityAttributes.builder()
                     .address(
-                        Facility.Addresses.builder()
-                            .physical(Facility.Address.builder().state(state).zip(zip).build())
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.Addresses.builder()
+                            .physical(
+                                gov.va.api.lighthouse.facilities.api.v0.Facility.Address.builder()
+                                    .state(state)
+                                    .zip(zip)
+                                    .build())
                             .build())
                     .latitude(BigDecimal.valueOf(latitude))
                     .longitude(BigDecimal.valueOf(longitude))
-                    .services(Facility.Services.builder().health(health).build())
+                    .services(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.Services.builder()
+                            .health(health)
+                            .build())
                     .mobile(false)
-                    .facilityType(Facility.FacilityType.va_cemetery)
+                    .facilityType(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.FacilityType.va_cemetery)
                     .build())
             .build());
   }
@@ -100,7 +116,10 @@ public class InternalFacilitiesControllerTest {
       String zip,
       double latitude,
       double longitude,
-      List<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService> health) {
+      List<
+              gov.va.api.lighthouse.facilities.api.v1.Facility.Service<
+                  gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>>
+          health) {
     return FacilityTransformerV1.toVersionAgnostic(
         gov.va.api.lighthouse.facilities.api.v1.Facility.builder()
             .id(id)
@@ -129,6 +148,7 @@ public class InternalFacilitiesControllerTest {
 
   private static DatamartCmsOverlay _overlay() {
     return DatamartCmsOverlay.builder()
+        .core(_core())
         .operatingStatus(_overlay_operating_status())
         .detailedServices(_overlay_detailed_services())
         .healthCareSystem(_overlay_health_care_system())
@@ -288,6 +308,10 @@ public class InternalFacilitiesControllerTest {
   private CmsOverlayEntity _overlayEntity(DatamartCmsOverlay overlay, String id) {
     return CmsOverlayEntity.builder()
         .id(FacilityEntity.Pk.fromIdString(id))
+        .core(
+            overlay.core() == null
+                ? null
+                : JacksonConfig.createMapper().writeValueAsString(overlay.core()))
         .cmsOperatingStatus(
             overlay.operatingStatus() == null
                 ? null
@@ -301,31 +325,6 @@ public class InternalFacilitiesControllerTest {
                 ? null
                 : JacksonConfig.createMapper().writeValueAsString(overlay.healthCareSystem()))
         .build();
-  }
-
-  @Test
-  @SneakyThrows
-  void collect_createUpdate() {
-    DatamartFacility f1 =
-        _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
-    DatamartFacility f2 =
-        _facility("vha_f2", "NEAT", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
-    List<DatamartFacility> datamartFacilities = List.of(f1, f2);
-    DatamartFacility f2Old =
-        _facility("vha_f2", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
-    facilityRepository.save(_facilityEntity(f2Old));
-    when(collector.collectFacilities()).thenReturn(datamartFacilities);
-    ReloadResponse response = _controller().reload().getBody();
-    assertThat(response.facilitiesCreated()).isEqualTo(List.of("vha_f1"));
-    assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f2"));
-    RecursiveComparisonConfiguration comparisonConfig =
-        RecursiveComparisonConfiguration.builder()
-            .withIgnoredFields("version", "lastUpdated")
-            .build();
-    assertThat(facilityRepository.findAll())
-        .usingRecursiveFieldByFieldElementComparator(comparisonConfig)
-        .containsExactlyInAnyOrder(_facilityEntity(f1), _facilityEntity(f2));
   }
 
   @Test
@@ -404,17 +403,39 @@ public class InternalFacilitiesControllerTest {
   @Test
   @SneakyThrows
   void collect_invalidLatLong() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "999", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            facilityId,
+            "FL",
+            "999",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1V1 =
         _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().latitude(null);
     f1.attributes().longitude(null);
     f1V1.attributes().latitude(null);
@@ -430,15 +451,45 @@ public class InternalFacilitiesControllerTest {
   void collect_missing() {
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f2Old =
-        _facility("vha_f2", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f2",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f3Old =
-        _facility("vha_f3", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f3",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     DatamartFacility f4Old =
-        _facility("vha_f4", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f4",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old));
     facilityRepository.save(_facilityEntity(f2Old));
     facilityRepository.save(_facilityEntity(f3Old));
@@ -450,7 +501,15 @@ public class InternalFacilitiesControllerTest {
     List<FacilityEntity> findAll = ImmutableList.copyOf(facilityRepository.findAll());
     assertThat(findAll).hasSize(4);
     assertThat(findAll.get(0).missingTimestamp()).isNull();
-    assertThat(findAll.get(0).services()).isEqualTo(Set.of("MentalHealth"));
+    assertThat(findAll.get(0).services())
+        .isEqualTo(
+            Set.of(
+                JacksonConfig.createMapper()
+                    .writeValueAsString(
+                        Service.<HealthService>builder()
+                            .serviceType(HealthService.MentalHealth)
+                            .name(HealthService.MentalHealth.name())
+                            .build())));
     assertThat(findAll.get(1).missingTimestamp()).isNotNull();
     assertThat(findAll.get(2).missingTimestamp()).isNotNull();
     assertThat(findAll.get(3).missingTimestamp()).isNotNull();
@@ -461,23 +520,49 @@ public class InternalFacilitiesControllerTest {
   void collect_missingComesBack() {
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(Instant.now().toEpochMilli()));
     when(collector.collectFacilities()).thenReturn(List.of(f1));
     ReloadResponse response = _controller().reload().getBody();
     assertThat(response.facilitiesUpdated()).isEqualTo(List.of("vha_f1"));
     FacilityEntity result = Iterables.getOnlyElement(facilityRepository.findAll());
     assertThat(result.missingTimestamp()).isNull();
-    assertThat(result.services()).isEqualTo(Set.of("MentalHealth"));
+    assertThat(result.services())
+        .isEqualTo(
+            Set.of(
+                JacksonConfig.createMapper()
+                    .writeValueAsString(
+                        Service.<HealthService>builder()
+                            .serviceType(HealthService.MentalHealth)
+                            .name(HealthService.MentalHealth.name())
+                            .build())));
   }
 
   @Test
   @SneakyThrows
   void collect_missingTimestampPreserved() {
     DatamartFacility f1Old =
-        _facility("vha_f1", "NO", "666", 9.0, 9.1, List.of(Facility.HealthService.SpecialtyCare));
+        _facility(
+            "vha_f1",
+            "NO",
+            "666",
+            9.0,
+            9.1,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.SpecialtyCare));
     long early = Instant.now().minusSeconds(60).toEpochMilli();
     facilityRepository.save(_facilityEntity(f1Old).missingTimestamp(early));
     when(collector.collectFacilities()).thenReturn(emptyList());
@@ -490,17 +575,39 @@ public class InternalFacilitiesControllerTest {
   @Test
   @SneakyThrows
   void collect_noStateOrZip() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
-    DatamartFacility f1V1 =
-        _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
+    DatamartFacility f1V1 =
+        _facilityV1(
+            facilityId,
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().address().physical().state(null);
     f1.attributes().address().physical().zip(null);
     f1.attributes().latitude(BigDecimal.valueOf(91.4));
@@ -678,7 +785,13 @@ public class InternalFacilitiesControllerTest {
   void deleteFacilityByIdWithOverlay() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f, _overlay()));
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     ResponseEntity<String> response = _controller().deleteFacilityById("vha_f1");
@@ -693,7 +806,13 @@ public class InternalFacilitiesControllerTest {
   void deleteFacilityByIdWithoutOverlay() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f));
     ResponseEntity<String> response = _controller().deleteFacilityById("vha_f1");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -704,7 +823,13 @@ public class InternalFacilitiesControllerTest {
   void deleteFacilityOverlayById() {
     DatamartFacility f =
         _facility(
-            "vha_f1", "FL", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     ResponseEntity<Void> response = null;
     facilityRepository.save(_facilityEntity(f, _overlay()));
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
@@ -730,6 +855,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .detailedServices(_overlay_detailed_services())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -750,6 +876,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -764,6 +891,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .detailedServices(_overlay_detailed_services())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -773,6 +901,34 @@ public class InternalFacilitiesControllerTest {
     overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", "system");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    // Deleting core node
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "core");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(overlayRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(
+            List.of(
+                _overlayEntity(
+                    DatamartCmsOverlay.builder()
+                        .operatingStatus(_overlay_operating_status())
+                        .detailedServices(_overlay_detailed_services())
+                        .healthCareSystem(_overlay_health_care_system())
+                        .build(),
+                    "vha_f1")));
+    overlayRepository.deleteAll();
+    // Test deleting system node when core node does not exist
+    datamartCmsOverlay = _overlay();
+    datamartCmsOverlay.core(null);
+    overlayRepository.save(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    response = _controller().deleteCmsOverlayById("vha_f1", "core");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    overlayRepository.deleteAll();
+    overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
+    assertThatThrownBy(() -> _controller().deleteCmsOverlayById("vha_f1", "invalid field"))
+        .isInstanceOf(ExceptionsUtils.NotFound.class)
+        .hasMessage("The record identified by invalid field could not be found");
     overlayRepository.deleteAll();
     overlayRepository.save(_overlayEntity(_overlay(), "vha_f1"));
     response = _controller().deleteCmsOverlayById("vha_f1", null);
@@ -816,7 +972,7 @@ public class InternalFacilitiesControllerTest {
   }
 
   @Test
-  void deleteFacilityOverlayWithCovid19BVaccine() {
+  void deleteFacilityOverlayWithCovid19Vaccine() {
     DatamartFacility f =
         _facility(
             "vha_f1",
@@ -825,7 +981,8 @@ public class InternalFacilitiesControllerTest {
             1.2,
             3.4,
             List.of(
-                Facility.HealthService.MentalHealthCare, Facility.HealthService.Covid19Vaccine));
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare,
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.Covid19Vaccine));
     ResponseEntity<Void> response = null;
     FacilityEntity fe = _facilityEntity(f, _overlay());
     facilityRepository.save(_facilityEntity(f, _overlay()));
@@ -852,6 +1009,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .detailedServices(_overlay_detailed_services())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -869,7 +1027,9 @@ public class InternalFacilitiesControllerTest {
                     "South",
                     1.2,
                     3.4,
-                    List.of(Facility.HealthService.MentalHealthCare)),
+                    List.of(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService
+                            .MentalHealthCare)),
                 DatamartCmsOverlay.builder().operatingStatus(_overlay_operating_status()).build()));
     assertThat(overlayRepository.findAll())
         .usingRecursiveComparison()
@@ -879,6 +1039,7 @@ public class InternalFacilitiesControllerTest {
                     DatamartCmsOverlay.builder()
                         .operatingStatus(_overlay_operating_status())
                         .healthCareSystem(_overlay_health_care_system())
+                        .core(_core())
                         .build(),
                     "vha_f1")));
     overlayRepository.deleteAll();
@@ -896,7 +1057,9 @@ public class InternalFacilitiesControllerTest {
                     "South",
                     1.2,
                     3.4,
-                    List.of(Facility.HealthService.MentalHealthCare)),
+                    List.of(
+                        gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService
+                            .MentalHealthCare)),
                 DatamartCmsOverlay.builder().operatingStatus(null).build()));
     assertThat(overlayRepository.findAll()).isEmpty();
   }
@@ -930,7 +1093,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.00,
             100.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
         _facility(
             "vha_f2",
@@ -938,7 +1102,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.00,
             50.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Duplicate =
         _facility(
             "vha_f1dup",
@@ -946,7 +1111,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             102.00,
             102.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2Duplicate =
         _facility(
             "vha_f2dup",
@@ -954,7 +1120,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             52.00,
             52.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     ReloadResponse response = ReloadResponse.start();
     facilityRepository.save(_facilityEntity(f1));
     facilityRepository.save(_facilityEntity(f2));
@@ -998,7 +1165,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.00,
             100.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
         _facility(
             "vha_f2",
@@ -1006,7 +1174,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.00,
             50.00,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1Duplicate =
         _facility(
             "vha_f1dup",
@@ -1014,7 +1183,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             100.0002,
             100.0002,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2Duplicate =
         _facility(
             "vha_f2dup",
@@ -1022,7 +1192,8 @@ public class InternalFacilitiesControllerTest {
             "32934",
             50.0002,
             50.0002,
-            List.of(Facility.HealthService.MentalHealthCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     facilityRepository.save(_facilityEntity(f1));
     facilityRepository.save(_facilityEntity(f2));
     assertThat(facilityRepository.findById(FacilityEntity.Pk.fromIdString("vha_f1"))).isNotNull();
@@ -1272,21 +1443,54 @@ public class InternalFacilitiesControllerTest {
                                 Services.builder()
                                     .health(
                                         List.of(
-                                            HealthService.PrimaryCare, HealthService.MentalHealth))
+                                            Service.<HealthService>builder()
+                                                .serviceType(HealthService.PrimaryCare)
+                                                .name(HealthService.PrimaryCare.name())
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(HealthService.MentalHealth)
+                                                .name(HealthService.MentalHealth.name())
+                                                .build()))
                                     .benefits(
                                         List.of(
-                                            BenefitsService.ApplyingForBenefits,
-                                            BenefitsService.BurialClaimAssistance))
-                                    .other(List.of(OtherService.OnlineScheduling))
+                                            Service.<BenefitsService>builder()
+                                                .serviceType(BenefitsService.ApplyingForBenefits)
+                                                .name(BenefitsService.ApplyingForBenefits.name())
+                                                .build(),
+                                            Service.<BenefitsService>builder()
+                                                .serviceType(BenefitsService.BurialClaimAssistance)
+                                                .name(BenefitsService.BurialClaimAssistance.name())
+                                                .build()))
+                                    .other(
+                                        List.of(
+                                            Service.<OtherService>builder()
+                                                .serviceType(OtherService.OnlineScheduling)
+                                                .name(OtherService.OnlineScheduling.name())
+                                                .build()))
                                     .build())
                             .build())
                     .build()))
         .containsExactlyInAnyOrder(
-            HealthService.PrimaryCare,
-            HealthService.MentalHealth,
-            BenefitsService.ApplyingForBenefits,
-            BenefitsService.BurialClaimAssistance,
-            OtherService.OnlineScheduling);
+            Service.<HealthService>builder()
+                .serviceType(HealthService.PrimaryCare)
+                .name(HealthService.PrimaryCare.name())
+                .build(),
+            Service.<HealthService>builder()
+                .serviceType(HealthService.MentalHealth)
+                .name(HealthService.MentalHealth.name())
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceType(BenefitsService.ApplyingForBenefits)
+                .name(BenefitsService.ApplyingForBenefits.name())
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceType(BenefitsService.BurialClaimAssistance)
+                .name(BenefitsService.BurialClaimAssistance.name())
+                .build(),
+            Service.<OtherService>builder()
+                .serviceType(OtherService.OnlineScheduling)
+                .name(OtherService.OnlineScheduling.name())
+                .build());
   }
 
   @Test
@@ -1334,21 +1538,43 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   void updateAndSave_error() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_f1";
     FacilityRepository repo = mock(FacilityRepository.class);
     when(repo.save(any(FacilityEntity.class))).thenThrow(new RuntimeException("oh noez"));
     InternalFacilitiesController controller =
         InternalFacilitiesController.builder().facilityRepository(repo).build();
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "CO", "5319", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            facilityId,
+            "CO",
+            "5319",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f1V1 =
         _facilityV1(
-            "vha_f1",
+            facilityId,
             "FL",
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            facilityId,
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     f1.attributes().address().mailing(Address.builder().zip("12345-56").build());
     f1V1.attributes().address().mailing(Address.builder().zip("12345-56").build());
     ReloadResponse response = ReloadResponse.start();
@@ -1383,13 +1609,32 @@ public class InternalFacilitiesControllerTest {
 
   @Test
   void updateAndSave_replaceInstructions() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
     DatamartFacility f1 =
         _facility(
-            "vha_f1", "FL", "32934", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f1",
+            "FL",
+            "32934",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
-        _facility("vha_f2", "FL", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f2",
+            "FL",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     DatamartFacility f3 =
-        _facility("vha_f3", "FL", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f3",
+            "FL",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     DatamartFacility f1V1 =
         _facilityV1(
             "vha_f1",
@@ -1397,7 +1642,21 @@ public class InternalFacilitiesControllerTest {
             "South",
             1.2,
             3.4,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.MentalHealth
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f1",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .MentalHealth.serviceId()))
+                    .build()));
     DatamartFacility f2V1 =
         _facilityV1(
             "vha_f2",
@@ -1405,7 +1664,21 @@ public class InternalFacilitiesControllerTest {
             "32934",
             5.6,
             6.7,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f2",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .UrgentCare.serviceId()))
+                    .build()));
     DatamartFacility f3V1 =
         _facilityV1(
             "vha_f3",
@@ -1413,7 +1686,21 @@ public class InternalFacilitiesControllerTest {
             "32934",
             5.6,
             6.7,
-            List.of(gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare));
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v1.Facility.Service
+                    .<gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService>builder()
+                    .serviceType(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare)
+                    .name(
+                        gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare
+                            .name())
+                    .link(
+                        buildTypedServiceLink(
+                            linkerUrl,
+                            "vha_f3",
+                            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService
+                                .UrgentCare.serviceId()))
+                    .build()));
     f1.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_1);
     f2.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_2);
     f3.attributes().operationalHoursSpecialInstructions(SPECIAL_INSTRUCTION_OLD_3);
@@ -1475,9 +1762,21 @@ public class InternalFacilitiesControllerTest {
   void upload() {
     DatamartFacility f1 =
         _facility(
-            "vha_f91", "FU", "South", 1.2, 3.4, List.of(Facility.HealthService.MentalHealthCare));
+            "vha_f91",
+            "FU",
+            "South",
+            1.2,
+            3.4,
+            List.of(
+                gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.MentalHealthCare));
     DatamartFacility f2 =
-        _facility("vha_f92", "NEAT", "32934", 5.6, 6.7, List.of(Facility.HealthService.UrgentCare));
+        _facility(
+            "vha_f92",
+            "NEAT",
+            "32934",
+            5.6,
+            6.7,
+            List.of(gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.UrgentCare));
     List<DatamartFacility> collectedFacilities = List.of(f1, f2);
     _controller().upload(collectedFacilities);
     RecursiveComparisonConfiguration comparisonConfig =

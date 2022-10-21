@@ -1,6 +1,8 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static com.google.common.base.Preconditions.checkState;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
 
@@ -10,7 +12,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -19,11 +23,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -41,6 +43,8 @@ public class FacilitiesCollector {
   private static final String WEBSITES_CSV_RESOURCE_NAME = "websites.csv";
 
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
+
+  private static final String ORTHO_STATIONS_RESOURCE_NAME = "ortho_stations.txt";
 
   protected final InsecureRestTemplateProvider insecureRestTemplateProvider;
 
@@ -70,26 +74,26 @@ public class FacilitiesCollector {
     this.cmsOverlayCollector = cmsOverlayCollector;
   }
 
-  /** Caregiver support facilities given a resource name. */
+  /** Returns list of vha facilities contained in a file. */
   @SneakyThrows
-  public static ArrayList<String> loadCaregiverSupport(String resourceName) {
+  public static ArrayList<String> loadFacilitiesFromResource(String resourceName) {
     final Stopwatch totalWatch = Stopwatch.createStarted();
-    ArrayList<String> cscFacilities = new ArrayList<>();
+    ArrayList<String> facilities = new ArrayList<>();
     try (BufferedReader reader =
         new BufferedReader(
             new InputStreamReader(
                 new ClassPathResource(resourceName).getInputStream(), StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null) {
-        cscFacilities.add("vha_" + line);
+        facilities.add("vha_" + line);
       }
     }
     log.info(
         "Loading caregiver support facilities took {} millis for {} entries",
         totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-        cscFacilities.size());
-    checkState(!cscFacilities.isEmpty(), "No caregiver support entries");
-    return cscFacilities;
+        facilities.size());
+    checkState(!facilities.isEmpty(), "No caregiver support entries");
+    return facilities;
   }
 
   @SneakyThrows
@@ -144,10 +148,12 @@ public class FacilitiesCollector {
     Map<String, String> websites;
     Collection<VastEntity> vastEntities;
     ArrayList<String> cscFacilities;
+    ArrayList<String> orthoFacilities;
     try {
       websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
       vastEntities = loadVast();
-      cscFacilities = loadCaregiverSupport(CSC_STATIONS_RESOURCE_NAME);
+      cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
+      orthoFacilities = loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME);
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
@@ -156,6 +162,7 @@ public class FacilitiesCollector {
             .atcBaseUrl(atcBaseUrl)
             .atpBaseUrl(atpBaseUrl)
             .cscFacilities(cscFacilities)
+            .orthoFacilities(orthoFacilities)
             .jdbcTemplate(jdbcTemplate)
             .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
             .vastEntities(vastEntities)
@@ -305,32 +312,53 @@ public class FacilitiesCollector {
   }
 
   private void updateServicesFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
-    Map<String, DatamartFacility.HealthService> facilityCovid19Services;
+    Map<String, Services> facilityCmsServicesMap;
     try {
-      facilityCovid19Services = cmsOverlayCollector.getCovid19VaccineServices();
+      facilityCmsServicesMap = cmsOverlayCollector.getCmsServices();
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
 
     datamartFacilities.stream()
-        .filter(df -> facilityCovid19Services.containsKey(df.id()))
+        .filter(df -> facilityCmsServicesMap.containsKey(df.id()))
         .forEach(
             df -> {
-              // Covid-19 vaccines is the only CMS service that should appear in the list of ATC
-              // facility services, as well as the CMS overlay detailed services list, if present
-              // for a facility.
-              Set<HealthService> facilityHealthServices = new HashSet<>();
-              facilityHealthServices.add(facilityCovid19Services.get(df.id()));
               if (df.attributes().services() == null) {
-                df.attributes().services(DatamartFacility.Services.builder().build());
+                df.attributes().services(Services.builder().build());
               }
-              if (df.attributes().services().health() != null) {
-                facilityHealthServices.addAll(df.attributes().services().health());
+
+              if (!facilityCmsServicesMap.get(df.id()).benefits().isEmpty()) {
+                List<Service<BenefitsService>> facilityBenefitsServices =
+                    facilityCmsServicesMap.get(df.id()).benefits();
+                if (df.attributes().services().benefits() != null) {
+                  facilityBenefitsServices.addAll(df.attributes().services().benefits());
+                }
+
+                Collections.sort(facilityBenefitsServices);
+                df.attributes().services().benefits(facilityBenefitsServices);
               }
-              List<HealthService> facilityHealthServiceList =
-                  new ArrayList<>(facilityHealthServices);
-              Collections.sort(facilityHealthServiceList);
-              df.attributes().services().health(facilityHealthServiceList);
+
+              if (!facilityCmsServicesMap.get(df.id()).health().isEmpty()) {
+                List<Service<HealthService>> facilityHealthServices =
+                    facilityCmsServicesMap.get(df.id()).health();
+                if (df.attributes().services().health() != null) {
+                  facilityHealthServices.addAll(df.attributes().services().health());
+                }
+
+                Collections.sort(facilityHealthServices);
+                df.attributes().services().health(facilityHealthServices);
+              }
+
+              if (!facilityCmsServicesMap.get(df.id()).other().isEmpty()) {
+                List<Service<OtherService>> facilityOtherServices =
+                    facilityCmsServicesMap.get(df.id()).other();
+                if (df.attributes().services().other() != null) {
+                  facilityOtherServices.addAll(df.attributes().services().other());
+                }
+
+                Collections.sort(facilityOtherServices);
+                df.attributes().services().other(facilityOtherServices);
+              }
             });
   }
 }

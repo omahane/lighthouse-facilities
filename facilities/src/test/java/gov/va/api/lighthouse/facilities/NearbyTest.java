@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService.ApplyingForBenefits;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.PrimaryCare;
 import static gov.va.api.lighthouse.facilities.api.v0.NearbyResponse.Type.NearbyFacility;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -148,6 +150,8 @@ public class NearbyTest {
                         .services(Facility.Services.builder().health(List.of(PrimaryCare)).build())
                         .build())
                 .build());
+    facility.attributes.services().health().stream().forEach(hs -> hs.source(Source.ATC));
+
     return facility;
   }
 
@@ -277,7 +281,10 @@ public class NearbyTest {
 
   @Test
   void empty() {
-    facilityRepository.save(FacilitySamples.defaultSamples().facilityEntity("vha_757"));
+    final var baseUrl = "http://foo/";
+    final var basePath = "bp";
+    final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)

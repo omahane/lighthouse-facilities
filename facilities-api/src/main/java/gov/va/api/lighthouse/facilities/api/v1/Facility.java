@@ -34,9 +34,12 @@ import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -60,16 +63,12 @@ public final class Facility implements CanBeEmpty {
   @Valid @NotNull FacilityAttributes attributes;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return isBlank(id())
         && ObjectUtils.isEmpty(type())
         && (attributes() == null || attributes().isEmpty());
-  }
-
-  public enum ActiveStatus {
-    A,
-    T
   }
 
   public enum BenefitsService implements TypedService {
@@ -117,7 +116,9 @@ public final class Facility implements CanBeEmpty {
 
     /** Determine whether specified service name represents benefits service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(bs -> bs.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(bs -> bs.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents benefits service. */
@@ -189,7 +190,7 @@ public final class Facility implements CanBeEmpty {
     @JsonProperty("criticalCare")
     CriticalCare("criticalCare"),
     @JsonProperty("dental")
-    Dental("dentalServices"),
+    Dental("dental"),
     @JsonProperty("dermatology")
     Dermatology("dermatology"),
     @JsonProperty("diabetic")
@@ -229,7 +230,7 @@ public final class Facility implements CanBeEmpty {
     @JsonProperty("medicalRecords")
     MedicalRecords("medicalRecords"),
     @JsonProperty("mentalHealth")
-    MentalHealth("mentalHealthCare"),
+    MentalHealth("mentalHealth"),
     @JsonProperty("militarySexualTrauma")
     MilitarySexualTrauma("militarySexualTrauma"),
     @JsonProperty("minorityCare")
@@ -355,10 +356,14 @@ public final class Facility implements CanBeEmpty {
 
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
-      return Arrays.stream(values())
-          .parallel()
-          .filter(hs -> hs.serviceId().equals(serviceId))
-          .findFirst();
+      return "mentalHealthCare".equals(serviceId)
+          ? Optional.of(MentalHealth)
+          : "dentalServices".equals(serviceId)
+              ? Optional.of(Dental)
+              : Arrays.stream(values())
+                  .parallel()
+                  .filter(hs -> hs.serviceId().equals(serviceId))
+                  .findFirst();
     }
 
     /** Ensure that Jackson can create HealthService enum regardless of capitalization. */
@@ -387,8 +392,7 @@ public final class Facility implements CanBeEmpty {
 
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return "DentalServices".equalsIgnoreCase(serviceName)
-          || "MentalHealthCare".equalsIgnoreCase(serviceName)
+      return isRecognizedServiceNameException(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
@@ -396,7 +400,18 @@ public final class Facility implements CanBeEmpty {
 
     /** Determine whether specified service id represents health service. */
     public static boolean isRecognizedServiceId(String serviceId) {
-      return Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+      return "mentalHealthCare".equals(serviceId)
+          || "dentalServices".equals(serviceId)
+          || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
+    }
+
+    /**
+     * Determine whether specified service name represents known health service whose name changes
+     * between versions.
+     */
+    public static boolean isRecognizedServiceNameException(String serviceName) {
+      return "DentalServices".equalsIgnoreCase(serviceName)
+          || "MentalHealthCare".equalsIgnoreCase(serviceName);
     }
 
     @Override
@@ -435,7 +450,9 @@ public final class Facility implements CanBeEmpty {
 
     /** Determine whether specified service name represents other service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return Arrays.stream(values()).parallel().anyMatch(os -> os.name().equals(serviceName));
+      return Arrays.stream(values())
+          .parallel()
+          .anyMatch(os -> os.name().equalsIgnoreCase(serviceName));
     }
 
     /** Determine whether specified service id represents other service. */
@@ -500,6 +517,7 @@ public final class Facility implements CanBeEmpty {
     String state;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(address1())
@@ -527,6 +545,7 @@ public final class Facility implements CanBeEmpty {
     Address physical;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (mailing() == null || mailing().isEmpty())
@@ -638,11 +657,6 @@ public final class Facility implements CanBeEmpty {
     @Schema(example = "false", nullable = true)
     Boolean mobile;
 
-    @Schema(
-        description = "This field is deprecated and replaced with \"operating_status\".",
-        nullable = true)
-    ActiveStatus activeStatus;
-
     @Valid
     @NotNull
     @JsonProperty(required = true)
@@ -653,6 +667,7 @@ public final class Facility implements CanBeEmpty {
     String visn;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(name())
@@ -669,7 +684,6 @@ public final class Facility implements CanBeEmpty {
           && (services() == null || services().isEmpty())
           && (satisfaction() == null || satisfaction().isEmpty())
           && ObjectUtils.isEmpty(mobile())
-          && ObjectUtils.isEmpty(activeStatus())
           && ObjectUtils.isEmpty(operatingStatus())
           && isBlank(visn());
     }
@@ -716,6 +730,7 @@ public final class Facility implements CanBeEmpty {
     String sunday;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(monday())
@@ -767,10 +782,12 @@ public final class Facility implements CanBeEmpty {
     String additionalInfo;
 
     @JsonProperty(value = "supplementalStatus", required = false)
+    @JsonAlias("supplemental_status")
     @Schema(description = "List of supplemental statuses for VA facility.", nullable = true)
     List<@Valid SupplementalStatus> supplementalStatuses;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(code())
@@ -800,6 +817,7 @@ public final class Facility implements CanBeEmpty {
     String label;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(id()) && isBlank(label());
@@ -852,6 +870,7 @@ public final class Facility implements CanBeEmpty {
     BigDecimal specialtyCareRoutine;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(primaryCareUrgent())
@@ -920,6 +939,7 @@ public final class Facility implements CanBeEmpty {
     String enrollmentCoordinator;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return isBlank(fax())
@@ -950,6 +970,7 @@ public final class Facility implements CanBeEmpty {
     LocalDate effectiveDate;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return (health() == null || health().isEmpty()) && ObjectUtils.isEmpty(effectiveDate());
@@ -960,6 +981,7 @@ public final class Facility implements CanBeEmpty {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"health", "benefits", "other", "link", "lastUpdated"})
   @JsonSerialize(using = ServicesSerializer.class)
   @Schema(
       description = "All services offered by a facility grouped by service type.",
@@ -969,23 +991,31 @@ public final class Facility implements CanBeEmpty {
         arraySchema =
             @Schema(
                 description =
-                    "List of other services not included in one of the other service categories.",
+                    "List of other service objects not included in one of the other "
+                        + "service categories.",
                 nullable = true))
-    List<OtherService> other;
+    List<Service<OtherService>> other;
 
     @ArraySchema(
         arraySchema =
             @Schema(
-                description = "List of health services " + "for given facility.",
+                description = "List of health service objects " + "for given facility.",
                 nullable = true))
-    List<HealthService> health;
+    List<Service<HealthService>> health;
 
     @ArraySchema(
         arraySchema =
             @Schema(
-                description = "List of benefits services " + "for given facility.",
+                description = "List of benefits service objects " + "for given facility.",
                 nullable = true))
-    List<BenefitsService> benefits;
+    List<Service<BenefitsService>> benefits;
+
+    @Schema(
+        description = "Base services link for services at facility.",
+        example = "http://api.va.gov/services/va_facilities/v1/facilities/vha_558GA/services/",
+        nullable = true)
+    @JsonProperty(value = "link")
+    String link;
 
     @Schema(
         description = "Date of the most recent change in offered services.",
@@ -994,12 +1024,108 @@ public final class Facility implements CanBeEmpty {
     LocalDate lastUpdated;
 
     /** Empty elements will be omitted from JSON serialization. */
+    @Override
     @JsonIgnore
     public boolean isEmpty() {
       return ObjectUtils.isEmpty(other())
           && ObjectUtils.isEmpty(health())
           && ObjectUtils.isEmpty(benefits())
           && ObjectUtils.isEmpty(lastUpdated());
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonPropertyOrder({"name", "serviceId", "link"})
+  @AllArgsConstructor
+  public static final class Service<T extends TypedService>
+      implements CanBeEmpty, Comparable<Service<T>> {
+    @JsonIgnore @NotNull T serviceType;
+
+    @Schema(
+        description = "Name of facility service.",
+        example = "COVID-19 vaccines",
+        nullable = true)
+    @JsonProperty(value = "name")
+    String name;
+
+    @Schema(
+        description = "Unique identifier for facility service.",
+        example = "Covid19Vaccine",
+        nullable = true)
+    @JsonProperty(value = "serviceId")
+    @NonNull
+    String serviceId;
+
+    @Schema(
+        description = "Fully qualified link for facility service.",
+        example =
+            "http://api.va.gov/services/va_facilities/v1/facilities/vha_558GA/services/covid19Vaccine",
+        nullable = true)
+    @JsonProperty(value = "link")
+    @NotNull
+    String link;
+
+    /** Method used to compare Service objects based on unique service identifier. */
+    @Override
+    public int compareTo(@NotNull Service<T> service) {
+      return serviceId().compareTo(service.serviceId());
+    }
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @Override
+    public boolean isEmpty() {
+      return ObjectUtils.isEmpty(serviceType())
+          && StringUtils.isEmpty(name())
+          && StringUtils.isEmpty(serviceId())
+          && StringUtils.isEmpty(link());
+    }
+
+    /** Custom builder for setting ServiceType and serviceId attributes for Service. */
+    public static class ServiceBuilder<T extends TypedService> {
+      @NonNull private T serviceType;
+
+      @NonNull private String serviceId;
+
+      private String name;
+
+      /** Set both serviceType and serviceId attributes based on serviceId. */
+      @SuppressWarnings("unchecked")
+      public ServiceBuilder<T> serviceId(@NonNull String serviceId) {
+        // Determine whether service id is recognized
+        final Optional<?> typedService =
+            HealthService.isRecognizedServiceId(serviceId)
+                ? HealthService.fromServiceId(serviceId)
+                : BenefitsService.isRecognizedServiceId(serviceId)
+                    ? BenefitsService.fromServiceId(serviceId)
+                    : OtherService.isRecognizedServiceId(serviceId)
+                        ? OtherService.fromServiceId(serviceId)
+                        : Optional.empty();
+        if (typedService.isPresent()) {
+          this.serviceId = serviceId;
+          this.serviceType = (T) typedService.get();
+          if (StringUtils.isEmpty(name)) {
+            this.name = serviceType.name();
+          }
+        } else {
+          // Unrecognized service id
+          this.serviceId = TypedService.INVALID_SVC_ID;
+          this.serviceType = null;
+        }
+        return this;
+      }
+
+      /** Set both serviceType and serviceId attributes based on ServiceType. */
+      public ServiceBuilder<T> serviceType(@NonNull T serviceType) {
+        this.serviceType = serviceType;
+        this.serviceId = serviceType.serviceId();
+        if (StringUtils.isEmpty(name)) {
+          this.name = serviceType.name();
+        }
+        return this;
+      }
     }
   }
 }

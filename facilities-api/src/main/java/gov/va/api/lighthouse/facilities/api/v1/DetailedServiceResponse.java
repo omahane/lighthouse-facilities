@@ -23,6 +23,7 @@ public class DetailedServiceResponse implements CanBeEmpty {
   DetailedService data;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return data() == null || data().isEmpty();

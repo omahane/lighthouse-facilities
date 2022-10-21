@@ -129,9 +129,18 @@
         ],
         "services" : {
           "benefits" : [
-            "EducationAndCareerCounseling",
-            "VocationalRehabilitationAndEmploymentAssistance"
-          ]
+            {
+              "name" : "EducationAndCareerCounseling",
+              "serviceId" : "educationAndCareerCounseling",
+              "link" : "http://localhost/v1/facilities/vba_322b/services/educationAndCareerCounseling"
+            },
+            {
+              "name" : "VocationalRehabilitationAndEmploymentAssistance",
+              "serviceId" : "vocationalRehabilitationAndEmploymentAssistance",
+              "link" : "http://localhost/v1/facilities/vba_322b/services/vocationalRehabilitationAndEmploymentAssistance"
+            }
+          ],
+          "link" : "http://localhost/v1/facilities/vba_322b/services"
         },
         "operatingStatus" : {
           "code" : "NORMAL"
@@ -223,11 +232,28 @@
         ],
         "services" : {
           "health" : [
-            "emergencyCare",
-            "primaryCare",
-            "mentalHealth",
-            "dermatology"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare",
+              "link" : "http://localhost/v1/facilities/vha_402GA/services/emergencyCare"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare",
+              "link" : "http://localhost/v1/facilities/vha_402GA/services/primaryCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth",
+              "link" : "http://localhost/v1/facilities/vha_402GA/services/mentalHealth"
+            },
+            {
+              "name" : "Dermatology",
+              "serviceId" : "dermatology",
+              "link" : "http://localhost/v1/facilities/vha_402GA/services/dermatology"
+            }
           ],
+          "link" : "http://localhost/v1/facilities/vha_402GA/services",
           "lastUpdated" : "2020-02-24"
         },
         "satisfaction" : {
@@ -238,7 +264,6 @@
           "effectiveDate" : "2019-06-20"
         },
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },

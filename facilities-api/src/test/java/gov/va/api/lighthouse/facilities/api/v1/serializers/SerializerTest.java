@@ -1,5 +1,8 @@
 package gov.va.api.lighthouse.facilities.api.v1.serializers;
 
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.api.v1.SerializerUtil.createMapper;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -677,8 +680,30 @@ public class SerializerTest {
     services = Facility.Services.builder().health(emptyList()).build();
     assertJsonIsEmpty(services);
     // Not empty
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_402";
     services =
-        Facility.Services.builder().benefits(List.of(Facility.BenefitsService.Pensions)).build();
-    assertJson(services, "{\"benefits\":[\"Pensions\"]}");
+        Facility.Services.builder()
+            .benefits(
+                List.of(
+                    Facility.Service.<Facility.BenefitsService>builder()
+                        .serviceType(Facility.BenefitsService.Pensions)
+                        .name(Facility.BenefitsService.Pensions.name())
+                        .link(
+                            buildTypedServiceLink(
+                                linkerUrl,
+                                facilityId,
+                                Facility.BenefitsService.Pensions.serviceId()))
+                        .build()))
+            .link(buildServicesLink(linkerUrl, facilityId))
+            .build();
+    assertJson(
+        services,
+        "{\"benefits\":["
+            + "{\"name\":\"Pensions\","
+            + "\"serviceId\":\"pensions\","
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services/pensions\"}"
+            + "],"
+            + "\"link\":\"http://foo/bar/v1/facilities/vha_402/services\"}");
   }
 }

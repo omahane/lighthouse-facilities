@@ -36,7 +36,6 @@
           "More hours are available for some services. To learn more, call our main phone number."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -78,7 +77,6 @@
           "More hours are available for some services. To learn more, call our main phone number."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -121,7 +119,6 @@
           "If you need to talk to someone or get advice right away, call the Vet Center anytime at 1-877-WAR-VETS (1-877-927-8387)."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -163,7 +160,6 @@
           "More hours are available for some services. To learn more, call our main phone number."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -205,7 +201,6 @@
           "More hours are available for some services. To learn more, call our main phone number."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -249,7 +244,6 @@
           "If you need to talk to someone or get advice right away, call the Vet Center anytime at 1-877-WAR-VETS (1-877-927-8387)."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -291,7 +285,6 @@
           "If you need to talk to someone or get advice right away, call the Vet Center anytime at 1-877-WAR-VETS (1-877-927-8387)."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -333,7 +326,6 @@
           "More hours are available for some services. To learn more, call our main phone number."
         ],
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -378,11 +370,26 @@
         },
         "services" : {
           "health" : [
-            "emergencyCare",
-            "gynecology",
-            "mentalHealth",
-            "primaryCare",
-            "womensHealth"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare"
+            },
+            {
+              "name" : "Gynecology",
+              "serviceId" : "gynecology"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            },
+            {
+              "name" : "WomensHealth",
+              "serviceId" : "womensHealth"
+            }
           ],
           "lastUpdated" : "2020-03-09"
         },
@@ -394,7 +401,6 @@
           "effectiveDate" : "2019-06-20"
         },
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },
@@ -439,14 +445,22 @@
         },
         "services" : {
           "health" : [
-            "emergencyCare",
-            "mentalHealth",
-            "primaryCare"
+            {
+              "name" : "EmergencyCare",
+              "serviceId" : "emergencyCare"
+            },
+            {
+              "name" : "MentalHealth",
+              "serviceId" : "mentalHealth"
+            },
+            {
+              "name" : "PrimaryCare",
+              "serviceId" : "primaryCare"
+            }
           ],
           "lastUpdated" : "2020-03-09"
         },
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },

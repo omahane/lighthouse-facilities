@@ -16,6 +16,7 @@ public class CmsOverlayResponse implements CanBeEmpty {
   @Builder.Default CmsOverlay overlay = null;
 
   /** Empty elements will be omitted from JSON serialization. */
+  @Override
   @JsonIgnore
   public boolean isEmpty() {
     return overlay() == null || overlay().isEmpty();

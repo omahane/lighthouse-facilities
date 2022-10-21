@@ -22,11 +22,14 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.ActiveStatus;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
+import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Hours;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientSatisfaction;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Phone;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Satisfaction;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
 import java.math.BigDecimal;
@@ -179,6 +182,7 @@ class HealthsCollectorJpaTest {
                 .atcBaseUrl("http://atc/")
                 .atpBaseUrl("http://atp/")
                 .cscFacilities(new ArrayList<>())
+                .orthoFacilities(new ArrayList<>())
                 .jdbcTemplate(jdbcTemplate)
                 .insecureRestTemplate(insecureRestTemplate)
                 .vastEntities(List.of(entity))
@@ -235,12 +239,36 @@ class HealthsCollectorJpaTest {
                                 Services.builder()
                                     .health(
                                         List.of(
-                                            Audiology,
-                                            Dental,
-                                            EmergencyCare,
-                                            Nutrition,
-                                            Podiatry,
-                                            UrgentCare))
+                                            Service.<HealthService>builder()
+                                                .serviceType(Audiology)
+                                                .name(Audiology.name())
+                                                .source(Source.ATC)
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(Dental)
+                                                .name(Dental.name())
+                                                .source(Source.DST)
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(EmergencyCare)
+                                                .name(EmergencyCare.name())
+                                                .source(Source.ATC)
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(Nutrition)
+                                                .name(Nutrition.name())
+                                                .source(Source.DST)
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(Podiatry)
+                                                .name(Podiatry.name())
+                                                .source(Source.DST)
+                                                .build(),
+                                            Service.<HealthService>builder()
+                                                .serviceType(UrgentCare)
+                                                .name(UrgentCare.name())
+                                                .source(Source.ATC)
+                                                .build()))
                                     .lastUpdated(LocalDate.parse("2020-03-02"))
                                     .build())
                             .satisfaction(

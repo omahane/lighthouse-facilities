@@ -1,52 +1,88 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.FacilityAttributes;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService;
+import gov.va.api.lighthouse.facilities.api.v1.Facility.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class FacilityOverlayV1Test {
   private static final ObjectMapper MAPPER_V1 = FacilitiesJacksonConfigV1.createMapper();
 
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
+  private String facilityId;
+
+  private String linkerUrl;
 
   private void assertAttributes(
-      List<Facility.HealthService> expectedHealthServices, FacilityEntity entity) {
-    Facility facility = FacilityOverlayV1.builder().build().apply(entity);
-    assertThat(facility.attributes().services().health()).isEqualTo(expectedHealthServices);
+      List<Facility.Service<Facility.HealthService>> expectedHealthServices,
+      @NonNull FacilityEntity entity,
+      @NonNull String linkerUrl) {
+    Facility facility =
+        FacilityOverlayV1.builder()
+            .build()
+            .apply(entity, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL"));
+    assertThat(facility.attributes().services().health())
+        .usingRecursiveComparison()
+        .isEqualTo(expectedHealthServices);
   }
 
   @Test
   void covid19VaccineIsPopulatedWhenAvailable() {
     assertAttributes(
-        List.of(Facility.HealthService.Covid19Vaccine),
+        List.of(
+            Service.<HealthService>builder()
+                .serviceType(HealthService.Covid19Vaccine)
+                .name(HealthService.Covid19Vaccine.name())
+                .link(
+                    buildTypedServiceLink(
+                        linkerUrl, facilityId, HealthService.Covid19Vaccine.serviceId()))
+                .build()),
         entity(
             facility(
                 Facility.Services.builder()
-                    .health(List.of(Facility.HealthService.Covid19Vaccine))
-                    .build()),
-            overlay(true)));
-    assertAttributes(null, entity(facility(Facility.Services.builder().build()), overlay(false)));
+                    .health(
+                        List.of(
+                            Service.<HealthService>builder()
+                                .serviceType(HealthService.Covid19Vaccine)
+                                .name(HealthService.Covid19Vaccine.name())
+                                .build()))
+                    .build(),
+                facilityId),
+            overlay(true)),
+        linkerUrl);
+    assertAttributes(
+        emptyList(),
+        entity(facility(Facility.Services.builder().build(), facilityId), overlay(false)),
+        linkerUrl);
   }
 
   private DetailedService createDetailedService(boolean cmsServiceActiveValue) {
     return DetailedService.builder()
         .serviceInfo(
             DetailedService.ServiceInfo.builder()
-                .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
+                .serviceId(HealthService.Covid19Vaccine.serviceId())
                 .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
-                .serviceType(Facility.HealthService.Covid19Vaccine.serviceType())
+                .serviceType(HealthService.Covid19Vaccine.serviceType())
                 .build())
         .active(cmsServiceActiveValue)
         .changed("2021-02-04T22:36:49+00:00")
@@ -118,9 +154,13 @@ public class FacilityOverlayV1Test {
         }
       }
     }
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facility);
+    if (df.attributes().services().health() != null) {
+      df.attributes().services().health().stream().forEach(hs -> hs.source(Source.CMS));
+    }
+
     return FacilityEntity.builder()
-        .facility(
-            DATAMART_MAPPER.writeValueAsString(FacilityTransformerV1.toVersionAgnostic(facility)))
+        .facility(DATAMART_MAPPER.writeValueAsString(df))
         .cmsOperatingStatus(
             overlay == null ? null : MAPPER_V1.writeValueAsString(overlay.operatingStatus()))
         .overlayServices(overlay == null ? null : detailedServices)
@@ -129,8 +169,9 @@ public class FacilityOverlayV1Test {
         .build();
   }
 
-  private Facility facility(Facility.Services services) {
+  private Facility facility(Facility.Services services, @NonNull String facilityId) {
     return Facility.builder()
+        .id(facilityId)
         .attributes(FacilityAttributes.builder().services(services).build())
         .build();
   }
@@ -139,5 +180,13 @@ public class FacilityOverlayV1Test {
     return CmsOverlay.builder()
         .detailedServices(List.of(createDetailedService(cmsServiceActiveValue)))
         .build();
+  }
+
+  @BeforeEach
+  void setup() {
+    facilityId = "vha_402";
+    final var baseUrl = "http://foo/";
+    final var basePath = "";
+    linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
   }
 }

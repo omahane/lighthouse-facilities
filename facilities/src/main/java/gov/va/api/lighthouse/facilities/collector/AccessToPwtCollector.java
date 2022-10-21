@@ -21,13 +21,14 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -63,35 +64,39 @@ public class AccessToPwtCollector {
         .orElse(null);
   }
 
-  @SneakyThrows
   private ListMultimap<String, AccessToPwtEntry> loadAccessToPwt() {
-    Stopwatch watch = Stopwatch.createStarted();
-    String url =
-        UriComponentsBuilder.fromHttpUrl(atpBaseUrl + "Shep/getRawData")
-            .queryParam("location", "*")
-            .build()
-            .toUriString();
-    String response =
-        insecureRestTemplateProvider
-            .restTemplate()
-            .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class)
-            .getBody();
-    List<AccessToPwtEntry> entries =
-        JacksonConfig.createMapper()
-            .readValue(response, new TypeReference<List<AccessToPwtEntry>>() {});
     ListMultimap<String, AccessToPwtEntry> map = ArrayListMultimap.create();
-    for (AccessToPwtEntry entry : entries) {
-      if (entry.facilityId() == null) {
-        log.warn("AccessToPwt entry has null facility ID");
-        continue;
+    try {
+      Stopwatch watch = Stopwatch.createStarted();
+      String url =
+          UriComponentsBuilder.fromHttpUrl(atpBaseUrl + "Shep/getRawData")
+              .queryParam("location", "*")
+              .build()
+              .toUriString();
+      final ResponseEntity<String> response =
+          insecureRestTemplateProvider
+              .restTemplate()
+              .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class);
+      if (response.getStatusCode() == HttpStatus.OK) {
+        List<AccessToPwtEntry> entries =
+            JacksonConfig.createMapper()
+                .readValue(response.getBody(), new TypeReference<List<AccessToPwtEntry>>() {});
+        for (AccessToPwtEntry entry : entries) {
+          if (entry.facilityId() == null) {
+            log.warn("AccessToPwt entry has null facility ID");
+            continue;
+          }
+          map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+        }
+        log.info(
+            "Loading satisfaction scores took {} millis for {} entries",
+            watch.stop().elapsed(TimeUnit.MILLISECONDS),
+            entries.size());
+        checkState(!entries.isEmpty(), "No AccessToPwt entries");
       }
-      map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+    } catch (final Exception ex) {
+      log.error("Unable to load Access to Pwt data:", ex);
     }
-    log.info(
-        "Loading satisfaction scores took {} millis for {} entries",
-        watch.stop().elapsed(TimeUnit.MILLISECONDS),
-        entries.size());
-    checkState(!entries.isEmpty(), "No AccessToPwt entries");
     return ImmutableListMultimap.copyOf(map);
   }
 

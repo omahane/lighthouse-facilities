@@ -47,6 +47,12 @@ public class CmsOverlayControllerV0Test {
         .build();
   }
 
+  private DatamartCmsOverlay.Core core() {
+    return DatamartCmsOverlay.Core.builder()
+        .facilityUrl("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic")
+        .build();
+  }
+
   @Test
   public void exceptions() {
     var id = "vha_041";
@@ -311,6 +317,8 @@ public class CmsOverlayControllerV0Test {
             .healthCareSystem(
                 DatamartFacilitiesJacksonConfig.createMapper()
                     .writeValueAsString(healthCareSystem()))
+            .core(
+                DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString((overlay.core())))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
@@ -321,7 +329,9 @@ public class CmsOverlayControllerV0Test {
     ResponseEntity<CmsOverlayResponse> response = controller().getOverlay("vha_402");
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
+    // It is expected that we don't show facility url in cms overlay response.
     assertThat(response.getBody().overlay())
+        .usingRecursiveComparison()
         .isEqualTo(CmsOverlayTransformerV0.toCmsOverlay(overlay));
   }
 
@@ -343,6 +353,7 @@ public class CmsOverlayControllerV0Test {
 
   private DatamartCmsOverlay overlay() {
     return DatamartCmsOverlay.builder()
+        .core(core())
         .operatingStatus(
             DatamartFacility.OperatingStatus.builder()
                 .code(DatamartFacility.OperatingStatusCode.NOTICE)
@@ -823,6 +834,10 @@ public class CmsOverlayControllerV0Test {
             DetailedServiceTransformerV0.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
         .containsAll(combinedServices);
+    // Verify that facility_url is saved in database
+    CmsOverlayEntity savedCmsOverlayEntity = mockCmsOverlayRepository.findById(pk).get();
+    assertThat(CmsOverlayHelper.getCore(savedCmsOverlayEntity.core()).facilityUrl())
+        .isEqualTo("https://www.va.gov/phoenix-health-care/locations/payson-va-clinic");
   }
 
   @Test

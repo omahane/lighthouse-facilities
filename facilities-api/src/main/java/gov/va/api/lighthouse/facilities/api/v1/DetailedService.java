@@ -1,10 +1,12 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -185,6 +187,21 @@ public class DetailedService implements CanBeEmpty {
             ? ServiceInfo.builder().name(serviceName).build()
             : serviceInfo().name(serviceName));
     return this;
+  }
+
+  public enum ServiceType {
+    @JsonProperty("benefits")
+    Benefits,
+    @JsonProperty("health")
+    Health,
+    @JsonProperty("other")
+    Other;
+
+    /** Ensure that Jackson can create ServiceType enum regardless of capitalization. */
+    @JsonCreator
+    public static ServiceType fromString(String name) {
+      return valueOf(capitalize(name));
+    }
   }
 
   @Data

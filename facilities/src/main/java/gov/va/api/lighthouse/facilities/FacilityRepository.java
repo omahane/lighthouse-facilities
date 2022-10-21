@@ -54,10 +54,102 @@ public interface FacilityRepository
     }
   }
 
+  @Builder
+  @Value
+  @EqualsAndHashCode(callSuper = false)
+  class FacilitySpecificationHelper extends ServicesSpecificationHelper {
+    VisnSpecification visn;
+
+    FacilityTypeSpecification facilityType;
+
+    MobileSpecification mobile;
+
+    BoundingBoxSpecification boundingBox;
+
+    StateSpecification state;
+
+    TypeServicesIdsSpecification ids;
+
+    ZipSpecification zip;
+
+    @Builder.Default Set<String> services = emptySet();
+
+    private static void addToPredicates(
+        Specification<FacilityEntity> spec,
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder,
+        List<Predicate> predicates) {
+      if (spec != null) {
+        predicates.add(spec.toPredicate(root, criteriaQuery, criteriaBuilder));
+      }
+    }
+
+    @Override
+    public Predicate toPredicate(
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder) {
+      List<Predicate> predicates = new ArrayList<>();
+      addToPredicates(visn, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(facilityType, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(mobile, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(boundingBox, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(state, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(ids, root, criteriaQuery, criteriaBuilder, predicates);
+      addToPredicates(zip, root, criteriaQuery, criteriaBuilder, predicates);
+      if (!services.isEmpty()) {
+        predicates.add(buildServicesPredicate(root, criteriaBuilder, services));
+      }
+      return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    }
+  }
+
+  @Value
+  @Builder
+  final class VisnSpecification implements Specification<FacilityEntity> {
+    @NonNull String visn;
+
+    @Override
+    public Predicate toPredicate(
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder) {
+      return criteriaBuilder.equal(root.get("visn"), visn);
+    }
+  }
+
+  @Value
+  @Builder
+  final class FacilityTypeSpecification implements Specification<FacilityEntity> {
+    @NonNull FacilityEntity.Type facilityType;
+
+    public Predicate toPredicate(
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder) {
+      return criteriaBuilder.equal(root.get("id").get("type"), facilityType);
+    }
+  }
+
+  @Value
+  @Builder
+  final class MobileSpecification implements Specification<FacilityEntity> {
+    @NonNull Boolean mobile;
+
+    @Override
+    public Predicate toPredicate(
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder) {
+      return criteriaBuilder.equal(root.get("mobile"), mobile);
+    }
+  }
+
   @Value
   @Builder
   @EqualsAndHashCode(callSuper = false)
-  final class BoundingBoxSpecification extends ServicesSpecificationHelper {
+  final class BoundingBoxSpecification implements Specification<FacilityEntity> {
     @NonNull BigDecimal minLongitude;
 
     @NonNull BigDecimal maxLongitude;
@@ -65,12 +157,6 @@ public interface FacilityRepository
     @NonNull BigDecimal minLatitude;
 
     @NonNull BigDecimal maxLatitude;
-
-    FacilityEntity.Type facilityType;
-
-    @Builder.Default Set<String> services = emptySet();
-
-    Boolean mobile;
 
     @Override
     @SneakyThrows
@@ -83,34 +169,15 @@ public interface FacilityRepository
       basePredicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("longitude"), maxLongitude));
       basePredicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("latitude"), minLatitude));
       basePredicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("latitude"), maxLatitude));
-      if (facilityType != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType));
-      }
-
-      if (mobile != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile));
-      }
-
-      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
-      if (isEmpty(services)) {
-        return combinedBase;
-      }
-      return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services));
+      return criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
     }
   }
 
   @Value
   @Builder
   @EqualsAndHashCode(callSuper = false)
-  final class StateSpecification extends ServicesSpecificationHelper {
+  final class StateSpecification implements Specification<FacilityEntity> {
     @NonNull String state;
-
-    FacilityEntity.Type facilityType;
-
-    @Builder.Default Set<String> services = emptySet();
-
-    Boolean mobile;
 
     @Override
     @SneakyThrows
@@ -118,22 +185,7 @@ public interface FacilityRepository
         Root<FacilityEntity> root,
         CriteriaQuery<?> criteriaQuery,
         CriteriaBuilder criteriaBuilder) {
-      List<Predicate> basePredicates = new ArrayList<>(2);
-      basePredicates.add(criteriaBuilder.equal(root.get("state"), state));
-      if (facilityType != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType));
-      }
-
-      if (mobile != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile));
-      }
-
-      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
-      if (isEmpty(services)) {
-        return combinedBase;
-      }
-      return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services));
+      return criteriaBuilder.equal(root.get("state"), state);
     }
   }
 
@@ -156,14 +208,11 @@ public interface FacilityRepository
       if (isEmpty(stationNumbers)) {
         return criteriaBuilder.isTrue(criteriaBuilder.literal(false));
       }
-
       List<Predicate> basePredicates = new ArrayList<>(2);
-
       CriteriaBuilder.In<String> stationsInClause =
           criteriaBuilder.in(root.get("id").get("stationNumber"));
       stationNumbers.forEach(stationsInClause::value);
       basePredicates.add(stationsInClause);
-
       if (facilityType != null) {
         basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType));
       }
@@ -180,14 +229,8 @@ public interface FacilityRepository
   @Value
   @Builder
   @EqualsAndHashCode(callSuper = false)
-  final class TypeServicesIdsSpecification extends ServicesSpecificationHelper {
+  final class TypeServicesIdsSpecification implements Specification<FacilityEntity> {
     @Builder.Default Collection<FacilityEntity.Pk> ids = emptySet();
-
-    FacilityEntity.Type facilityType;
-
-    @Builder.Default Set<String> services = emptySet();
-
-    Boolean mobile;
 
     @Override
     @SneakyThrows
@@ -201,34 +244,15 @@ public interface FacilityRepository
         ids.forEach(idsInClause::value);
         basePredicates.add(idsInClause);
       }
-      if (facilityType != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType));
-      }
-
-      if (mobile != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile));
-      }
-
-      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
-      if (isEmpty(services)) {
-        return combinedBase;
-      }
-      return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services));
+      return criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
     }
   }
 
   @Value
   @Builder
   @EqualsAndHashCode(callSuper = false)
-  final class ZipSpecification extends ServicesSpecificationHelper {
+  final class ZipSpecification implements Specification<FacilityEntity> {
     @NonNull String zip;
-
-    FacilityEntity.Type facilityType;
-
-    @Builder.Default Set<String> services = emptySet();
-
-    Boolean mobile;
 
     @Override
     @SneakyThrows
@@ -236,22 +260,7 @@ public interface FacilityRepository
         Root<FacilityEntity> root,
         CriteriaQuery<?> criteriaQuery,
         CriteriaBuilder criteriaBuilder) {
-      List<Predicate> basePredicates = new ArrayList<>(2);
-      basePredicates.add(criteriaBuilder.equal(root.get("zip"), zip));
-      if (facilityType != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType));
-      }
-
-      if (mobile != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile));
-      }
-
-      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
-      if (isEmpty(services)) {
-        return combinedBase;
-      }
-      return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services));
+      return criteriaBuilder.equal(root.get("zip"), zip);
     }
   }
 }

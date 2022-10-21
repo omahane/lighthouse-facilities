@@ -1,5 +1,7 @@
 package gov.va.api.lighthouse.facilities.api.v1;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,6 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 @JsonSerialize(using = CmsOverlaySerializer.class)
 @Schema(description = "Data provided by CMS to Facilities to be applied on top of known data.")
 public class CmsOverlay implements CanBeEmpty {
+
+  @Valid Core core;
+
   @JsonAlias("operating_status")
   @Valid
   Facility.OperatingStatus operatingStatus;
@@ -37,7 +42,8 @@ public class CmsOverlay implements CanBeEmpty {
   @Override
   @JsonIgnore
   public boolean isEmpty() {
-    return (operatingStatus() == null || operatingStatus().isEmpty())
+    return (core() == null || core().isEmpty())
+        && (operatingStatus() == null || operatingStatus().isEmpty())
         && ObjectUtils.isEmpty(detailedServices())
         && (healthCareSystem() == null || healthCareSystem().isEmpty());
   }
@@ -84,6 +90,26 @@ public class CmsOverlay implements CanBeEmpty {
           && StringUtils.isEmpty(url())
           && StringUtils.isEmpty(covidUrl())
           && StringUtils.isEmpty(healthConnectPhone());
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
+  @Schema(description = "Contain information on core facility fields", nullable = true)
+  public static final class Core implements CanBeEmpty {
+    @Schema(
+        description = "Facility url",
+        example = "https://www.va.gov/phoenix-health-care/locations/payson-va-clinic",
+        nullable = true)
+    @JsonAlias("facility_url")
+    String facilityUrl;
+
+    /** Empty elements will be omitted from JSON serialization. */
+    @Override
+    public boolean isEmpty() {
+      return isBlank(facilityUrl);
     }
   }
 }

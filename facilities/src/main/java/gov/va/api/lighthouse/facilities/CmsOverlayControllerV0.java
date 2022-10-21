@@ -82,6 +82,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
+                        .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);

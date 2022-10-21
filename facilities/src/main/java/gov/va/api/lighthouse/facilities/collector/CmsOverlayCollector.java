@@ -205,6 +205,7 @@ public class CmsOverlayCollector extends BaseCmsOverlayHandler {
     try {
       overlay =
           DatamartCmsOverlay.builder()
+              .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
               .operatingStatus(
                   CmsOverlayHelper.getOperatingStatus(cmsOverlayEntity.cmsOperatingStatus()))
               .detailedServices(
@@ -224,6 +225,7 @@ public class CmsOverlayCollector extends BaseCmsOverlayHandler {
         cmsOverlayRepository.save(
             CmsOverlayEntity.builder()
                 .id(cmsOverlayEntity.id())
+                .core(CmsOverlayHelper.serializeCore(overlay.core()))
                 .cmsOperatingStatus(CmsOverlayHelper.serializeOperatingStatus(operatingStatus))
                 .cmsServices(CmsOverlayHelper.serializeDetailedServices(detailedServices))
                 .overlayServices(cmsOverlayEntity.overlayServices())

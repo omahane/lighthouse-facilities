@@ -20,11 +20,12 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
@@ -74,7 +75,6 @@ public abstract class BaseAccessToCareHandler implements IsAtcAware {
         : HEALTH_SERVICES.get(trimToEmpty(upperCase(atc.apptTypeName(), Locale.US)));
   }
 
-  @SneakyThrows
   private ImmutableListMultimap<String, AccessToCareEntry> loadAccessToCare() {
     ListMultimap<String, AccessToCareEntry> map = ArrayListMultimap.create();
     try {
@@ -83,31 +83,31 @@ public abstract class BaseAccessToCareHandler implements IsAtcAware {
           UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "atcapis/v1.1/patientwaittimes")
               .build()
               .toUriString();
-      String response =
+      final ResponseEntity<String> response =
           insecureRestTemplateProvider
               .restTemplate()
-              .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class)
-              .getBody();
-      List<AccessToCareEntry> entries =
-          JacksonConfig.createMapper()
-              .readValue(response, new TypeReference<List<AccessToCareEntry>>() {});
-      entries.stream()
-          .forEach(
-              entry -> {
-                if (entry.facilityId() == null) {
-                  log.warn("AccessToCare entry has null facility ID");
-                } else {
-                  map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
-                }
-              });
-      log.info(
-          "Loading patient wait times took {} millis for {} entries",
-          totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-          entries.size());
-      checkState(!entries.isEmpty(), "No AccessToCare entries");
+              .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class);
+      if (response.getStatusCode() == HttpStatus.OK) {
+        List<AccessToCareEntry> entries =
+            JacksonConfig.createMapper()
+                .readValue(response.getBody(), new TypeReference<List<AccessToCareEntry>>() {});
+        entries.stream()
+            .forEach(
+                entry -> {
+                  if (entry.facilityId() == null) {
+                    log.warn("AccessToCare entry has null facility ID");
+                  } else {
+                    map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+                  }
+                });
+        log.info(
+            "Loading patient wait times took {} millis for {} entries",
+            totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
+            entries.size());
+        checkState(!entries.isEmpty(), "No AccessToCare entries");
+      }
     } catch (final Exception ex) {
-      log.error("Issue with loading Access To Care data", ex);
-      throw new CollectorExceptions.AccessToCareCollectorException(ex);
+      log.error("Unable to load Access To Care data:", ex);
     }
     return ImmutableListMultimap.copyOf(map);
   }

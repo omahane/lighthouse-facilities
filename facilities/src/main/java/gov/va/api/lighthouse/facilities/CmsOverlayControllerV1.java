@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -37,6 +38,7 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,29 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
   }
 
+  /** Filter DetailedServices using serviceIds and serviceType parameters. */
+  public static List<DetailedService> filterServices(
+      List<DetailedService> services, String serviceType, List<String> serviceIds) {
+    Predicate<DetailedService> isDetailedServiceIdPresent =
+        s -> serviceIds.contains(s.serviceInfo().serviceId());
+    Predicate<DetailedService> isDetailedServiceTypeValid =
+        s ->
+            EnumUtils.isValidEnum(
+                DetailedService.ServiceType.class, StringUtils.capitalize(serviceType));
+    Predicate<DetailedService> doesServiceTypeMatchDetailedServiceType =
+        s -> serviceType.equals(s.serviceInfo().serviceType().toString().toLowerCase());
+    if (!serviceIds.isEmpty()) {
+      services = services.stream().filter(isDetailedServiceIdPresent).collect(toList());
+    }
+    if (!serviceType.isEmpty()) {
+      services =
+          services.stream()
+              .filter(isDetailedServiceTypeValid.and(doesServiceTypeMatchDetailedServiceType))
+              .collect(toList());
+    }
+    return services;
+  }
+
   @GetMapping(
       value = {"/facilities/{id}/services/{service}"},
       produces = "application/json")
@@ -86,15 +111,21 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/facilities/{id}/services"},
+      value = {"/facilities/{facilityId}/services"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<DetailedServicesResponse> getDetailedServices(
-      @PathVariable("id") String facilityId,
+      @PathVariable("facilityId") String facilityId,
+      @RequestParam(value = "serviceIds", required = false, defaultValue = "")
+          List<String> serviceIds,
+      @RequestParam(value = "serviceType", required = false, defaultValue = "") String serviceType,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
     List<DetailedService> services =
-        DetailedServiceTransformerV1.toDetailedServices(getOverlayDetailedServices(facilityId));
+        filterServices(
+            DetailedServiceTransformerV1.toDetailedServices(getOverlayDetailedServices(facilityId)),
+            serviceType,
+            serviceIds);
     PageLinkerV1 linker =
         PageLinkerV1.builder()
             .url(buildServicesLink(linkerUrl, facilityId))
@@ -141,6 +172,7 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
+                        .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);

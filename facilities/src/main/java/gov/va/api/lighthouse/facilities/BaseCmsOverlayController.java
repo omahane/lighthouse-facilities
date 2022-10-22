@@ -4,6 +4,7 @@ import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.c
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.updateServiceUrlPaths;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.PatientWaitTime;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
@@ -15,12 +16,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class BaseCmsOverlayController {
   protected static final ObjectMapper DATAMART_MAPPER = createMapper();
@@ -78,6 +82,31 @@ public abstract class BaseCmsOverlayController {
     cmsDatamartDetailedServices.stream()
         .forEach(
             cmsService -> applyAtcWaitTimeToCmsService(cmsService, waitTimeMap, effectiveDate));
+  }
+
+  /** Determine whether a service with same service id and source is contained. */
+  protected <T extends TypedService> boolean containsSimilarService(
+      @NonNull Set<DatamartFacility.Service<T>> services,
+      @NonNull String svcId,
+      @NonNull DatamartFacility.Service.Source src) {
+    return services.parallelStream()
+        .anyMatch(s -> StringUtils.equals(s.serviceId(), svcId) && Objects.equals(s.source(), src));
+  }
+
+  /** Convert list of datamart service objects to set of datamart service object strings. */
+  @SneakyThrows
+  protected <T extends TypedService> Set<String> convertToSetOfVersionAgnosticStrings(
+      @NonNull List<DatamartFacility.Service<T>> facilityServices) {
+    return facilityServices.stream()
+        .map(
+            s -> {
+              try {
+                return DATAMART_MAPPER.writeValueAsString(s);
+              } catch (final JsonProcessingException ex) {
+                throw new RuntimeException(ex);
+              }
+            })
+        .collect(Collectors.toSet());
   }
 
   /** Filter out unrecognized datamart detailed services from overlay. */

@@ -28,12 +28,6 @@ final class CollectorExceptions {
     }
   }
 
-  static final class AccessToCareCollectorException extends CollectorException {
-    public AccessToCareCollectorException(Throwable cause) {
-      super(cause);
-    }
-  }
-
   static final class StateCemeteriesCollectorException extends CollectorException {
     public StateCemeteriesCollectorException(Throwable cause) {
       super(cause);

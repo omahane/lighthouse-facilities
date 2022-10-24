@@ -17,6 +17,7 @@ import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -57,7 +58,7 @@ public class DatamartDetailedService {
   boolean active;
 
   @JsonProperty("last_updated")
-  LocalDate lastUpdated;
+  LocalDateTime lastUpdated;
 
   @JsonProperty("appointment_leadin")
   String appointmentLeadIn;

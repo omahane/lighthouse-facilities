@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -60,7 +60,7 @@ public class DetailedService {
       nullable = true)
   @JsonProperty("last_updated")
   @JsonAlias("lastUpdated")
-  LocalDate lastUpdated;
+  LocalDateTime lastUpdated;
 
   @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
   @JsonProperty("description_facility")

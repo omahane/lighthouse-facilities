@@ -17,7 +17,7 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -195,11 +195,11 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   /** Record date when CMS uploaded overlay services. */
   private void markDateWhenCmsUploadedOverlayServices(@NonNull CmsOverlay overlay) {
     if (ObjectUtils.isNotEmpty(overlay.detailedServices())) {
-      final var currentDate = LocalDate.now(ZoneId.of("UTC").normalized());
+      final var currentDateTime = LocalDateTime.now(ZoneId.of("UTC").normalized());
       overlay.detailedServices().stream()
           .forEach(
               dds -> {
-                dds.lastUpdated(currentDate);
+                dds.lastUpdated(currentDateTime);
               });
     }
   }

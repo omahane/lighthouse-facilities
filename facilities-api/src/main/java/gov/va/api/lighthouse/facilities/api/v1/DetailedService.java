@@ -29,6 +29,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerial
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -81,7 +82,7 @@ public class DetailedService implements CanBeEmpty {
       example = "2021-02-04",
       nullable = true)
   @JsonAlias("last_updated")
-  LocalDate lastUpdated;
+  LocalDateTime lastUpdated;
 
   @Schema(
       description =

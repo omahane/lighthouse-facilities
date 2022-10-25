@@ -7,6 +7,7 @@ import static gov.va.api.lighthouse.facilities.api.v0.NearbyResponse.Type.Nearby
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ObjectUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -98,20 +100,43 @@ public class NearbyTest {
         .build();
   }
 
+  private PssgDriveTimeBand _emptyGeometryBand(
+      String stationNumber, int fromMinutes, int toMinutes) {
+    // DTB with no geometry previously lead to BufferUnderflowException
+    return PssgDriveTimeBand.builder()
+        .attributes(
+            PssgDriveTimeBand.Attributes.builder()
+                .stationNumber(stationNumber)
+                .fromBreak(fromMinutes)
+                .toBreak(toMinutes)
+                .build())
+        .build();
+  }
+
   @SneakyThrows
   private DriveTimeBandEntity _entity(PssgDriveTimeBand band) {
-    List<List<Double>> flatRings =
-        band.geometry().rings().stream().flatMap(r -> r.stream()).collect(toList());
+    // Empty geometry results in zeros for min/max lat/lon
+    double minLat = 0.0D, minLon = 0.0D, maxLat = 0.0D, maxLon = 0.0D;
+
+    if (band.geometry() != null && ObjectUtils.isNotEmpty(band.geometry().rings())) {
+      List<List<Double>> flatRings =
+          band.geometry().rings().stream().flatMap(r -> r.stream()).collect(toList());
+      minLon = flatRings.stream().mapToDouble(c -> c.get(0)).min().orElseThrow();
+      maxLon = flatRings.stream().mapToDouble(c -> c.get(0)).max().orElseThrow();
+      minLat = flatRings.stream().mapToDouble(c -> c.get(1)).min().orElseThrow();
+      maxLat = flatRings.stream().mapToDouble(c -> c.get(1)).max().orElseThrow();
+    }
+
     return DriveTimeBandEntity.builder()
         .id(
             DriveTimeBandEntity.Pk.of(
                 band.attributes().stationNumber(),
                 band.attributes().fromBreak(),
                 band.attributes().toBreak()))
-        .minLongitude(flatRings.stream().mapToDouble(c -> c.get(0)).min().orElseThrow())
-        .maxLongitude(flatRings.stream().mapToDouble(c -> c.get(0)).max().orElseThrow())
-        .minLatitude(flatRings.stream().mapToDouble(c -> c.get(1)).min().orElseThrow())
-        .maxLatitude(flatRings.stream().mapToDouble(c -> c.get(1)).max().orElseThrow())
+        .minLongitude(minLon)
+        .maxLongitude(maxLon)
+        .minLatitude(minLat)
+        .maxLatitude(maxLat)
         .band(PathEncoder.create().encodeToBase64(band))
         .build();
   }
@@ -293,6 +318,18 @@ public class NearbyTest {
                 .data(emptyList())
                 .meta(NearbyResponse.Meta.builder().bandVersion("Unknown").build())
                 .build());
+  }
+
+  @Test
+  void exceptions() {
+    final var baseUrl = "http://foo/";
+    final var basePath = "bp";
+    final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    driveTimeBandRepository.save(_entity(_emptyGeometryBand("757", 0, 10)));
+    // Test that BufferUnderflowException not thrown for DTB with no geometry
+    assertDoesNotThrow(
+        () -> _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, 90));
   }
 
   @Test

@@ -91,7 +91,6 @@ final class CsvTransformerV1 {
         attributes().map(a -> a.classification()).orElse(""),
         attributes().map(a -> a.website()).orElse(""),
         attributes().map(a -> a.mobile()).map(b -> b.toString()).orElse(""),
-        attributes().map(a -> a.activeStatus()).map(s -> s.toString()).orElse(""),
         attributes().map(a -> a.visn()).orElse(""),
         addressPhysical().map(a -> a.address1()).orElse(""),
         addressPhysical().map(a -> a.address2()).orElse(""),

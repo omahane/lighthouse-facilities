@@ -71,11 +71,6 @@ public final class Facility implements CanBeEmpty {
         && (attributes() == null || attributes().isEmpty());
   }
 
-  public enum ActiveStatus {
-    A,
-    T
-  }
-
   public enum BenefitsService implements TypedService {
     ApplyingForBenefits("applyingForBenefits"),
     BurialClaimAssistance("burialClaimAssistance"),
@@ -662,11 +657,6 @@ public final class Facility implements CanBeEmpty {
     @Schema(example = "false", nullable = true)
     Boolean mobile;
 
-    @Schema(
-        description = "This field is deprecated and replaced with \"operating_status\".",
-        nullable = true)
-    ActiveStatus activeStatus;
-
     @Valid
     @NotNull
     @JsonProperty(required = true)
@@ -694,7 +684,6 @@ public final class Facility implements CanBeEmpty {
           && (services() == null || services().isEmpty())
           && (satisfaction() == null || satisfaction().isEmpty())
           && ObjectUtils.isEmpty(mobile())
-          && ObjectUtils.isEmpty(activeStatus())
           && ObjectUtils.isEmpty(operatingStatus())
           && isBlank(visn());
     }

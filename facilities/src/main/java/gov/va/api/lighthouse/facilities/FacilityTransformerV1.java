@@ -14,7 +14,7 @@ import lombok.experimental.UtilityClass;
 
 /** Utility class for transforming DatamartFacility to version 1 facility object and back. */
 @UtilityClass
-public final class FacilityTransformerV1 extends BaseVersionedTransformer {
+public final class FacilityTransformerV1 {
   private static Facility.OperatingStatus determineOperatingStatusFromActiveStatus(
       DatamartFacility.ActiveStatus activeStatus) {
     return Facility.OperatingStatus.builder()
@@ -48,7 +48,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .services(
                         toFacilityServices(
                             df.attributes().services(), linkerUrl, serviceSources, df.id()))
-                    .activeStatus(toFacilityActiveStatus(df.attributes().activeStatus()))
                     .visn(df.attributes().visn())
                     .satisfaction(toFacilitySatisfaction(df.attributes().satisfaction()))
                     .operatingStatus(toFacilityOperatingStatus(df.attributes().operatingStatus()))
@@ -58,14 +57,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .build()
                 : null)
         .build();
-  }
-
-  /** Transform DatamartFacility active status to version 1 facility active status. */
-  private static Facility.ActiveStatus toFacilityActiveStatus(
-      DatamartFacility.ActiveStatus datamartFacilityActiveStatus) {
-    return (datamartFacilityActiveStatus != null)
-        ? Facility.ActiveStatus.valueOf(datamartFacilityActiveStatus.name())
-        : null;
   }
 
   /** Transform DatamartFacility address to version 1 facility address. */
@@ -259,11 +250,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     ? datamartFacilityServices.health().parallelStream()
                         .filter(
                             hs -> (hs.source != null && serviceSources.contains(hs.source.name())))
-                        .filter(
-                            e ->
-                                checkHealthServiceNameChange(e)
-                                    || containsValueOfName(
-                                        Facility.HealthService.values(), e.name()))
                         .map(e -> toFacilityHealthService(e, linkUrl, facilityId))
                         .filter(Objects::nonNull)
                         .distinct()
@@ -351,8 +337,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .timeZone(f.attributes().timeZone())
                     .mobile(f.attributes().mobile())
                     .services(toVersionAgnosticFacilityServices(f.attributes().services()))
-                    .activeStatus(
-                        toVersionAgnosticFacilityActiveStatus(f.attributes().activeStatus()))
                     .visn(f.attributes().visn())
                     .satisfaction(
                         toVersionAgnosticFacilitySatisfaction(f.attributes().satisfaction()))
@@ -364,14 +348,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
                     .build()
                 : null)
         .build();
-  }
-
-  /** Transform version 1 facility active status to DatamartFacility active status. */
-  private static DatamartFacility.ActiveStatus toVersionAgnosticFacilityActiveStatus(
-      Facility.ActiveStatus facilityActiveStatus) {
-    return (facilityActiveStatus != null)
-        ? DatamartFacility.ActiveStatus.valueOf(facilityActiveStatus.name())
-        : null;
   }
 
   /** Transform version 1 facility address to DatamartFacility address. */
@@ -554,11 +530,6 @@ public final class FacilityTransformerV1 extends BaseVersionedTransformer {
             .health(
                 (facilityServices.health() != null)
                     ? facilityServices.health().parallelStream()
-                        .filter(
-                            e ->
-                                checkHealthServiceNameChange(e)
-                                    || containsValueOfName(
-                                        DatamartFacility.HealthService.values(), e.name()))
                         .map(FacilityTransformerV1::toVersionAgnosticFacilityHealthService)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())

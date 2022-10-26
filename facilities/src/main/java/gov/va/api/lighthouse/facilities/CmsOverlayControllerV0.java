@@ -91,6 +91,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                         .healthCareSystem(
                             CmsOverlayHelper.getHealthCareSystem(
                                 cmsOverlayEntity.healthCareSystem()))
+                        .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
                         .build()))
             .build();
     return ResponseEntity.ok(response);
@@ -301,13 +302,11 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                 toSaveDetailedServices.isEmpty()
                     ? null
                     : toSaveDetailedServices.parallelStream()
-                        .filter(dds -> dds.active())
                         .filter(
                             dds ->
                                 HealthService.Covid19Vaccine.serviceId()
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
-
         List<String> disabledCmsServiceIds =
             overlay.detailedServices().stream()
                 .filter(dds -> !dds.active())

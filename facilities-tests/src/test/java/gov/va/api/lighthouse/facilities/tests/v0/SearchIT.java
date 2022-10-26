@@ -1,4 +1,4 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.v0;
 
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
@@ -6,11 +6,13 @@ import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDef
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
+import gov.va.api.lighthouse.facilities.tests.RequiresFacilitiesExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(RequiresFacilitiesExtension.class)
 public class SearchIT {
+
   @Test
   void searchByBoundingBox() {
     final String bbox = systemDefinition().ids().bbox();

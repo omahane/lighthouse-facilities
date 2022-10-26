@@ -35,7 +35,6 @@ public class FacilityAttributesSerializer extends NonEmptySerializer<FacilityAtt
     writeNonEmpty(jgen, "services", value.services());
     writeNonEmpty(jgen, "satisfaction", value.satisfaction());
     writeNonEmpty(jgen, "mobile", value.mobile());
-    writeNonEmpty(jgen, "activeStatus", value.activeStatus());
     writeNonEmpty(jgen, "operatingStatus", value.operatingStatus());
     writeNonEmpty(jgen, "visn", value.visn());
     jgen.writeEndObject();

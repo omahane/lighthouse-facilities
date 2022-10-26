@@ -4,12 +4,12 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>api-starter</artifactId>
-    <version>11.0.7</version>
+    <version>11.0.8</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities-api</artifactId>
-  <version>3.0.165-SNAPSHOT</version>
+  <version>3.0.173-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <github.repository-name>lighthouse-facilities</github.repository-name>

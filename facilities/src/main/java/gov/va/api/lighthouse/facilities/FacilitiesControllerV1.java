@@ -1,20 +1,20 @@
 package gov.va.api.lighthouse.facilities;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static gov.va.api.lighthouse.facilities.ControllersV1.convertToDatamartServices;
 import static gov.va.api.lighthouse.facilities.ControllersV1.page;
+import static gov.va.api.lighthouse.facilities.ControllersV1.validateBoundingBox;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateFacilityType;
+import static gov.va.api.lighthouse.facilities.ControllersV1.validateLatLong;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
 import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
-import static gov.va.api.lighthouse.facilities.FacilityUtils.entityIds;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
@@ -22,13 +22,12 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
@@ -36,10 +35,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,47 +58,77 @@ public class FacilitiesControllerV1 {
 
   private final String linkerUrl;
 
+  private final List<String> serviceSources;
+
   @Builder
   FacilitiesControllerV1(
       @Autowired FacilityRepository facilityRepository,
       @Value("${facilities.url}") String baseUrl,
-      @Value("${facilities.base-path}") String basePath) {
+      @Value("${facilities.base-path}") String basePath,
+      @Value("${facility-services-source-v1:}#{T(java.util.Collections).emptyList()}")
+          List<String> serviceSources) {
     this.facilityRepository = facilityRepository;
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
+    this.serviceSources =
+        serviceSources.stream()
+            .filter(s -> EnumUtils.isValidEnum(Source.class, s))
+            .collect(Collectors.toList());
   }
 
   @SneakyThrows
-  private static Facility facility(@NonNull HasFacilityPayload entity, @NonNull String linkerUrl) {
-    return FACILITY_OVERLAY.apply(entity, linkerUrl);
+  private static Facility facility(
+      @NonNull HasFacilityPayload entity, @NonNull String linkerUrl, List<String> serviceSources) {
+    return FACILITY_OVERLAY.apply(entity, linkerUrl, serviceSources);
   }
 
-  /** Get all facilities. */
-  @SneakyThrows
-  @GetMapping(
-      value = "/facilities",
-      produces = {"application/json"})
-  String all(
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    List<HasFacilityPayload> allFacilities = facilityRepository.findAllProjectedBy();
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(Parameters.builder().add("page", page).add("per_page", perPage).build())
-            .totalEntries(allFacilities.size())
+  private static FacilityRepository.BoundingBoxSpecification getBoundingBoxSpec(
+      List<BigDecimal> bbox) {
+    validateBoundingBox(bbox);
+    return bbox == null
+        ? null
+        : FacilityRepository.BoundingBoxSpecification.builder()
+            .minLongitude(bbox.get(0).min(bbox.get(2)))
+            .maxLongitude(bbox.get(0).max(bbox.get(2)))
+            .minLatitude(bbox.get(1).min(bbox.get(3)))
+            .maxLatitude(bbox.get(1).max(bbox.get(3)))
             .build();
-    return MAPPER_V1.writeValueAsString(
-        FacilitiesResponse.builder()
-            .data(
-                page(allFacilities, page, perPage).stream()
-                    .map(e -> facility(e, linkerUrl))
-                    .collect(toList()))
-            .links(linker.links())
-            .meta(
-                FacilitiesResponse.FacilitiesMetadata.builder()
-                    .pagination(linker.pagination())
-                    .build())
-            .build());
+  }
+
+  static FacilityRepository.FacilityTypeSpecification getFacilityTypeSpec(String type) {
+    FacilityEntity.Type validatedType = validateFacilityType(type);
+    return type == null
+        ? null
+        : FacilityRepository.FacilityTypeSpecification.builder()
+            .facilityType(validatedType)
+            .build();
+  }
+
+  private static FacilityRepository.TypeServicesIdsSpecification getIdsSpec(String ids) {
+    List<FacilityEntity.Pk> validIds;
+    validIds = FacilityUtils.entityIds(ids);
+    return validIds.isEmpty()
+        ? null
+        : FacilityRepository.TypeServicesIdsSpecification.builder().ids(validIds).build();
+  }
+
+  static FacilityRepository.MobileSpecification getMobileSpec(Boolean mobile) {
+    return mobile == null
+        ? null
+        : FacilityRepository.MobileSpecification.builder().mobile(mobile).build();
+  }
+
+  static FacilityRepository.StateSpecification getStateSpec(String state) {
+    return state == null
+        ? null
+        : FacilityRepository.StateSpecification.builder().state(state).build();
+  }
+
+  static FacilityRepository.VisnSpecification getVisnSpec(String visn) {
+    return visn == null ? null : FacilityRepository.VisnSpecification.builder().visn(visn).build();
+  }
+
+  static FacilityRepository.ZipSpecification getZipSpec(String zip) {
+    return zip == null ? null : FacilityRepository.ZipSpecification.builder().zip(zip).build();
   }
 
   /** Get all facilities as CSV. */
@@ -110,7 +138,12 @@ public class FacilitiesControllerV1 {
     List<List<String>> rows =
         facilityRepository.findAllProjectedBy().stream()
             .parallel()
-            .map(e -> CsvTransformerV1.builder().facility(facility(e, linkerUrl)).build().toRow())
+            .map(
+                e ->
+                    CsvTransformerV1.builder()
+                        .facility(facility(e, linkerUrl, serviceSources))
+                        .build()
+                        .toRow())
             .collect(toList());
     StringBuilder sb = new StringBuilder();
     try (CSVPrinter printer =
@@ -122,125 +155,6 @@ public class FacilitiesControllerV1 {
       }
       return sb.toString();
     }
-  }
-
-  private List<FacilityEntity> entitiesByBoundingBox(
-      List<BigDecimal> bbox, String rawType, List<String> rawServices, Boolean rawMobile) {
-    if (bbox.size() != 4) {
-      throw new ExceptionsUtils.InvalidParameter("bbox", bbox);
-    }
-    FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-
-    // lng lat lng lat
-    List<FacilityEntity> allEntities =
-        facilityRepository.findAll(
-            FacilityRepository.BoundingBoxSpecification.builder()
-                .minLongitude(bbox.get(0).min(bbox.get(2)))
-                .maxLongitude(bbox.get(0).max(bbox.get(2)))
-                .minLatitude(bbox.get(1).min(bbox.get(3)))
-                .maxLatitude(bbox.get(1).max(bbox.get(3)))
-                .facilityType(facilityType)
-                .services(datamartServices)
-                .mobile(rawMobile)
-                .build());
-    double centerLng = (bbox.get(0).doubleValue() + bbox.get(2).doubleValue()) / 2;
-    double centerLat = (bbox.get(1).doubleValue() + bbox.get(3).doubleValue()) / 2;
-    return allEntities.stream()
-        .sorted(
-            (left, right) ->
-                Double.compare(
-                    distance(left, centerLng, centerLat), distance(right, centerLng, centerLat)))
-        .collect(toList());
-  }
-
-  private List<FacilityEntity> entitiesByIds(String ids) {
-    List<FacilityEntity.Pk> pks = entityIds(ids);
-    Map<FacilityEntity.Pk, FacilityEntity> entities =
-        facilityRepository.findByIdIn(pks).stream()
-            .collect(toMap(e -> e.id(), Function.identity()));
-    return pks.stream().map(pk -> entities.get(pk)).filter(Objects::nonNull).collect(toList());
-  }
-
-  @SneakyThrows
-  private List<DistanceEntity> entitiesByLatLong(
-      BigDecimal longitude,
-      BigDecimal latitude,
-      Optional<BigDecimal> radius,
-      String ids,
-      String rawType,
-      List<String> rawServices,
-      Boolean rawMobile) {
-    FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    List<FacilityEntity> entities =
-        facilityRepository.findAll(
-            FacilityRepository.TypeServicesIdsSpecification.builder()
-                .ids(entityIds(ids))
-                .facilityType(facilityType)
-                .services(datamartServices)
-                .mobile(rawMobile)
-                .build());
-    double lng = longitude.doubleValue();
-    double lat = latitude.doubleValue();
-    return entities.stream()
-        .map(
-            e ->
-                DistanceEntity.builder()
-                    .entity(e)
-                    .distance(BigDecimal.valueOf(haversine(e, lng, lat)))
-                    .linkerUrl(linkerUrl)
-                    .build())
-        .filter(
-            radius.isPresent()
-                ? de -> radius.get().compareTo(de.distance().abs()) >= 0
-                : de -> true)
-        .sorted((left, right) -> left.distance().compareTo(right.distance()))
-        .collect(toList());
-  }
-
-  private Page<FacilityEntity> entitiesPageByState(
-      String rawState,
-      String rawType,
-      List<String> rawServices,
-      Boolean rawMobile,
-      int page,
-      int perPage) {
-    checkArgument(page >= 1);
-    checkArgument(perPage >= 1);
-    String state = rawState.trim().toUpperCase(Locale.US);
-    FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    return facilityRepository.findAll(
-        FacilityRepository.StateSpecification.builder()
-            .state(state)
-            .facilityType(facilityType)
-            .services(datamartServices)
-            .mobile(rawMobile)
-            .build(),
-        PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
-  }
-
-  private Page<FacilityEntity> entitiesPageByZip(
-      String rawZip,
-      String rawType,
-      List<String> rawServices,
-      Boolean rawMobile,
-      int page,
-      int perPage) {
-    checkArgument(page >= 1);
-    checkArgument(perPage >= 1);
-    FacilityEntity.Type facilityType = validateFacilityType(rawType);
-    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    String zip = rawZip.substring(0, Math.min(rawZip.length(), 5));
-    return facilityRepository.findAll(
-        FacilityRepository.ZipSpecification.builder()
-            .zip(zip)
-            .facilityType(facilityType)
-            .services(datamartServices)
-            .mobile(rawMobile)
-            .build(),
-        PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
   }
 
   private FacilityEntity entityById(String id) {
@@ -273,125 +187,150 @@ public class FacilitiesControllerV1 {
         .build();
   }
 
-  /** Get facilities by bounding box. */
+  private List<FacilityEntity> filterByBoundingBox(
+      List<BigDecimal> bbox, List<FacilityEntity> allEntities) {
+    double centerLng = (bbox.get(0).doubleValue() + bbox.get(2).doubleValue()) / 2;
+    double centerLat = (bbox.get(1).doubleValue() + bbox.get(3).doubleValue()) / 2;
+    return allEntities.stream()
+        .sorted(
+            (left, right) ->
+                Double.compare(
+                    distance(left, centerLng, centerLat), distance(right, centerLng, centerLat)))
+        .collect(toList());
+  }
+
+  private List<DistanceEntity> filterByLatLong(
+      BigDecimal latitude, BigDecimal longitude, BigDecimal rad, List<FacilityEntity> entities) {
+    double lng = longitude.doubleValue();
+    double lat = latitude.doubleValue();
+    Optional<BigDecimal> radius = Optional.ofNullable(rad);
+    return entities.stream()
+        .map(
+            e ->
+                DistanceEntity.builder()
+                    .entity(e)
+                    .distance(BigDecimal.valueOf(haversine(e, lng, lat)))
+                    .linkerUrl(linkerUrl)
+                    .serviceSources(serviceSources)
+                    .build())
+        .filter(
+            radius.isPresent()
+                ? de -> radius.get().compareTo(de.distance().abs()) >= 0
+                : de -> true)
+        .sorted((left, right) -> left.distance().compareTo(right.distance()))
+        .collect(toList());
+  }
+
+  @SneakyThrows
+  private Set<String> getServices(List<String> rawServices) {
+    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
+    Set<String> serviceStrings = new HashSet<>();
+    datamartServices.stream()
+        .forEach(
+            serviceType -> {
+              serviceSources.stream()
+                  .forEach(
+                      source -> {
+                        try {
+                          String service =
+                              MAPPER_V1.writeValueAsString(
+                                  DatamartFacility.Service.builder()
+                                      .serviceId(serviceType.serviceId())
+                                      .name(serviceType.name())
+                                      .source(Source.valueOf(source))
+                                      .build());
+                          serviceStrings.add(service);
+
+                        } catch (final JsonProcessingException ex) {
+                          throw new RuntimeException(ex);
+                        }
+                      });
+            });
+
+    return serviceStrings;
+  }
+
+  @SneakyThrows
   @GetMapping(
       value = "/facilities",
-      produces = "application/json",
-      params = {"bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
-  FacilitiesResponse jsonFacilitiesByBoundingBox(
-      @RequestParam(value = "bbox[]") List<BigDecimal> bbox,
-      @RequestParam(value = "type", required = false) String type,
-      @RequestParam(value = "services[]", required = false) List<String> services,
+      produces = {"application/json"})
+  FacilitiesResponse jsonFacilities(
+      @RequestParam(value = "bbox[]", required = false) List<BigDecimal> bbox,
+      @RequestParam(value = "state", required = false) String state,
+      @RequestParam(value = "zip", required = false) String zip,
+      @RequestParam(value = "type", required = false) String rawType,
+      @RequestParam(value = "lat", required = false) BigDecimal latitude,
+      @RequestParam(value = "long", required = false) BigDecimal longitude,
+      @RequestParam(value = "radius", required = false) BigDecimal radius,
+      @RequestParam(value = "facilityIds", required = false) String ids,
+      @RequestParam(value = "services[]", required = false) List<String> rawServices,
       @RequestParam(value = "mobile", required = false) Boolean mobile,
+      @RequestParam(value = "visn", required = false) String visn,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    List<FacilityEntity> entities = entitiesByBoundingBox(bbox, type, services, mobile);
+    validateLatLong(latitude, longitude, radius);
+    FacilityRepository.FacilitySpecificationHelper spec =
+        FacilityRepository.FacilitySpecificationHelper.builder()
+            .boundingBox(getBoundingBoxSpec(bbox))
+            .state(getStateSpec(state))
+            .zip(getZipSpec(zip))
+            .facilityType(getFacilityTypeSpec(rawType))
+            .ids(getIdsSpec(ids))
+            .services(getServices(rawServices))
+            .mobile(getMobileSpec(mobile))
+            .visn(getVisnSpec(visn))
+            .build();
+    List<FacilityEntity> entities = facilityRepository.findAll(spec);
+    List<FacilitiesResponse.Distance> distances = null;
+    List<Facility> facilitiesPage;
+    if (bbox == null && latitude != null && longitude != null) {
+      List<DistanceEntity> entitiesPage =
+          page(filterByLatLong(latitude, longitude, radius, entities), page, perPage);
+      distances =
+          entitiesPage.stream()
+              .map(
+                  e ->
+                      FacilitiesResponse.Distance.builder()
+                          .id(e.facility().id())
+                          .distance(e.distance().setScale(2, RoundingMode.HALF_EVEN))
+                          .build())
+              .collect(toList());
+      facilitiesPage =
+          entitiesPage.parallelStream().map(DistanceEntity::facility).collect(toList());
+    } else {
+      if (bbox != null && latitude == null && longitude == null) {
+        entities = filterByBoundingBox(bbox, entities);
+      } else {
+        entities.sort(Comparator.comparing(e -> e.id().toIdString()));
+      }
+      facilitiesPage =
+          page(entities, page, perPage).parallelStream()
+              .map(e -> facility(e, linkerUrl, serviceSources))
+              .collect(toList());
+    }
     PageLinkerV1 linker =
         PageLinkerV1.builder()
             .url(linkerUrl + "facilities")
             .params(
                 Parameters.builder()
                     .addAll("bbox[]", bbox)
-                    .addIgnoreNull("type", type)
-                    .addAll("services[]", services)
-                    .addIgnoreNull("mobile", mobile)
-                    .add("page", page)
-                    .add("per_page", perPage)
-                    .build())
-            .totalEntries(entities.size())
-            .build();
-    return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, linkerUrl))
-                .collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
-  }
-
-  /** Get facilities by IDs. */
-  @GetMapping(
-      value = "/facilities",
-      produces = "application/json",
-      params = {"!bbox[]", "ids", "!lat", "!long", "!radius", "!state", "!visn", "!zip"})
-  FacilitiesResponse jsonFacilitiesByIds(
-      @RequestParam(value = "ids") String ids,
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    List<FacilityEntity> entities = entitiesByIds(ids);
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(
-                Parameters.builder()
-                    .add("ids", ids)
-                    .add("page", page)
-                    .add("per_page", perPage)
-                    .build())
-            .totalEntries(entities.size())
-            .build();
-    return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, linkerUrl))
-                .collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
-  }
-
-  /** Get facilities by coordinates. */
-  @GetMapping(
-      value = "/facilities",
-      produces = "application/json",
-      params = {"!bbox[]", "lat", "long", "!state", "!visn", "!zip"})
-  FacilitiesResponse jsonFacilitiesByLatLong(
-      @RequestParam(value = "lat") BigDecimal latitude,
-      @RequestParam(value = "long") BigDecimal longitude,
-      @RequestParam(value = "radius", required = false) BigDecimal radius,
-      @RequestParam(value = "ids", required = false) String ids,
-      @RequestParam(value = "type", required = false) String type,
-      @RequestParam(value = "services[]", required = false) List<String> services,
-      @RequestParam(value = "mobile", required = false) Boolean mobile,
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    if (radius != null && radius.compareTo(BigDecimal.ZERO) < 0) {
-      throw new ExceptionsUtils.InvalidParameter("radius", radius);
-    }
-    List<DistanceEntity> entities =
-        entitiesByLatLong(
-            longitude, latitude, Optional.ofNullable(radius), ids, type, services, mobile);
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(
-                Parameters.builder()
-                    .add("lat", latitude)
-                    .add("long", longitude)
+                    .addIgnoreNull("state", state)
+                    .addIgnoreNull("zip", zip)
+                    .addIgnoreNull("type", rawType)
+                    .addIgnoreNull("lat", latitude)
+                    .addIgnoreNull("long", longitude)
                     .addIgnoreNull("radius", radius)
-                    .addIgnoreNull("type", type)
-                    .addAll("services[]", services)
+                    .addIgnoreNull("ids", ids)
+                    .addAll("services[]", rawServices)
                     .addIgnoreNull("mobile", mobile)
-                    .add("page", page)
-                    .add("per_page", perPage)
+                    .addIgnoreNull("visn", visn)
+                    .addIgnoreNull("page", page)
+                    .addIgnoreNull("per_page", perPage)
                     .build())
             .totalEntries(entities.size())
             .build();
-    List<DistanceEntity> entitiesPage = page(entities, page, perPage);
-    List<FacilitiesResponse.Distance> distances =
-        entitiesPage.stream()
-            .map(
-                e ->
-                    FacilitiesResponse.Distance.builder()
-                        .id(e.facility().id())
-                        .distance(e.distance().setScale(2, RoundingMode.HALF_EVEN))
-                        .build())
-            .collect(toList());
     return FacilitiesResponse.builder()
-        .data(entitiesPage.stream().map(e -> e.facility()).collect(toList()))
+        .data(facilitiesPage)
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder()
@@ -401,120 +340,12 @@ public class FacilitiesControllerV1 {
         .build();
   }
 
-  /** Get facilities by state. */
-  @GetMapping(
-      value = "/facilities",
-      produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "!radius", "state", "!visn", "!zip"})
-  FacilitiesResponse jsonFacilitiesByState(
-      @RequestParam(value = "state") String state,
-      @RequestParam(value = "type", required = false) String type,
-      @RequestParam(value = "services[]", required = false) List<String> services,
-      @RequestParam(value = "mobile", required = false) Boolean mobile,
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    Page<FacilityEntity> entitiesPage =
-        entitiesPageByState(state, type, services, mobile, page, Math.max(perPage, 1));
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(
-                Parameters.builder()
-                    .add("state", state)
-                    .addIgnoreNull("type", type)
-                    .addAll("services[]", services)
-                    .addIgnoreNull("mobile", mobile)
-                    .add("page", page)
-                    .add("per_page", perPage)
-                    .build())
-            .totalEntries((int) entitiesPage.getTotalElements())
-            .build();
-    return FacilitiesResponse.builder()
-        .data(
-            perPage == 0
-                ? emptyList()
-                : entitiesPage.stream().map(e -> facility(e, linkerUrl)).collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
-  }
-
-  /** Get facilities by VISN. */
-  @GetMapping(
-      value = "/facilities",
-      produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!type", "visn", "!zip"})
-  FacilitiesResponse jsonFacilitiesByVisn(
-      @RequestParam(value = "visn") String visn,
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    List<FacilityEntity> entities = facilityRepository.findByVisn(visn);
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(
-                Parameters.builder()
-                    .add("visn", visn)
-                    .add("page", page)
-                    .add("per_page", perPage)
-                    .build())
-            .totalEntries(entities.size())
-            .build();
-    return FacilitiesResponse.builder()
-        .data(
-            page(entities, page, perPage).stream()
-                .map(e -> facility(e, linkerUrl))
-                .collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
-  }
-
-  /** Get facilities by zip. */
-  @GetMapping(
-      value = "/facilities",
-      produces = "application/json",
-      params = {"!bbox[]", "!lat", "!long", "!radius", "!state", "!visn", "zip"})
-  FacilitiesResponse jsonFacilitiesByZip(
-      @RequestParam(value = "zip") String zip,
-      @RequestParam(value = "type", required = false) String type,
-      @RequestParam(value = "services[]", required = false) List<String> services,
-      @RequestParam(value = "mobile", required = false) Boolean mobile,
-      @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
-      @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    Page<FacilityEntity> entitiesPage =
-        entitiesPageByZip(zip, type, services, mobile, page, Math.max(perPage, 1));
-    PageLinkerV1 linker =
-        PageLinkerV1.builder()
-            .url(linkerUrl + "facilities")
-            .params(
-                Parameters.builder()
-                    .add("zip", zip)
-                    .addIgnoreNull("type", type)
-                    .addAll("services[]", services)
-                    .addIgnoreNull("mobile", mobile)
-                    .add("page", page)
-                    .add("per_page", perPage)
-                    .build())
-            .totalEntries((int) entitiesPage.getTotalElements())
-            .build();
-    return FacilitiesResponse.builder()
-        .data(
-            perPage == 0
-                ? emptyList()
-                : entitiesPage.stream().map(e -> facility(e, linkerUrl)).collect(toList()))
-        .links(linker.links())
-        .meta(
-            FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
-        .build();
-  }
-
   /** Read facility. */
   @GetMapping(value = "/facilities/{id}", produces = "application/json")
   FacilityReadResponse readJson(@PathVariable("id") String id) {
-    return FacilityReadResponse.builder().facility(facility(entityById(id), linkerUrl)).build();
+    return FacilityReadResponse.builder()
+        .facility(facility(entityById(id), linkerUrl, serviceSources))
+        .build();
   }
 
   @Data
@@ -526,11 +357,14 @@ public class FacilitiesControllerV1 {
 
     @NonNull final String linkerUrl;
 
+    List<String> serviceSources;
+
     Facility facility;
 
     Facility facility() {
+
       if (facility == null) {
-        facility = FacilitiesControllerV1.facility(entity, linkerUrl);
+        facility = FacilitiesControllerV1.facility(entity, linkerUrl, serviceSources);
       }
       return facility;
     }

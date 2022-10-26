@@ -174,5 +174,11 @@
       ],
       "path" : "replaceable path here"
     }
-  ]
+  ],
+  "system" : {
+    "name" : "VA Pittsburgh health care",
+    "url" : "https://www.va.gov/pittsburgh-health-care/",
+    "covidUrl" : "https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/",
+    "vaHealthConnectPhone" : "555-555-5555 x123"
+  }
 }

@@ -3,9 +3,11 @@ package gov.va.api.lighthouse.facilities;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.CmsOverlay;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -268,6 +270,20 @@ public class CmsOverlayTransformerV1Test {
               return getDetailedService(hs, isActive);
             })
         .collect(Collectors.toList());
+  }
+
+  private DetailedService.ServiceType getServiceType(@NonNull ServiceType serviceType) {
+    return Arrays.stream(Facility.HealthService.values())
+            .anyMatch(hs -> hs.name().equals(serviceType.name()))
+        ? DetailedService.ServiceType.Health
+        : Arrays.stream(Facility.BenefitsService.values())
+                .anyMatch(bs -> bs.name().equals(serviceType.name()))
+            ? DetailedService.ServiceType.Benefits
+            : Arrays.stream(Facility.OtherService.values())
+                    .anyMatch(os -> os.name().equals(serviceType.name()))
+                ? DetailedService.ServiceType.Other
+                : // Default to health service type
+                DetailedService.ServiceType.Health;
   }
 
   private CmsOverlay overlay() {

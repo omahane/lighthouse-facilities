@@ -111,7 +111,6 @@
           "effectiveDate" : "2019-06-20"
         },
         "mobile" : false,
-        "activeStatus" : "A",
         "operatingStatus" : {
           "code" : "NORMAL"
         },

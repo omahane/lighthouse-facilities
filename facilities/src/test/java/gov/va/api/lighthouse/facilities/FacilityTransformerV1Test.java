@@ -199,7 +199,10 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .ignoringFields(
-            "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
+            "attributes.detailedServices",
+            "attributes.activeStatus",
+            "attributes.waitTimes",
+            "attributes.services")
         .isEqualTo(datamartFacility);
   }
 
@@ -323,7 +326,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                         .link(buildServicesLink(linkerUrl, facilityId))
                         .lastUpdated(LocalDate.parse("2018-01-01"))
                         .build())
-                .activeStatus(Facility.ActiveStatus.A)
                 .visn("20")
                 .satisfaction(
                     Facility.Satisfaction.builder()
@@ -1082,7 +1084,10 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .ignoringFields(
-            "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
+            "attributes.detailedServices",
+            "attributes.activeStatus",
+            "attributes.waitTimes",
+            "attributes.services")
         .isEqualTo(expected);
   }
 

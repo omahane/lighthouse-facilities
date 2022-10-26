@@ -20,6 +20,7 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.BenefitsService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OtherService;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -96,12 +97,34 @@ final class ControllersV1 {
     return objects.subList(fromIndex, Math.min(fromIndex + perPage, objects.size()));
   }
 
+  static void validateBoundingBox(List<BigDecimal> bbox) {
+    if (bbox != null && bbox.size() != 4) {
+      throw new ExceptionsUtils.InvalidParameter("bbox", bbox);
+    }
+  }
+
   static FacilityEntity.Type validateFacilityType(String type) {
     FacilityEntity.Type mapped = ENTITY_TYPE_LOOKUP.get(trimToEmpty(type));
     if (mapped == null && isNotBlank(type)) {
       throw new ExceptionsUtils.InvalidParameter("type", type);
     }
     return mapped;
+  }
+
+  static void validateLatLong(BigDecimal latitude, BigDecimal longitude, BigDecimal radius) {
+    if (latitude == null && longitude != null) {
+      throw new ExceptionsUtils.ParameterInvalidWithoutOthers("longitude", List.of("latitude"));
+    }
+    if (longitude == null && latitude != null) {
+      throw new ExceptionsUtils.ParameterInvalidWithoutOthers("latitude", List.of("longitude"));
+    }
+    if (latitude == null && longitude == null && radius != null) {
+      throw new ExceptionsUtils.ParameterInvalidWithoutOthers(
+          "radius", List.of("latitude", "longitude"));
+    }
+    if (radius != null && radius.compareTo(BigDecimal.ZERO) < 0) {
+      throw new ExceptionsUtils.InvalidParameter("radius", radius);
+    }
   }
 
   static Set<ServiceType> validateServices(Collection<String> services) {

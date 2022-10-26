@@ -10,6 +10,7 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceEm
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceHours;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.DetailedServiceLocation;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService.PatientWaitTime;
+import gov.va.api.lighthouse.facilities.api.v1.DetailedService.ServiceInfo;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServiceResponse;
 import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
@@ -43,6 +44,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAddres
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceAppointmentPhoneNumberSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceEmailContactSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceHoursSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceInfoSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceLocationSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceResponseSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.DetailedServiceSerializer;
@@ -92,6 +94,7 @@ final class JacksonSerializersV1 {
     mod.addSerializer(Services.class, new ServicesSerializer());
     mod.addSerializer(PageLinks.class, new PageLinksSerializer());
     mod.addSerializer(DetailedService.class, new DetailedServiceSerializer());
+    mod.addSerializer(ServiceInfo.class, new DetailedServiceInfoSerializer());
     mod.addSerializer(DetailedServiceAddress.class, new DetailedServiceAddressSerializer());
     mod.addSerializer(
         AppointmentPhoneNumber.class, new DetailedServiceAppointmentPhoneNumberSerializer());

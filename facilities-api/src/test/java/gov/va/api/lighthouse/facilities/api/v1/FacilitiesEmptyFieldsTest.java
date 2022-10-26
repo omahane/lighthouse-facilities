@@ -151,12 +151,6 @@ public class FacilitiesEmptyFieldsTest {
         .isFalse();
     assertThat(Facility.FacilityAttributes.builder().website("http://foo.bar").build().isEmpty())
         .isFalse();
-    assertThat(
-            Facility.FacilityAttributes.builder()
-                .activeStatus(Facility.ActiveStatus.A)
-                .build()
-                .isEmpty())
-        .isFalse();
     assertThat(Facility.FacilityAttributes.builder().mobile(Boolean.TRUE).build().isEmpty())
         .isFalse();
     assertThat(Facility.FacilityAttributes.builder().classification("health").build().isEmpty())

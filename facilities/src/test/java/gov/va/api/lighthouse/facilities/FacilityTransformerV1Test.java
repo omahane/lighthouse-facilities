@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,34 +33,28 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             DatamartFacility.Service.<DatamartFacility.BenefitsService>builder()
                 .serviceType(DatamartFacility.BenefitsService.EducationClaimAssistance)
                 .name(DatamartFacility.BenefitsService.EducationClaimAssistance.name())
-                .source(Source.BISL)
                 .build(),
             DatamartFacility.Service.<DatamartFacility.BenefitsService>builder()
                 .serviceType(DatamartFacility.BenefitsService.FamilyMemberClaimAssistance)
                 .name(DatamartFacility.BenefitsService.FamilyMemberClaimAssistance.name())
-                .source(Source.BISL)
                 .build()),
         List.of(
             DatamartFacility.Service.<DatamartFacility.HealthService>builder()
                 .serviceType(DatamartFacility.HealthService.PrimaryCare)
                 .name(DatamartFacility.HealthService.PrimaryCare.name())
-                .source(Source.ATC)
                 .build(),
             DatamartFacility.Service.<DatamartFacility.HealthService>builder()
                 .serviceType(DatamartFacility.HealthService.UrgentCare)
                 .name(DatamartFacility.HealthService.UrgentCare.name())
-                .source(Source.ATC)
                 .build(),
             DatamartFacility.Service.<DatamartFacility.HealthService>builder()
                 .serviceType(DatamartFacility.HealthService.EmergencyCare)
                 .name(DatamartFacility.HealthService.EmergencyCare.name())
-                .source(Source.ATC)
                 .build()),
         List.of(
             DatamartFacility.Service.<DatamartFacility.OtherService>builder()
                 .serviceType(DatamartFacility.OtherService.OnlineScheduling)
                 .name(DatamartFacility.OtherService.OnlineScheduling.name())
-                .source(Source.CMS)
                 .build()),
         List.of(
             DatamartFacility.HealthService.Covid19Vaccine,
@@ -187,9 +180,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   @Test
   public void datamartFacilityRoundtrip() {
     final DatamartFacility datamartFacility = datamartFacility();
-    Facility facility =
-        FacilityTransformerV1.toFacility(
-            datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL"));
+    Facility facility = FacilityTransformerV1.toFacility(datamartFacility, linkerUrl);
     assertThat(datamartFacility).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
@@ -198,8 +189,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .isInstanceOf(AssertionError.class);
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
-        .ignoringFields(
-            "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(datamartFacility);
   }
 
@@ -368,11 +358,8 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     final Facility facility = facility(linkerUrl, facilityId);
     assertThat(
             FacilityTransformerV1.toFacility(
-                FacilityTransformerV1.toVersionAgnostic(facility),
-                linkerUrl,
-                List.of("ATC", "CMS", "DST", "internal", "BISL")))
+                FacilityTransformerV1.toVersionAgnostic(facility), linkerUrl))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.services")
         .isEqualTo(facility);
   }
 
@@ -574,10 +561,8 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
                         FacilityTransformerV1.toVersionAgnostic(facility))),
-                linkerUrl,
-                List.of("ATC", "CMS", "DST", "internal", "BISL")))
+                linkerUrl))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.services")
         .isEqualTo(facility);
   }
 
@@ -683,10 +668,8 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
                         FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
-                linkerUrl,
-                List.of("ATC", "CMS", "DST", "internal", "BISL")))
+                linkerUrl))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.services")
         .isEqualTo(facilityWithoutWholeHealth);
   }
 
@@ -694,10 +677,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   @SneakyThrows
   public void nullArgs() {
     assertThrows(
-        NullPointerException.class,
-        () ->
-            FacilityTransformerV1.toFacility(
-                null, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL")));
+        NullPointerException.class, () -> FacilityTransformerV1.toFacility(null, linkerUrl));
     assertThrows(NullPointerException.class, () -> FacilityTransformerV1.toVersionAgnostic(null));
     final Method transformDatmartFacilityBenefitsServiceMethod =
         FacilityTransformerV1.class.getDeclaredMethod(
@@ -768,16 +748,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .hasCause(new NullPointerException("facilityOtherService is marked non-null but is null"));
     final Method transformDatmartFacilityServicesMethod =
         FacilityTransformerV1.class.getDeclaredMethod(
-            "toFacilityServices",
-            DatamartFacility.Services.class,
-            String.class,
-            List.class,
-            String.class);
+            "toFacilityServices", DatamartFacility.Services.class, String.class, String.class);
     transformDatmartFacilityServicesMethod.setAccessible(true);
     DatamartFacility.Services nullServices = null;
     assertThat(
             transformDatmartFacilityServicesMethod.invoke(
-                null, nullServices, linkerUrl, List.of(), facilityId))
+                null, nullServices, linkerUrl, facilityId))
         .usingRecursiveComparison()
         .isEqualTo(Facility.Services.builder().build());
     final Method transformFacilityServicesMethod =
@@ -991,9 +967,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void transformDatamartFacility() {
     Facility expected = facility(linkerUrl, facilityId);
     DatamartFacility datamartFacility = datamartFacility();
-    assertThat(
-            FacilityTransformerV1.toFacility(
-                datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL")))
+    assertThat(FacilityTransformerV1.toFacility(datamartFacility, linkerUrl))
         .usingRecursiveComparison()
         .isEqualTo(expected);
   }
@@ -1041,17 +1015,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   void transformDatamartFacilityServices() {
     final Method transformFacilityServicesMethod =
         FacilityTransformerV1.class.getDeclaredMethod(
-            "toFacilityServices",
-            DatamartFacility.Services.class,
-            String.class,
-            List.class,
-            String.class);
+            "toFacilityServices", DatamartFacility.Services.class, String.class, String.class);
     transformFacilityServicesMethod.setAccessible(true);
     DatamartFacility.Services ds =
         DatamartFacility.Services.builder().health(null).benefits(null).other(null).build();
     Facility.Services actual =
-        (Facility.Services)
-            transformFacilityServicesMethod.invoke(null, ds, linkerUrl, List.of(), facilityId);
+        (Facility.Services) transformFacilityServicesMethod.invoke(null, ds, linkerUrl, facilityId);
     assertThat(actual.health()).isNull();
     assertThat(actual.benefits()).isNull();
     assertThat(actual.other()).isNull();
@@ -1064,9 +1033,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(datamartFacility);
-    assertThat(
-            FacilityTransformerV1.toFacility(
-                datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL")))
+    assertThat(FacilityTransformerV1.toFacility(datamartFacility, linkerUrl))
         .usingRecursiveComparison()
         .isEqualTo(facility);
   }
@@ -1083,8 +1050,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .isInstanceOf(AssertionError.class);
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
-        .ignoringFields(
-            "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(expected);
   }
 
@@ -1186,9 +1152,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     assertThat(FacilityTransformerV1.toVersionAgnostic(facility))
         .usingRecursiveComparison()
         .isEqualTo(datamartFacility);
-    assertThat(
-            FacilityTransformerV1.toFacility(
-                datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL")))
+    assertThat(FacilityTransformerV1.toFacility(datamartFacility, linkerUrl))
         .usingRecursiveComparison()
         .isEqualTo(facility);
   }

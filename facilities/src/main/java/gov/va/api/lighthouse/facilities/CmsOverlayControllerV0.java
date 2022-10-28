@@ -7,10 +7,6 @@ import static gov.va.api.lighthouse.facilities.api.TypedService.INVALID_SVC_ID;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
-import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -181,10 +177,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               existingCmsOverlayEntity.get(), id, overlay.detailedServices(), DATAMART_MAPPER);
     }
 
-    final Set<Service<BenefitsService>> facilityBenefitsServices = new HashSet<>();
     final Set<Service<HealthService>> facilityHealthServices = new HashSet<>();
-    final Set<Service<OtherService>> facilityOtherServices = new HashSet<>();
-
     if (!toSaveDetailedServices.isEmpty()) {
       final Set<String> detailedServiceIds = new HashSet<>();
       toSaveDetailedServices.stream()
@@ -192,81 +185,36 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
               service -> {
                 // Update detailed services
                 detailedServiceIds.add(capitalize(service.serviceInfo().serviceId()));
-                try {
-                  if (facilityEntity.services() == null) {
-                    facilityEntity.services(new HashSet<>());
-                  }
-
-                  if (TypeOfService.Benefits.equals(service.serviceInfo().serviceType())) {
-                    Optional<DatamartFacility.BenefitsService> benefitsService =
-                        DatamartFacility.BenefitsService.fromServiceId(
-                            service.serviceInfo().serviceId());
-                    if (benefitsService.isPresent()) {
-                      // Update benefits facility services
-                      facilityBenefitsServices.add(
-                          Service.<DatamartFacility.BenefitsService>builder()
-                              .serviceType(benefitsService.get())
-                              .source(Source.CMS)
-                              .build());
-
-                      // Update column services in table facility_services
-                      facilityEntity
-                          .services()
-                          .add(
-                              DATAMART_MAPPER.writeValueAsString(
-                                  Service.<BenefitsService>builder()
-                                      .serviceType(benefitsService.get())
-                                      .source(Source.CMS)
-                                      .build()));
-                    }
-                  } else if (TypeOfService.Health.equals(service.serviceInfo().serviceType())) {
-                    Optional<DatamartFacility.HealthService> healthService =
-                        DatamartFacility.HealthService.fromServiceId(
-                            service.serviceInfo().serviceId());
-                    if (healthService.isPresent()) {
-                      // Update health facility services
-                      facilityHealthServices.add(
-                          Service.<DatamartFacility.HealthService>builder()
-                              .serviceType(healthService.get())
-                              .source(Source.CMS)
-                              .build());
-
-                      // Update column services in table facility_services
+                // Update facility health services
+                if (service
+                    .serviceInfo()
+                    .serviceId()
+                    .equals(HealthService.Covid19Vaccine.serviceId())) {
+                  try {
+                    if (facilityEntity.services() != null) {
                       facilityEntity
                           .services()
                           .add(
                               DATAMART_MAPPER.writeValueAsString(
                                   Service.<HealthService>builder()
-                                      .serviceType(healthService.get())
-                                      .source(Source.CMS)
+                                      .serviceType(HealthService.Covid19Vaccine)
                                       .build()));
-                    }
-                  } else if (TypeOfService.Other.equals(service.serviceInfo().serviceType())) {
-                    Optional<DatamartFacility.OtherService> otherService =
-                        DatamartFacility.OtherService.fromServiceId(
-                            service.serviceInfo().serviceId());
-                    if (otherService.isPresent()) {
-                      // Update other facility services
-                      facilityOtherServices.add(
-                          Service.<DatamartFacility.OtherService>builder()
-                              .serviceType(otherService.get())
-                              .source(Source.CMS)
-                              .build());
-
-                      // Update column services in table facility_services
-                      facilityEntity
-                          .services()
-                          .add(
+                    } else {
+                      facilityEntity.services(
+                          Set.of(
                               DATAMART_MAPPER.writeValueAsString(
-                                  Service.<OtherService>builder()
-                                      .serviceType(otherService.get())
-                                      .source(Source.CMS)
-                                      .build()));
+                                  Service.<HealthService>builder()
+                                      .serviceType(HealthService.Covid19Vaccine)
+                                      .build())));
                     }
+                  } catch (final JsonProcessingException ex) {
+                    throw new RuntimeException(ex);
                   }
 
-                } catch (final JsonProcessingException ex) {
-                  throw new RuntimeException(ex);
+                  facilityHealthServices.add(
+                      Service.<HealthService>builder()
+                          .serviceType(HealthService.Covid19Vaccine)
+                          .build());
                 }
               });
       facilityEntity.overlayServices(detailedServiceIds);
@@ -287,8 +235,7 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                     : DatamartFacility.ActiveStatus.A);
       }
       if (overlay.detailedServices() != null) {
-        // Only add Covid-19 detailed service, if present, to facility attributes detailed_services
-        // list
+        // Only add Covid-19 detailed service, if present, to facility attributes
         facility
             .attributes()
             .detailedServices(
@@ -301,71 +248,45 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                                 HealthService.Covid19Vaccine.serviceId()
                                     .equals(dds.serviceInfo().serviceId()))
                         .collect(Collectors.toList()));
+      }
 
+      if (facility.attributes().services().health() != null) {
+        facilityHealthServices.addAll(facility.attributes().services().health());
+      }
+
+      if (overlay.detailedServices() != null) {
         List<String> disabledCmsServiceIds =
             overlay.detailedServices().stream()
                 .filter(dds -> !dds.active())
                 .map(dds -> dds.serviceInfo().serviceId())
                 .collect(Collectors.toList());
 
-        // Remove inactive benefits services
-        if (facility.attributes().services().benefits() != null) {
-          facilityBenefitsServices.addAll(
-              facility.attributes().services().benefits().stream()
-                  .filter(
-                      bs ->
-                          !(disabledCmsServiceIds.contains(bs.serviceId())
-                              && bs.source().equals(Source.CMS)))
-                  .collect(Collectors.toList()));
-        }
-        // Remove inactive health services
-        if (facility.attributes().services().health() != null) {
-          facilityHealthServices.addAll(
-              facility.attributes().services().health().stream()
-                  .filter(
-                      hs ->
-                          !(disabledCmsServiceIds.contains(hs.serviceId())
-                              && hs.source().equals(Source.CMS)))
-                  .collect(Collectors.toList()));
-        }
-        // Remove inactive other services
-        if (facility.attributes().services().other() != null) {
-          facilityOtherServices.addAll(
-              facility.attributes().services().other().stream()
-                  .filter(
-                      os ->
-                          !(disabledCmsServiceIds.contains(os.serviceId())
-                              && os.source().equals(Source.CMS)))
-                  .collect(Collectors.toList()));
-        }
-
-        // Remove deactivated service from facility_services table
         disabledCmsServiceIds.stream()
             .forEach(
                 disabledServiceId -> {
-                  facilityEntity
-                      .services()
-                      .removeIf(
-                          svcJson ->
-                              svcJson.contains(
-                                  "\"serviceId\":\""
-                                      + disabledServiceId
-                                      + "\",\"source\":\"CMS\""));
+                  if (disabledServiceId.equals(HealthService.Covid19Vaccine.serviceId())) {
+                    facilityHealthServices.removeIf(
+                        svc -> HealthService.Covid19Vaccine.serviceId().equals(svc.serviceId()));
+
+                    facilityEntity
+                        .services()
+                        .removeIf(
+                            svcJson ->
+                                svcJson.contains(
+                                    "\"serviceId\":\""
+                                        + HealthService.Covid19Vaccine.serviceId()
+                                        + "\""));
+                    facilityEntity
+                        .services()
+                        .remove(capitalize(HealthService.Covid19Vaccine.serviceId()));
+                  }
                 });
       }
-      List<Service<BenefitsService>> facilityBenefitsServiceList =
-          new ArrayList<>(facilityBenefitsServices);
-      Collections.sort(facilityBenefitsServiceList);
-      facility.attributes().services().benefits(facilityBenefitsServiceList);
 
       List<Service<HealthService>> facilityHealthServiceList =
           new ArrayList<>(facilityHealthServices);
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().health(facilityHealthServiceList);
-
-      List<Service<OtherService>> facilityOtherServiceList = new ArrayList<>(facilityOtherServices);
-      Collections.sort(facilityHealthServiceList);
-      facility.attributes().services().other(facilityOtherServiceList);
 
       facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
     }

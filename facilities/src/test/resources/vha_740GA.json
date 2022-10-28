@@ -41,36 +41,12 @@
     "services" : {
       "other" : [ ],
       "health" : [
-        {
-          "name" : "EmergencyCare",
-          "serviceId" : "emergencyCare",
-          "source" : "ATC"
-        },
-        {
-          "name" : "PrimaryCare",
-          "serviceId" : "primaryCare",
-          "source" : "ATC"
-        },
-        {
-          "name" : "MentalHealthCare",
-          "serviceId" : "mentalHealthCare",
-          "source" : "ATC"
-        },
-        {
-          "name" : "Audiology",
-          "serviceId" : "audiology",
-          "source" : "ATC"
-        },
-        {
-          "name" : "Dermatology",
-          "serviceId" : "dermatology",
-          "source" : "ATC"
-        },
-        {
-          "name" : "DentalServices",
-          "serviceId" : "dentalServices",
-          "source" : "ATC"
-        }
+        "emergencyCare",
+        "primaryCare",
+        "mentalHealthCare",
+        "audiology",
+        "dermatology",
+        "dentalServices"
       ],
       "last_updated" : "2020-03-16"
     },

@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -150,8 +149,6 @@ public class NearbyTest {
                         .services(Facility.Services.builder().health(List.of(PrimaryCare)).build())
                         .build())
                 .build());
-    facility.attributes.services().health().stream().forEach(hs -> hs.source(Source.ATC));
-
     return facility;
   }
 

@@ -758,19 +758,9 @@ public class DatamartFacility {
 
     @NonNull String serviceId;
 
-    Source source;
-
     @Override
     public int compareTo(@NotNull Service<T> service) {
       return serviceId().compareTo(service.serviceId());
-    }
-
-    public enum Source {
-      ATC,
-      DST,
-      CMS,
-      BISL,
-      internal
     }
 
     /** Custom builder for setting ServiceType and serviceId attributes for Service. */

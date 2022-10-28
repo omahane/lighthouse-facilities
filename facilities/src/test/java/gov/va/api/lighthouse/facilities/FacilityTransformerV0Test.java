@@ -617,21 +617,16 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             () ->
                 assertThat(
                         FacilityTransformerV1.toFacility(
-                            FacilityTransformerV0.toVersionAgnostic(facility),
-                            linkerUrl,
-                            List.of("ATC", "CMS", "DST", "internal", "BISL")))
+                            FacilityTransformerV0.toVersionAgnostic(facility), linkerUrl))
                     .hasFieldOrProperty("attributes.waitTimes"))
         .isInstanceOf(AssertionError.class);
     assertThat(
             FacilityTransformerV0.toFacility(
                 FacilityTransformerV1.toVersionAgnostic(
                     FacilityTransformerV1.toFacility(
-                        FacilityTransformerV0.toVersionAgnostic(facility),
-                        linkerUrl,
-                        List.of("ATC", "CMS", "DST", "internal", "BISL")))))
+                        FacilityTransformerV0.toVersionAgnostic(facility), linkerUrl))))
         .usingRecursiveComparison()
-        .ignoringFields(
-            "attributes.detailedServices", "attributes.waitTimes", "attributes.services")
+        .ignoringFields("attributes.detailedServices", "attributes.waitTimes")
         .isEqualTo(facility);
   }
 
@@ -671,8 +666,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 assertThat(
                         FacilityTransformerV1.toFacility(
                             FacilityTransformerV0.toVersionAgnostic(facilityWithSpecialtyCare),
-                            linkerUrl,
-                            List.of("ATC", "CMS", "DST", "internal", "BISL")))
+                            linkerUrl))
                     .hasFieldOrProperty("attributes.waitTimes"))
         .isInstanceOf(AssertionError.class);
     assertThat(
@@ -680,12 +674,11 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 FacilityTransformerV1.toVersionAgnostic(
                     FacilityTransformerV1.toFacility(
                         FacilityTransformerV0.toVersionAgnostic(facilityWithSpecialtyCare),
-                        linkerUrl,
-                        List.of("ATC", "CMS", "DST", "internal", "BISL")))))
+                        linkerUrl))))
         .usingRecursiveComparison()
         .ignoringFields("attributes.detailedServices")
         .ignoringFields("attributes.activeStatus")
-        .ignoringFields("attributes.waitTimes", "attributes.services")
+        .ignoringFields("attributes.waitTimes")
         .isEqualTo(facilityWithoutSpecialtyCare);
     DatamartFacility facilityWithMoreThanJustCovid =
         datamartFacility(
@@ -745,12 +738,9 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
     // V1 Facilities no longer contain detailed services in their facility attributes
     assertThat(
             FacilityTransformerV1.toVersionAgnostic(
-                FacilityTransformerV1.toFacility(
-                    facilityWithMoreThanJustCovid,
-                    linkerUrl,
-                    List.of("ATC", "CMS", "DST", "internal", "BISL"))))
+                FacilityTransformerV1.toFacility(facilityWithMoreThanJustCovid, linkerUrl)))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.activeStatus", "attributes.waitTimes", "attributes.services")
+        .ignoringFields("attributes.activeStatus", "attributes.waitTimes")
         .isEqualTo(facilityWithNoDetailedServices);
     // Facility transformers do not filter detailed services contained in V0 facility attributes
     assertThat(

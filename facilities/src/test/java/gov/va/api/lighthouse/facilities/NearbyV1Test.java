@@ -13,7 +13,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
@@ -57,7 +56,6 @@ public class NearbyV1Test {
     return NearbyControllerV1.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
-        .serviceSources(List.of("ATC", "CMS", "DST", "internal", "BISL"))
         .build();
   }
 
@@ -157,7 +155,7 @@ public class NearbyV1Test {
   }
 
   private DatamartFacility _facilityHealth(@NonNull String id) {
-    DatamartFacility facility =
+    DatamartFacility facilityV1 =
         FacilityTransformerV1.toVersionAgnostic(
             Facility.builder()
                 .id(id)
@@ -179,8 +177,7 @@ public class NearbyV1Test {
                                 .build())
                         .build())
                 .build());
-    facility.attributes().services().health().stream().forEach(hs -> hs.source(Source.ATC));
-    return facility;
+    return facilityV1;
   }
 
   @Test

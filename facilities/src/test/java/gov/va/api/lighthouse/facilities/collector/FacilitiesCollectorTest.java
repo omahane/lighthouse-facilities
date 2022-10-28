@@ -16,9 +16,6 @@ import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
-import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
-import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.FacilityEntity;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -393,13 +390,11 @@ public class FacilitiesCollectorTest {
                       .healthCareSystem(overlayEntity.healthCareSystem())
                       .overlayServices(
                           Set.of(
-                              HealthService.Covid19Vaccine.name(),
-                              HealthService.ColonSurgery.name(),
-                              HealthService.CriticalCare.name(),
-                              HealthService.PrimaryCare.name(),
-                              HealthService.EmergencyCare.name(),
-                              BenefitsService.ApplyingForBenefits.name(),
-                              OtherService.OnlineScheduling.name()))
+                              "Covid19Vaccine",
+                              "ColonSurgery",
+                              "CriticalCare",
+                              "PrimaryCare",
+                              "EmergencyCare"))
                       .build();
               mockOverlays.add(entity);
             });

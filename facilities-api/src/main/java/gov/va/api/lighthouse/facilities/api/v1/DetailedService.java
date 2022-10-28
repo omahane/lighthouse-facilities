@@ -35,7 +35,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -148,6 +147,13 @@ public class DetailedService implements CanBeEmpty {
         && (waitTime() == null || waitTime().isEmpty());
   }
 
+  private boolean isRecognizedEnumOrCovidService(String serviceName) {
+    return isNotEmpty(serviceName)
+        && (HealthService.isRecognizedEnumOrCovidService(serviceName)
+            || BenefitsService.isRecognizedServiceEnum(serviceName)
+            || OtherService.isRecognizedServiceEnum(serviceName));
+  }
+
   private boolean isRecognizedServiceId(String serviceId) {
     return isNotEmpty(serviceId)
         && (HealthService.isRecognizedServiceId(serviceId)
@@ -160,7 +166,7 @@ public class DetailedService implements CanBeEmpty {
    * CMS uploads.
    */
   @JsonProperty("serviceId")
-  @JsonAlias({"service_id", "service_api_id"})
+  @JsonAlias("service_id")
   public DetailedService serviceId(String serviceId) {
     if (isRecognizedServiceId(serviceId)) {
       // Update service info based on recognized service id
@@ -178,11 +184,13 @@ public class DetailedService implements CanBeEmpty {
    */
   @JsonProperty("name")
   public DetailedService serviceName(String serviceName) {
-    // Update service info based on recognized service name
-    serviceInfo(
-        serviceInfo() == null
-            ? ServiceInfo.builder().name(serviceName).build()
-            : serviceInfo().name(serviceName));
+    if (isRecognizedEnumOrCovidService(serviceName)) {
+      // Update service info based on recognized service name
+      serviceInfo(
+          serviceInfo() == null
+              ? ServiceInfo.builder().name(serviceName).build()
+              : serviceInfo().name(serviceName));
+    }
     return this;
   }
 
@@ -194,7 +202,7 @@ public class DetailedService implements CanBeEmpty {
   @Schema(description = "Service information.")
   public static final class ServiceInfo implements CanBeEmpty {
     @Schema(description = "Service identifier.", example = "covid19Vaccine")
-    @JsonAlias({"service_id", "service_api_id"})
+    @JsonAlias("{service_id, service_api_id}")
     @NonNull
     String serviceId;
 
@@ -250,7 +258,6 @@ public class DetailedService implements CanBeEmpty {
        * Method used to set service id and infer service name and type based on provided service id
        * given it is recognized as valid.
        */
-      @SneakyThrows
       public ServiceInfoBuilder serviceId(String serviceId) {
         // Determine whether service id is recognized
         final Optional<? extends TypedService> typedService =
@@ -273,21 +280,6 @@ public class DetailedService implements CanBeEmpty {
           this.serviceType = null;
         }
         return this;
-      }
-
-      /**
-       * Backwards compatability supporting upload of CMS overlay services which utilize
-       * service_api_id as their unique identifier.
-       */
-      @SneakyThrows
-      public ServiceInfoBuilder service_api_id(String serviceId) {
-        return serviceId(serviceId);
-      }
-
-      /** ServiceInfo builder method supporting JsonAlias for serviceId. */
-      @SneakyThrows
-      public ServiceInfoBuilder service_id(String serviceId) {
-        return serviceId(serviceId);
       }
     }
   }

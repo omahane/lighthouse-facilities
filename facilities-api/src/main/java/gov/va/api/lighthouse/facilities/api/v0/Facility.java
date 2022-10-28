@@ -181,7 +181,8 @@ public final class Facility {
 
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return isRecognizedServiceNameException(serviceName)
+      return "dental".equalsIgnoreCase(serviceName)
+          || "mentalHealth".equalsIgnoreCase(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
@@ -192,14 +193,6 @@ public final class Facility {
       return "mentalHealth".equals(serviceId)
           || "dental".equals(serviceId)
           || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
-    }
-
-    /**
-     * Determine whether specified service name represents known health service whose name changes
-     * between versions.
-     */
-    public static boolean isRecognizedServiceNameException(String serviceName) {
-      return "dental".equalsIgnoreCase(serviceName) || "mentalHealth".equalsIgnoreCase(serviceName);
     }
 
     public String serviceId() {

@@ -369,7 +369,8 @@ public class DatamartFacility {
 
     /** Determine whether specified service name represents health service. */
     public static boolean isRecognizedServiceEnum(String serviceName) {
-      return isRecognizedServiceNameException(serviceName)
+      return "DentalServices".equalsIgnoreCase(serviceName)
+          || "MentalHealthCare".equalsIgnoreCase(serviceName)
           || Arrays.stream(values())
               .parallel()
               .anyMatch(hs -> hs.name().equalsIgnoreCase(serviceName));
@@ -380,15 +381,6 @@ public class DatamartFacility {
       return "dentalServices".equals(serviceId)
           || "mentalHealthCare".equals(serviceId)
           || Arrays.stream(values()).parallel().anyMatch(hs -> hs.serviceId().equals(serviceId));
-    }
-
-    /**
-     * Determine whether specified service name represents known health service whose name changes
-     * between versions.
-     */
-    public static boolean isRecognizedServiceNameException(String serviceName) {
-      return "DentalServices".equalsIgnoreCase(serviceName)
-          || "MentalHealthCare".equalsIgnoreCase(serviceName);
     }
 
     @Override

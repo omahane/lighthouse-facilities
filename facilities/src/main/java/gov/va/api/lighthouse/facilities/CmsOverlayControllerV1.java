@@ -263,7 +263,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                       // Update benefits facility services
                       facilityBenefitsServices.add(
                           Service.<DatamartFacility.BenefitsService>builder()
-                              .name(service.serviceInfo().name())
                               .serviceType(benefitsService.get())
                               .source(Source.CMS)
                               .build());
@@ -274,7 +273,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                           .add(
                               DATAMART_MAPPER.writeValueAsString(
                                   Service.<BenefitsService>builder()
-                                      .name(service.serviceInfo().name())
                                       .serviceType(benefitsService.get())
                                       .source(Source.CMS)
                                       .build()));
@@ -287,7 +285,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                       // Update health facility services
                       facilityHealthServices.add(
                           Service.<DatamartFacility.HealthService>builder()
-                              .name(service.serviceInfo().name())
                               .serviceType(healthService.get())
                               .source(Source.CMS)
                               .build());
@@ -298,7 +295,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                           .add(
                               DATAMART_MAPPER.writeValueAsString(
                                   Service.<HealthService>builder()
-                                      .name(service.serviceInfo().name())
                                       .serviceType(healthService.get())
                                       .source(Source.CMS)
                                       .build()));
@@ -311,7 +307,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                       // Update other facility services
                       facilityOtherServices.add(
                           Service.<DatamartFacility.OtherService>builder()
-                              .name(service.serviceInfo().name())
                               .serviceType(otherService.get())
                               .source(Source.CMS)
                               .build());
@@ -322,7 +317,6 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
                           .add(
                               DATAMART_MAPPER.writeValueAsString(
                                   Service.<OtherService>builder()
-                                      .name(service.serviceInfo().name())
                                       .serviceType(otherService.get())
                                       .source(Source.CMS)
                                       .build()));

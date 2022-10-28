@@ -564,3 +564,262 @@ databaseChangeLog:
                   name: type
               - column:
                   name: services
+  - changeSet:
+      id: 21
+      author: axolotl
+      changes:
+        # Drive Time Band table index additions
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: IDX_drive_time_band_MAX_LAT
+            columns:
+              - column:
+                  name: max_latitude
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: IDX_drive_time_band_MAX_LONG
+            columns:
+              - column:
+                  name: max_longitude
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: idx_drive_time_band_MIN_LAT
+            columns:
+              - column:
+                  name: min_latitude
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: IDX_drive_time_band_MIN_LONG
+            columns:
+              - column:
+                  name: min_longitude
+        # Note: h2 db does not support creating nonclustered indexes
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  CREATE NONCLUSTERED INDEX [IDX_drive_time_band_Month_Year] ON [app].[drive_time_band] ([month_year] ASC) INCLUDE([version])
+            stripComments:  true
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: IDX_drive_time_band_To_Minutes
+            columns:
+              - column:
+                  name: to_minutes
+        - createIndex:
+            tableName: drive_time_band
+            schemaName: app
+            clustered: false
+            indexName: IDX_drive_time_band_ToMinutes_FromMinutes_Station
+            columns:
+              - column:
+                  name: to_minutes
+              - column:
+                  name: from_minutes
+              - column:
+                  name: station_number
+        # Facility table index additions
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_State
+            columns:
+              - column:
+                  name: state
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_Type_Lat_Long
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: latitude
+              - column:
+                  name: longitude
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_Type_Long_Lat
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: longitude
+              - column:
+                  name: latitude
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_Type_Zip
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: zip
+        # Note: h2 db does not support creating nonclustered indexes
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  CREATE NONCLUSTERED INDEX [IDX_facility_Visn] ON [app].[facility] ([visn] ASC) INCLUDE([zip],[state],[latitude],[longitude],[facility],[version],[missing_timestamp],[last_updated],[mobile],[cms_operating_status],[cms_services])
+            stripComments:  true
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_Zip
+            columns:
+              - column:
+                  name: zip
+        # Facility Services table index additions
+        - createIndex:
+            tableName: facility_services
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_services_Services
+            columns:
+              - column:
+                  name: services
+        - createIndex:
+            tableName: facility_services
+            schemaName: app
+            clustered: false
+            indexName: IDX_facility_services_Type_Services
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: services
+  - changeSet:
+      id: 22
+      author: axolotl
+      changes:
+        # Drive Time Band table index renaming
+        # Note: h2 db does not support sp_rename
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_MAX_LAT', N'drive_time_band_max_lat_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_MAX_LONG', N'drive_time_band_max_long_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.idx_drive_time_band_MIN_LAT', N'drive_time_band_min_lat_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_MIN_LONG', N'drive_time_band_min_long_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_Month_Year', N'drive_time_band_month_year_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_To_Minutes', N'drive_time_band_to_minutes_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.drive_time_band.IDX_drive_time_band_ToMinutes_FromMinutes_Station', N'drive_time_band_tominutes_fromminutes_station_idx', N'INDEX'
+            stripComments:  true
+        # Facility table index renaming
+        # Note: h2 db does not support sp_rename
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_State', N'facility_state_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_Type_Lat_Long', N'facility_type_lat_long_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_Type_Long_Lat', N'facility_type_long_lat_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_Type_Zip', N'facility_type_zip_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_Visn', N'facility_visn_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility.IDX_facility_Zip', N'facility_zip_idx', N'INDEX'
+            stripComments:  true
+        # Facility Services table index renaming
+        # Note: h2 db does not support sp_rename
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility_services.IDX_facility_services_Services', N'facility_services_services_idx', N'INDEX'
+            stripComments:  true
+        - sql:
+            dbms: mssql
+            schemaName: app
+            endDelimiter: \nGO
+            splitStatements:  true
+            sql:  exec sp_rename N'app.facility_services.IDX_facility_services_Type_Services', N'facility_services_type_services_idx', N'INDEX'
+            stripComments:  true
+

@@ -11,22 +11,12 @@ public class HomeIT {
   }
 
   @Test
-  void openApiJsonV0_docs() {
+  void openApiJson_docs() {
     facilitiesRequest(null, "docs/v0/api", 200);
   }
 
   @Test
-  void openApiJsonV0_facilities() {
+  void openApiJson_facilities() {
     facilitiesRequest(null, "v0/facilities/openapi.json", 200);
-  }
-
-  @Test
-  void openApiJsonV1_docs() {
-    facilitiesRequest(null, "docs/v1/api", 200);
-  }
-
-  @Test
-  void openApiJsonV1_facilities() {
-    facilitiesRequest(null, "v1/facilities/openapi.json", 200);
   }
 }

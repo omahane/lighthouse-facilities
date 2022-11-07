@@ -313,14 +313,17 @@ vc_0304V,https://www.va.gov/atlanta-vet-center/
 vc_0305V,https://www.va.gov/jacksonville-fl-vet-center/
 vc_0309V,https://www.va.gov/hatillo-vet-center/
 vc_0310V,https://www.va.gov/miami-vet-center/
+vc_0311V,https://www.va.gov/fort-lauderdale-vet-center/
 vc_0312V,https://www.va.gov/ponce-vet-center/
 vc_0314V,https://www.va.gov/orlando-vet-center/
 vc_0315V,https://www.va.gov/fayetteville-nc-vet-center/
 vc_0316V,https://www.va.gov/greenville-sc-vet-center/
 vc_0317V,https://www.va.gov/charlotte-vet-center/
 vc_0319V,https://www.va.gov/greenville-nc-vet-center/
+vc_0320V,https://www.va.gov/sarasota-vet-center/
 vc_0323V,https://www.va.gov/savannah-vet-center/
 vc_0324V,https://www.va.gov/columbia-sc-vet-center/
+vc_0325V,https://www.va.gov/tallahassee-vet-center/
 vc_0326V,https://www.westpalmbeach.va.gov/locations/Palm_Beach_Vet_Center.asp
 vc_0327V,https://www.va.gov/greensboro-vet-center/
 vc_0328V,https://www.va.gov/raleigh-vet-center/
@@ -339,7 +342,11 @@ vc_0345V,https://www.va.gov/clermont-vet-center/
 vc_0346V,https://www.va.gov/augusta-vet-center/
 vc_0347V,https://www.va.gov/myrtle-beach-vet-center/
 vc_0349V,https://www.va.gov/columbus-ga-vet-center/
+vc_0404V,https://www.va.gov/minot-vet-center/
+vc_0405V,https://www.va.gov/des-moines-vet-center/
+vc_0408V,https://www.va.gov/kansas-city-vet-center/
 vc_0410V,https://www.va.gov/chicago-vet-center/
+vc_0418V,https://www.va.gov/evansville-vet-center/
 vc_0419V,https://www.va.gov/madison-vet-center/
 vc_0425V,https://www.va.gov/sioux-falls-vet-center/
 vc_0426V,https://www.va.gov/wichita-vet-center/
@@ -430,6 +437,7 @@ vc_0647V,https://www.va.gov/peninsula-vet-center/
 vc_0648V,https://www.va.gov/guam-vet-center/
 vc_0649V,https://www.va.gov/chico-vet-center/
 vc_0650V,https://www.va.gov/delta-vet-center/
+vc_0701V,https://www.va.gov/johnson-city-vet-center/
 vc_0702V,https://www.va.gov/amarillo-vet-center/
 vc_0703V,https://www.va.gov/austin-vet-center/
 vc_0704MVC,https://www.va.gov/shreveport-vet-center/
@@ -506,6 +514,7 @@ vc_0847MVC,https://www.va.gov/new-orleans-vet-center/
 vc_0848MVC,https://www.va.gov/memphis-vet-center/
 vc_0849MVC,https://www.va.gov/san-antonio-northwest-vet-center/
 vc_0850MVC,https://www.va.gov/little-rock-vet-center/
+vc_0851MVC,https://www.va.gov/kansas-city-vet-center/
 vc_0857MVC,https://www.va.gov/secaucus-vet-center/
 vc_0858MVC,https://www.va.gov/baltimore-vet-center/
 vc_0860MVC,https://www.va.gov/atlanta-vet-center/
@@ -519,6 +528,7 @@ vc_0868MV,https://www.va.gov/saint-george-vet-center/
 vc_0869MVC,https://www.va.gov/south-orange-county-vet-center/
 vc_0870MVC,https://www.va.gov/western-oahu-vet-center/
 vc_0871MVC,https://www.va.gov/grants-pass-vet-center/
+vc_0872MVC,https://www.va.gov/evansville-vet-center/
 vc_0873MVC,https://www.va.gov/rochester-vet-center/
 vc_0874MVC,https://www.va.gov/sussex-county-vet-center/
 vc_0875MVC,https://www.va.gov/columbia-mo-vet-center/

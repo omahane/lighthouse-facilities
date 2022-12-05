@@ -158,9 +158,6 @@ public abstract class BaseCmsOverlayController {
     if (!isValidService(serviceId)) {
       throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
     }
-    if (!isValidService(serviceId)) {
-      throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
-    }
     Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))

@@ -1,16 +1,14 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
-import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.NearbyId;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.intersections;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.validateDriveTime;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceWildcard;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
 import java.math.BigDecimal;
@@ -40,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class NearbyControllerV1 {
 
-  private static final ObjectMapper MAPPER = createMapper();
   private final FacilityRepository facilityRepository;
 
   private final DriveTimeBandRepository driveTimeBandRepository;
@@ -97,26 +94,18 @@ public class NearbyControllerV1 {
       List<String> rawServices,
       Integer rawMaxDriveTime) {
     Set<ServiceType> services = validateServices(rawServices);
-    Set<String> serviceStrings = new HashSet<>();
+    Set<FacilityServiceWildcard> serviceStrings = new HashSet<>();
     services.stream()
         .forEach(
             serviceType -> {
               serviceSources.stream()
                   .forEach(
                       source -> {
-                        try {
-                          String service =
-                              MAPPER.writeValueAsString(
-                                  DatamartFacility.Service.builder()
-                                      .serviceId(serviceType.serviceId())
-                                      .name(serviceType.name())
-                                      .source(Source.valueOf(source))
-                                      .build());
-                          serviceStrings.add(service);
-
-                        } catch (final JsonProcessingException ex) {
-                          throw new RuntimeException(ex);
-                        }
+                        serviceStrings.add(
+                            FacilityServiceWildcard.builder()
+                                .serviceId(serviceType.serviceId())
+                                .source(Source.valueOf(source))
+                                .build());
                       });
             });
 

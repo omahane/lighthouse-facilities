@@ -4,21 +4,27 @@ import static java.util.Collections.emptySet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import gov.va.api.health.autoconfig.logging.Loggable;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -45,12 +51,50 @@ public interface FacilityRepository
 
     @SneakyThrows
     protected Predicate buildServicesPredicate(
-        Root<FacilityEntity> root, CriteriaBuilder criteriaBuilder, Set<String> services) {
-      Predicate[] servicePredicates =
-          services.stream()
-              .map(s -> criteriaBuilder.isMember(s, root.get("services")))
-              .toArray(Predicate[]::new);
-      return criteriaBuilder.or(servicePredicates);
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder,
+        Set<FacilityServiceWildcard> svcWildCards) {
+      Subquery<FacilityServicesEntity> subquery =
+          criteriaQuery.distinct(true).subquery(FacilityServicesEntity.class);
+      Root<FacilityServicesEntity> subqueryRoot = subquery.from(FacilityServicesEntity.class);
+      subquery
+          .select(subqueryRoot.get("services"))
+          .where(
+              criteriaBuilder.or(
+                  svcWildCards.stream()
+                      .map(
+                          svcWildCard ->
+                              criteriaBuilder.like(
+                                  subqueryRoot.get("services"), svcWildCard.wildcardPredicate()))
+                      .collect(Collectors.toList())
+                      .toArray(new Predicate[0])));
+      return criteriaBuilder.or(root.join("services").in(subquery));
+    }
+  }
+
+  @Builder
+  @Value
+  @EqualsAndHashCode
+  class FacilityServiceWildcard implements Serializable {
+    private String serviceId;
+
+    private Source source;
+
+    public String wildcardPredicate() {
+      StringBuilder value = new StringBuilder();
+      value.append("%");
+      if (StringUtils.isNotEmpty(serviceId())) {
+        value
+            .append("\"serviceId\":\"")
+            .append(serviceId())
+            .append(ObjectUtils.isNotEmpty(source()) ? "\"," : "\"");
+      }
+      if (ObjectUtils.isNotEmpty(source())) {
+        value.append("\"source\":\"").append(source().name()).append("\"");
+      }
+      value.append("%");
+      return value.toString();
     }
   }
 
@@ -72,7 +116,7 @@ public interface FacilityRepository
 
     ZipSpecification zip;
 
-    @Builder.Default Set<String> services = emptySet();
+    @Builder.Default Set<FacilityServiceWildcard> services = emptySet();
 
     private static void addToPredicates(
         Specification<FacilityEntity> spec,
@@ -99,7 +143,7 @@ public interface FacilityRepository
       addToPredicates(ids, root, criteriaQuery, criteriaBuilder, predicates);
       addToPredicates(zip, root, criteriaQuery, criteriaBuilder, predicates);
       if (!services.isEmpty()) {
-        predicates.add(buildServicesPredicate(root, criteriaBuilder, services));
+        predicates.add(buildServicesPredicate(root, criteriaQuery, criteriaBuilder, services()));
       }
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }
@@ -197,7 +241,7 @@ public interface FacilityRepository
 
     FacilityEntity.Type facilityType;
 
-    @Builder.Default Set<String> services = emptySet();
+    @Builder.Default Set<FacilityServiceWildcard> services = emptySet();
 
     @Override
     @SneakyThrows
@@ -222,7 +266,7 @@ public interface FacilityRepository
         return combinedBase;
       }
       return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services));
+          combinedBase, buildServicesPredicate(root, criteriaQuery, criteriaBuilder, services()));
     }
   }
 

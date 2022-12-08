@@ -8,12 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceWildcard;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.FacilityReadResponse;
@@ -40,8 +40,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 public class FacilitiesControllerV0Test {
-  private static final ObjectMapper DATAMART_MAPPER =
-      DatamartFacilitiesJacksonConfig.createMapper();
 
   private static final ObjectMapper MAPPER_V0 = FacilitiesJacksonConfigV0.createMapper();
 
@@ -192,41 +190,31 @@ public class FacilitiesControllerV0Test {
         .hasCause(new ExceptionsUtils.InvalidParameter("type", "no_such_type"));
   }
 
-  private Set<String> facilityServices() {
+  private Set<FacilityServiceWildcard> facilityServices() {
     List<String> serviceSources = new ArrayList<>();
     serviceSources.add("ATC");
     serviceSources.add("DST");
     serviceSources.add("internal");
     serviceSources.add("BISL");
-    Set<String> services = new HashSet<>();
+    Set<FacilityServiceWildcard> services = new HashSet<>();
     serviceSources.stream()
         .forEach(
             ss -> {
-              try {
-                services.add(
-                    DATAMART_MAPPER.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Audiology.serviceId())
-                            .name(HealthService.Audiology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-                services.add(
-                    DATAMART_MAPPER.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Cardiology.serviceId())
-                            .name(HealthService.Cardiology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-                services.add(
-                    DATAMART_MAPPER.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Urology.serviceId())
-                            .name(HealthService.Urology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-              } catch (final JsonProcessingException ex) {
-                throw new RuntimeException(ex);
-              }
+              services.add(
+                  FacilityServiceWildcard.builder()
+                      .serviceId(HealthService.Audiology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
+              services.add(
+                  FacilityServiceWildcard.builder()
+                      .serviceId(HealthService.Cardiology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
+              services.add(
+                  FacilityServiceWildcard.builder()
+                      .serviceId(HealthService.Urology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
             });
     return services;
   }

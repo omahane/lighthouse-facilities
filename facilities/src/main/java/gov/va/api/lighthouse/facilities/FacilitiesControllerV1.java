@@ -6,15 +6,13 @@ import static gov.va.api.lighthouse.facilities.ControllersV1.validateBoundingBox
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateLatLong;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
-import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceWildcard;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
@@ -49,8 +47,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v1")
 public class FacilitiesControllerV1 {
-
-  private static final ObjectMapper MAPPER_V1 = createMapper();
 
   private static final FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
 
@@ -222,31 +218,22 @@ public class FacilitiesControllerV1 {
   }
 
   @SneakyThrows
-  private Set<String> getServices(List<String> rawServices) {
+  private Set<FacilityServiceWildcard> getServices(List<String> rawServices) {
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = new HashSet<>();
+    Set<FacilityServiceWildcard> serviceStrings = new HashSet<>();
     datamartServices.stream()
         .forEach(
             serviceType -> {
               serviceSources.stream()
                   .forEach(
                       source -> {
-                        try {
-                          String service =
-                              MAPPER_V1.writeValueAsString(
-                                  DatamartFacility.Service.builder()
-                                      .serviceId(serviceType.serviceId())
-                                      .name(serviceType.name())
-                                      .source(Source.valueOf(source))
-                                      .build());
-                          serviceStrings.add(service);
-
-                        } catch (final JsonProcessingException ex) {
-                          throw new RuntimeException(ex);
-                        }
+                        serviceStrings.add(
+                            FacilityServiceWildcard.builder()
+                                .serviceId(serviceType.serviceId())
+                                .source(Source.valueOf(source))
+                                .build());
                       });
             });
-
     return serviceStrings;
   }
 

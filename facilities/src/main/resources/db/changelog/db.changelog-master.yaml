@@ -577,3 +577,23 @@ databaseChangeLog:
                 type: clob
                 constraints:
                   nullable: true
+  - changeSet:
+      id: 22
+      author: axolotl
+      changes:
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: facility_state_idx
+            columns:
+              - column:
+                  name: state
+        - createIndex:
+            tableName: facility
+            schemaName: app
+            clustered: false
+            indexName: facility_zip_idx
+            columns:
+              - column:
+                  name: zip

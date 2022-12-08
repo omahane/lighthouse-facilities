@@ -1,7 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateServices;
-import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.Coordinates;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.NearbyId;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.intersections;
@@ -9,12 +8,11 @@ import static gov.va.api.lighthouse.facilities.NearbyUtils.validateDriveTime;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceWildcard;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.NearbyResponse;
 import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
@@ -49,7 +47,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping(value = "/v0/nearby")
 @Slf4j
 public class NearbyControllerV0 {
-  private static final ObjectMapper DATAMART_MAPPER = createMapper();
 
   private final FacilityRepository facilityRepository;
 
@@ -83,41 +80,27 @@ public class NearbyControllerV0 {
             Source.internal.toString());
   }
 
-  private Set<String> buildServiceFilterStrings(Set<ServiceType> services) {
-    Set<String> serviceStrings = new HashSet<>();
+  private Set<FacilityServiceWildcard> buildServiceFilterStrings(Set<ServiceType> services) {
+    Set<FacilityServiceWildcard> serviceStrings = new HashSet<>();
     services.stream()
         .forEach(
             serviceType -> {
-              try {
-                if (serviceType.serviceId().equals(HealthService.Covid19Vaccine.serviceId())) {
-                  String service =
-                      DATAMART_MAPPER.writeValueAsString(
-                          DatamartFacility.Service.builder()
-                              .serviceId(serviceType.serviceId())
-                              .name(serviceType.name())
-                              .source(Source.CMS)
-                              .build());
-                  serviceStrings.add(service);
-                } else {
-                  serviceSources.stream()
-                      .forEach(
-                          source -> {
-                            try {
-                              String service =
-                                  DATAMART_MAPPER.writeValueAsString(
-                                      DatamartFacility.Service.builder()
-                                          .serviceId(serviceType.serviceId())
-                                          .name(serviceType.name())
-                                          .source(Source.valueOf(source))
-                                          .build());
-                              serviceStrings.add(service);
-                            } catch (final JsonProcessingException ex) {
-                              throw new RuntimeException(ex);
-                            }
-                          });
-                }
-              } catch (final JsonProcessingException ex) {
-                throw new RuntimeException(ex);
+              if (serviceType.serviceId().equals(HealthService.Covid19Vaccine.serviceId())) {
+                serviceStrings.add(
+                    FacilityServiceWildcard.builder()
+                        .serviceId(serviceType.serviceId())
+                        .source(Source.CMS)
+                        .build());
+              } else {
+                serviceSources.stream()
+                    .forEach(
+                        source -> {
+                          serviceStrings.add(
+                              FacilityServiceWildcard.builder()
+                                  .serviceId(serviceType.serviceId())
+                                  .source(Source.valueOf(source))
+                                  .build());
+                        });
               }
             });
     return serviceStrings;
@@ -218,7 +201,7 @@ public class NearbyControllerV0 {
       List<String> rawServices,
       Integer rawMaxDriveTime) {
     Set<ServiceType> services = validateServices(rawServices);
-    Set<String> serviceStrings = buildServiceFilterStrings(services);
+    Set<FacilityServiceWildcard> serviceStrings = buildServiceFilterStrings(services);
     Integer maxDriveTime = validateDriveTime(rawMaxDriveTime);
     log.info(
         "Searching near {},{} within {} minutes with {} services",

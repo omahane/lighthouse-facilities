@@ -1057,8 +1057,8 @@ public final class Facility implements CanBeEmpty, IsAtcAware {
     String link;
 
     @Schema(
-        description = "Date of the most recent change in offered services.",
-        example = "2018-01-01",
+        description = "Date and time of the most recent change in offered services.",
+        example = "2022-12-12T14:40:01.490949",
         nullable = true)
     LocalDate lastUpdated;
 

@@ -78,8 +78,8 @@ public class DetailedService implements CanBeEmpty {
   boolean active;
 
   @Schema(
-      description = "Date of most recent upload of detailed service from CMS.",
-      example = "2021-02-04",
+      description = "Date and time of most recent upload of detailed service from CMS.",
+      example = "2022-12-12T14:40:01.490949",
       nullable = true)
   @JsonAlias("last_updated")
   LocalDateTime lastUpdated;

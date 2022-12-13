@@ -771,8 +771,8 @@ public final class Facility {
     List<BenefitsService> benefits;
 
     @Schema(
-        description = "Date and time of the most recent change in offered services.",
-        example = "2022-12-12T14:40:01.490949",
+        description = "Date of the most recent change in offered services.",
+        example = "2018-01-01",
         nullable = true)
     @JsonProperty("last_updated")
     LocalDate lastUpdated;

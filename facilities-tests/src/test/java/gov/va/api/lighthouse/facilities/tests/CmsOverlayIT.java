@@ -552,6 +552,15 @@ public class CmsOverlayIT {
     var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
+    // Get initial overlay state to restore after test
+    var initialCmsOverlay =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(
+                        Method.GET, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
+            .expect(200)
+            .expectValid(CmsOverlayResponse.class)
+            .overlay();
     // Clean up overlay before test
     ExpectedResponse.of(
         requestSpecificationInternal()
@@ -590,10 +599,13 @@ public class CmsOverlayIT {
             .facility();
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(OperatingStatusCode.CLOSED);
-    // Reload
+    // Restore the initial overlay state
     ExpectedResponse.of(
-            requestSpecificationInternal()
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
+            requestSpecification()
+                .contentType("application/json")
+                .body(MAPPER.writeValueAsString(initialCmsOverlay))
+                .request(
+                    Method.POST, svc.urlWithApiPath() + "v0/facilities/" + id + "/cms-overlay"))
         .expect(200);
     // After reload, ensure that the operating status was updated from CLOSED to NORMAL. Since we
     // are testing with a facility that has a pod (VAST's ActiveStatus equivalent) of A, the

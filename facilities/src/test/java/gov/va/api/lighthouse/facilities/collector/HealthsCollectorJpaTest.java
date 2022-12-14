@@ -31,6 +31,8 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.Satisfaction;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Services;
 import gov.va.api.lighthouse.facilities.DatamartFacility.WaitTimes;
+import gov.va.api.lighthouse.facilities.collector.AtcAllData.AtcFacility;
+import gov.va.api.lighthouse.facilities.collector.AtcAllData.AtcPwtData;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -119,16 +121,23 @@ class HealthsCollectorJpaTest {
                 Optional.of(
                     JacksonConfig.createMapper()
                         .writeValueAsString(
-                            List.of(
-                                AccessToCareEntry.builder()
-                                    .facilityId("666")
-                                    .apptTypeName("Audiology")
-                                    .estWaitTime(new BigDecimal("28.857142"))
-                                    .newWaitTime(new BigDecimal("128.378378"))
-                                    .emergencyCare(true)
-                                    .urgentCare(true)
-                                    .sliceEndDate("2020-03-02T00:00:00")
-                                    .build())))));
+                            AtcAllData.builder()
+                                .data(
+                                    List.of(
+                                        AtcFacility.builder()
+                                            .facilityId("666")
+                                            .emergencyCare(true)
+                                            .urgentCare(true)
+                                            .pwtData(
+                                                List.of(
+                                                    AtcPwtData.builder()
+                                                        .clinicType("Audiology")
+                                                        .estWaitTime(new BigDecimal("28.857142"))
+                                                        .newWaitTime(new BigDecimal("128.378378"))
+                                                        .reportDate("2020-03-02T00:00:00")
+                                                        .build()))
+                                            .build()))
+                                .build()))));
     when(insecureRestTemplate.exchange(
             startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(

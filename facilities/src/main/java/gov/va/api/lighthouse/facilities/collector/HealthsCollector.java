@@ -17,6 +17,8 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.collector.AtcAllData.AtcFacility;
+import gov.va.api.lighthouse.facilities.collector.AtcAllData.AtcPwtData;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -153,30 +156,54 @@ final class HealthsCollector {
   private ListMultimap<String, AccessToCareEntry> loadAccessToCare() {
     final Stopwatch totalWatch = Stopwatch.createStarted();
     String url =
-        UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "atcapis/v1.1/patientwaittimes")
-            .build()
-            .toUriString();
+        UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "api/v1.0/pwt/all").build().toUriString();
     String response =
         insecureRestTemplate
             .exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class)
             .getBody();
-    List<AccessToCareEntry> entries =
-        JacksonConfig.createMapper()
-            .readValue(response, new TypeReference<List<AccessToCareEntry>>() {});
+    AtcAllData allData =
+        JacksonConfig.createMapper().readValue(response, new TypeReference<AtcAllData>() {});
+
     ListMultimap<String, AccessToCareEntry> map = ArrayListMultimap.create();
-    for (int i = 0; i < entries.size(); i++) {
-      AccessToCareEntry entry = entries.get(i);
-      if (entry.facilityId() == null) {
+    List<AtcFacility> atcFacilities = allData.data();
+    for (int i = 0; i < atcFacilities.size(); i++) {
+      AtcFacility atcFacility = atcFacilities.get(i);
+      if (atcFacility.facilityId() == null) {
         log.warn("AccessToCare entry has null facility ID");
         continue;
       }
-      map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+
+      List<AtcPwtData> pwtData = atcFacility.pwtData();
+      if (ObjectUtils.isEmpty(pwtData)) {
+        AccessToCareEntry entry =
+            AccessToCareEntry.builder()
+                .facilityId(atcFacility.facilityId())
+                .emergencyCare(atcFacility.emergencyCare())
+                .urgentCare(atcFacility.urgentCare())
+                .build();
+        map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+      } else {
+        for (int j = 0; j < pwtData.size(); j++) {
+          AtcPwtData pwt = pwtData.get(j);
+          AccessToCareEntry entry =
+              AccessToCareEntry.builder()
+                  .facilityId(atcFacility.facilityId())
+                  .apptTypeName(pwt.clinicType())
+                  .emergencyCare(atcFacility.emergencyCare())
+                  .urgentCare(atcFacility.urgentCare())
+                  .estWaitTime(pwt.estWaitTime())
+                  .newWaitTime(pwt.newWaitTime())
+                  .sliceEndDate(pwt.reportDate())
+                  .build();
+          map.put(upperCase("vha_" + entry.facilityId(), Locale.US), entry);
+        }
+      }
     }
     log.info(
         "Loading patient wait times took {} millis for {} entries",
         totalWatch.stop().elapsed(TimeUnit.MILLISECONDS),
-        entries.size());
-    checkState(!entries.isEmpty(), "No AccessToCare entries");
+        map.size());
+    checkState(!allData.data().isEmpty(), "No AccessToCare entries");
     return ImmutableListMultimap.copyOf(map);
   }
 

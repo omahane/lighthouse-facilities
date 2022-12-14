@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
@@ -107,7 +108,13 @@ public class HealthController {
               url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class);
       statusCode = response.getStatusCode();
       JsonNode root = JacksonConfig.createMapper().readTree(response.getBody());
-      checkState(!((ArrayNode) root).isEmpty(), "No %s entries", name);
+      if (StringUtils.endsWithIgnoreCase(url, "api/v1.0/pwt/all")) {
+        // ATC health check
+        checkState(!((ArrayNode) root.get("Data")).isEmpty(), "No %s entries", name);
+      } else {
+        // Access to PWT and State Cemeteries health check
+        checkState(!((ArrayNode) root).isEmpty(), "No %s entries", name);
+      }
     } catch (RestClientException | JsonProcessingException | IllegalArgumentException e) {
       log.info(
           "{} occurred. GET {} message: {}", e.getClass().getSimpleName(), url, e.getMessage());
@@ -181,8 +188,7 @@ public class HealthController {
             now,
             insecureTemplate,
             "Access to Care",
-            UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "atcapis/v1.1/patientwaittimes")
-                .toUriString()));
+            UriComponentsBuilder.fromHttpUrl(atcBaseUrl + "api/v1.0/pwt/all").toUriString()));
     healths.add(
         testHealthJsonList(
             now,

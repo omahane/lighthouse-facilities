@@ -13,7 +13,8 @@ public class SystemDefinitions {
 
   private static Ids ids() {
     return Ids.builder()
-        .facility("vha_516")
+        .facility("vha_517")
+        .facilityToDelete("vha_516")
         .facilityIdsCsv("nca_055,nca_s1001,vba_322c,vc_0101V,vha_402GA")
         .latitude("28.112464")
         .longitude("-80.7015994")
@@ -115,6 +116,8 @@ public class SystemDefinitions {
   @Builder
   public static final class Ids {
     @NonNull String facility;
+
+    @NonNull String facilityToDelete;
 
     @NonNull String facilityIdsCsv;
 

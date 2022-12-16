@@ -321,6 +321,7 @@ vc_0314V,https://www.va.gov/orlando-vet-center/
 vc_0315V,https://www.va.gov/fayetteville-nc-vet-center/
 vc_0316V,https://www.va.gov/greenville-sc-vet-center/
 vc_0317V,https://www.va.gov/charlotte-vet-center/
+vc_0318V,https://www.va.gov/tampa-vet-center/
 vc_0319V,https://www.va.gov/greenville-nc-vet-center/
 vc_0320V,https://www.va.gov/sarasota-vet-center/
 vc_0323V,https://www.va.gov/savannah-vet-center/
@@ -346,6 +347,7 @@ vc_0345V,https://www.va.gov/clermont-vet-center/
 vc_0346V,https://www.va.gov/augusta-vet-center/
 vc_0347V,https://www.va.gov/myrtle-beach-vet-center/
 vc_0349V,https://www.va.gov/columbus-ga-vet-center/
+vc_0403V,https://www.va.gov/grand-rapids-vet-center/
 vc_0404V,https://www.va.gov/minot-vet-center/
 vc_0405V,https://www.va.gov/des-moines-vet-center/
 vc_0407V,https://www.va.gov/chicago-heights-vet-center/
@@ -355,11 +357,22 @@ vc_0418V,https://www.va.gov/evansville-vet-center/
 vc_0419V,https://www.va.gov/madison-vet-center/
 vc_0425V,https://www.va.gov/sioux-falls-vet-center/
 vc_0426V,https://www.va.gov/wichita-vet-center/
+vc_0427V,https://www.va.gov/lincoln-vet-center/
+vc_0428V,https://www.va.gov/sioux-city-vet-center/
+vc_0430V,https://www.va.gov/quad-cities-vet-center/
+vc_0431V,https://www.va.gov/cedar-rapids-vet-center/
 vc_0434V,https://www.va.gov/escanaba-vet-center/
+vc_0435V,https://www.va.gov/orland-park-vet-center/
+vc_0436V,https://www.va.gov/aurora-vet-center/
 vc_0437V,https://www.va.gov/macomb-county-vet-center/
 vc_0438V,https://www.va.gov/pontiac-vet-center/
+vc_0439V,https://www.va.gov/anoka-vet-center/
+vc_0442V,https://www.va.gov/la-crosse-vet-center/
 vc_0443V,https://www.va.gov/columbia-mo-vet-center/
 vc_0444V,https://www.va.gov/south-bend-vet-center/
+vc_0445V,https://www.va.gov/traverse-city-vet-center/
+vc_0446V,https://www.va.gov/bismarck-vet-center/
+vc_0447V,https://www.va.gov/rockford-vet-center/
 vc_0501V,https://www.va.gov/cheyenne-vet-center/
 vc_0502V,https://www.va.gov/anchorage-vet-center/
 vc_0503V,https://www.va.gov/boise-vet-center/
@@ -498,7 +511,9 @@ vc_0814MVC,https://www.va.gov/greenville-nc-vet-center/
 vc_0815MVC,https://www.va.gov/pensacola-vet-center/
 vc_0817MVC,https://www.va.gov/columbia-sc-vet-center/
 vc_0818MVC,https://www.va.gov/macon-vet-center/
+vc_0819MVC,https://www.va.gov/bismarck-vet-center/
 vc_0824MVC,https://www.va.gov/wichita-vet-center/
+vc_0825MVC,https://www.va.gov/lincoln-vet-center/
 vc_0826MVC,https://www.va.gov/escanaba-vet-center/
 vc_0827MVC,https://www.va.gov/boise-vet-center/
 vc_0828MVC,https://www.va.gov/tacoma-vet-center/
@@ -523,6 +538,7 @@ vc_0848MVC,https://www.va.gov/memphis-vet-center/
 vc_0849MVC,https://www.va.gov/san-antonio-northwest-vet-center/
 vc_0850MVC,https://www.va.gov/little-rock-vet-center/
 vc_0851MVC,https://www.va.gov/kansas-city-vet-center/
+vc_0854MVC,https://www.va.gov/cedar-rapids-vet-center/
 vc_0855MVC,https://www.va.gov/pontiac-vet-center/
 vc_0857MVC,https://www.va.gov/secaucus-vet-center/
 vc_0858MVC,https://www.va.gov/baltimore-vet-center/

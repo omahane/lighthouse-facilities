@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 public class HealthTransformerTest {
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
 
-  private static final String ORTHO_STATIONS_RESOURCE_NAME = "ortho_stations.txt";
-
   @Test
   @SneakyThrows
   public void activeStatus() {
@@ -41,7 +39,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(activeStatusMethod.invoke(withActiveStatus, null))
         .isEqualTo(DatamartFacility.ActiveStatus.A);
@@ -54,7 +51,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(activeStatusMethod.invoke(withInactiveStatus, null))
         .isEqualTo(DatamartFacility.ActiveStatus.T);
@@ -71,7 +67,6 @@ public class HealthTransformerTest {
                 .accessToCare(ArrayListMultimap.create())
                 .accessToPwt(ArrayListMultimap.create())
                 .cscFacilities(new ArrayList<>())
-                .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
                 .stopCodesMap(ArrayListMultimap.create())
                 .websites(emptyMap())
@@ -88,7 +83,6 @@ public class HealthTransformerTest {
                 .accessToCare(ArrayListMultimap.create())
                 .accessToPwt(ArrayListMultimap.create())
                 .cscFacilities(new ArrayList<>())
-                .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
                 .stopCodesMap(ArrayListMultimap.create())
                 .websites(emptyMap())
@@ -115,7 +109,6 @@ public class HealthTransformerTest {
                 .accessToCare(ArrayListMultimap.create())
                 .accessToPwt(ArrayListMultimap.create())
                 .cscFacilities(new ArrayList<>())
-                .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
                 .stopCodesMap(ArrayListMultimap.create())
                 .websites(emptyMap())
@@ -134,7 +127,6 @@ public class HealthTransformerTest {
                 .accessToCare(atc)
                 .accessToPwt(atp)
                 .cscFacilities(new ArrayList<>())
-                .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
                 .stopCodesMap(sc)
                 .websites(emptyMap())
@@ -155,7 +147,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     Method waitTimeMethod =
         HealthTransformer.class.getDeclaredMethod("waitTime", AccessToCareEntry.class);
@@ -180,7 +171,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(cscStationNumbers)
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(hasCaregiverSupportAndStationNumber.hasCaregiverSupport()).isTrue();
     HealthTransformer hasCaregiverSupportWithNoStationNumber =
@@ -192,7 +182,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(cscStationNumbers)
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(hasCaregiverSupportWithNoStationNumber.hasCaregiverSupport()).isFalse();
     ArrayListMultimap<String, AccessToCareEntry> atc = ArrayListMultimap.create();
@@ -207,7 +196,6 @@ public class HealthTransformerTest {
                 .accessToCare(atc)
                 .accessToPwt(atp)
                 .cscFacilities(loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME))
-                .orthoFacilities(new ArrayList<>())
                 .mentalHealthPhoneNumbers(emptyMap())
                 .stopCodesMap(sc)
                 .websites(emptyMap())
@@ -234,71 +222,6 @@ public class HealthTransformerTest {
   }
 
   @Test
-  void facilityWithOrthopedics() {
-    var orthoStationNumbers = new ArrayList<>(List.of("vha_123GA", "vha_321GA", "vha_789GA"));
-    HealthTransformer hasOrthopedicsAndStationNumber =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(orthoStationNumbers)
-            .build();
-    assertThat(hasOrthopedicsAndStationNumber.hasOrthopedics()).isTrue();
-    HealthTransformer hasOrthopedicsWithNoStationNumber =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(orthoStationNumbers)
-            .build();
-    assertThat(hasOrthopedicsWithNoStationNumber.hasOrthopedics()).isFalse();
-    ArrayListMultimap<String, AccessToCareEntry> atc = ArrayListMultimap.create();
-    atc.put("VHA_689", AccessToCareEntry.builder().build());
-    ArrayListMultimap<String, AccessToPwtEntry> atp = ArrayListMultimap.create();
-    atp.put("VHA_689", AccessToPwtEntry.builder().build());
-    ArrayListMultimap<String, StopCode> sc = ArrayListMultimap.create();
-    sc.put("VHA_689", StopCode.builder().build());
-    assertThat(
-            HealthTransformer.builder()
-                .vast(VastEntity.builder().stationNumber("689").build())
-                .accessToCare(atc)
-                .accessToPwt(atp)
-                .cscFacilities(new ArrayList<>())
-                .orthoFacilities(loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME))
-                .mentalHealthPhoneNumbers(emptyMap())
-                .stopCodesMap(sc)
-                .websites(emptyMap())
-                .build()
-                .toDatamartFacility())
-        .isEqualTo(
-            DatamartFacility.builder()
-                .id("vha_689")
-                .type(va_facilities)
-                .attributes(
-                    FacilityAttributes.builder()
-                        .facilityType(va_health_facility)
-                        .services(
-                            Services.builder()
-                                .health(
-                                    List.of(
-                                        Service.<HealthService>builder()
-                                            .serviceType(Orthopedics)
-                                            .name(Orthopedics.name())
-                                            .build()))
-                                .build())
-                        .build())
-                .build());
-  }
-
-  @Test
   public void facilityWithoutCaregiverSupport() {
     var cscStationNumbers = new ArrayList<>(List.of("vha_123GA", "vha_321GA", "vha_789GA"));
     HealthTransformer lacksCaregiverSupport =
@@ -310,7 +233,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(cscStationNumbers)
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(lacksCaregiverSupport.hasCaregiverSupport()).isFalse();
     HealthTransformer noCaregiverSupportForStationNumber =
@@ -322,7 +244,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(noCaregiverSupportForStationNumber.hasCaregiverSupport()).isFalse();
     HealthTransformer noCaregiverSupportOrStationNumber =
@@ -334,50 +255,8 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(noCaregiverSupportOrStationNumber.hasCaregiverSupport()).isFalse();
-  }
-
-  @Test
-  public void facilityWithoutOrthopedics() {
-    var orthoStationNumbers = new ArrayList<>(List.of("vha_123GA", "vha_321GA", "vha_789GA"));
-    HealthTransformer lacksOrthopedics =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().stationNumber("456GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(orthoStationNumbers)
-            .build();
-    assertThat(lacksOrthopedics.hasOrthopedics()).isFalse();
-    HealthTransformer noOrthopedicsForStationNumber =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().stationNumber("123GA").build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .build();
-    assertThat(noOrthopedicsForStationNumber.hasOrthopedics()).isFalse();
-    HealthTransformer noOrthopedicsOrStationNumber =
-        HealthTransformer.builder()
-            .vast(VastEntity.builder().build())
-            .accessToCare(ArrayListMultimap.create())
-            .accessToPwt(ArrayListMultimap.create())
-            .mentalHealthPhoneNumbers(emptyMap())
-            .stopCodesMap(ArrayListMultimap.create())
-            .websites(emptyMap())
-            .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
-            .build();
-    assertThat(noOrthopedicsOrStationNumber.hasOrthopedics()).isFalse();
   }
 
   @Test
@@ -392,7 +271,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     Method serviceNameMethod =
         HealthTransformer.class.getDeclaredMethod("serviceName", AccessToCareEntry.class);
@@ -417,7 +295,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     Method waitTimeNumberMethod =
         HealthTransformer.class.getDeclaredMethod("waitTimeNumber", BigDecimal.class);
@@ -444,7 +321,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(blankId.website()).isNull();
     var expectedWebsite = "https://developer.va.gov";
@@ -457,7 +333,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(Map.of("vha_123", expectedWebsite))
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(healthTransformer.website()).isEqualTo(expectedWebsite);
   }
@@ -476,7 +351,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(zipMethod.invoke(zip)).isEqualTo("32934");
     HealthTransformer zipWithPlus4 =
@@ -488,7 +362,6 @@ public class HealthTransformerTest {
             .stopCodesMap(ArrayListMultimap.create())
             .websites(emptyMap())
             .cscFacilities(new ArrayList<>())
-            .orthoFacilities(new ArrayList<>())
             .build();
     assertThat(zipMethod.invoke(zipWithPlus4)).isEqualTo("32934-2807");
   }

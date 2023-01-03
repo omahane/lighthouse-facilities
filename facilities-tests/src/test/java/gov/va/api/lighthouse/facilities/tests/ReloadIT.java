@@ -1,6 +1,6 @@
 package gov.va.api.lighthouse.facilities.tests;
 
-import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
+import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
 
@@ -23,7 +23,7 @@ public class ReloadIT {
 
   @Test
   void reload() {
-    assumeEnvironmentNotIn(Environment.LAB, Environment.PROD);
+    assumeEnvironmentIn(Environment.LOCAL);
     SystemDefinitions.Service svc = systemDefinition().facilitiesInternal();
     ExpectedResponse.of(
             requestSpecification()

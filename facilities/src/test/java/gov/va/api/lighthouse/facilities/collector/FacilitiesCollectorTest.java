@@ -20,6 +20,7 @@ import gov.va.api.lighthouse.facilities.DatamartFacility.BenefitsService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OtherService;
 import gov.va.api.lighthouse.facilities.FacilityEntity;
+import gov.va.api.lighthouse.facilities.collector.AtcAllData.AtcFacility;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -305,16 +306,15 @@ public class FacilitiesCollectorTest {
         mock(InsecureRestTemplateProvider.class);
     when(insecureRestTemplateProvider.restTemplate()).thenReturn(insecureRestTemplate);
     when(insecureRestTemplate.exchange(
-            startsWith("http://atc/atcapis"),
-            eq(HttpMethod.GET),
-            any(HttpEntity.class),
-            eq(String.class)))
+            startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(
             ResponseEntity.of(
                 Optional.of(
                     JacksonConfig.createMapper()
                         .writeValueAsString(
-                            List.of(AccessToCareEntry.builder().facilityId("x").build())))));
+                            AtcAllData.builder()
+                                .data(List.of(AtcFacility.builder().facilityId("x").build()))
+                                .build()))));
     when(insecureRestTemplate.exchange(
             startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(

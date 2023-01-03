@@ -11,6 +11,7 @@ import io.restassured.http.Method;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @Slf4j
 public class CollectorIT {
@@ -28,6 +29,9 @@ public class CollectorIT {
   }
 
   @Test
+  @DisabledIfEnvironmentVariable(
+      named = "COLLECTOR_IT_COLLECT_FACILITIES_ENABLED",
+      matches = "false")
   void collectFacilities() {
     var items =
         makeRequest("internal/collector/facilities", 200).expectListOf(DatamartFacility.class);

@@ -60,6 +60,10 @@ public class HealthControllerTest {
         .isEqualTo(expected.stateCemeteries());
   }
 
+  private static ResponseEntity<String> atcOk() {
+    return new ResponseEntity<>("{\"Data\":[{}]}", HttpStatus.OK);
+  }
+
   private static ResponseEntity<String> notOk() {
     return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
   }
@@ -114,7 +118,7 @@ public class HealthControllerTest {
     when(insecureRestTemplateProvider.restTemplate()).thenReturn(restTemplate);
     when(restTemplate.exchange(
             startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ok());
+        .thenReturn(atcOk());
     when(restTemplate.exchange(
             startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(ok());
@@ -266,7 +270,7 @@ public class HealthControllerTest {
     when(insecureRestTemplateProvider.restTemplate()).thenReturn(restTemplate);
     when(restTemplate.exchange(
             startsWith("http://atc"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ok());
+        .thenReturn(atcOk());
     when(restTemplate.exchange(
             startsWith("http://atp"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
         .thenReturn(ok());

@@ -64,7 +64,7 @@ public class MockServices {
   }
 
   private void addAccessToCareWaitTimes(MockServerClient mock) {
-    mock.when(addQuery("/atcapis/v1.1/patientwaittimes"))
+    mock.when(addQuery("/api/v1.0/pwt/all"))
         .respond(
             response()
                 .withStatusCode(atcStatusCode)

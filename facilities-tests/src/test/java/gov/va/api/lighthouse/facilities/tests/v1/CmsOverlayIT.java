@@ -942,15 +942,6 @@ public class CmsOverlayIT {
     var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
-    // Get initial overlay state to restore after test
-    var initialCmsOverlay =
-        ExpectedResponse.of(
-                requestSpecification()
-                    .request(
-                        Method.GET, svc.urlWithApiPath() + "v1/facilities/" + id + "/cms-overlay"))
-            .expect(200)
-            .expectValid(CmsOverlayResponse.class)
-            .overlay();
     // Clean up overlay before test
     ExpectedResponse.of(
         requestSpecificationInternal()
@@ -977,9 +968,8 @@ public class CmsOverlayIT {
                     + "internal/management/facilities/"
                     + id
                     + "/cms-overlay/operating_status"));
-    // GET facility and check to make sure that the operating status was populate from the overlay
-    // correctly, should be
-    // set to CLOSED
+    // GET facility and check to make sure that the operating status was populated from the
+    // overlay correctly, should be set to CLOSED
     var facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -989,18 +979,14 @@ public class CmsOverlayIT {
             .facility();
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(OperatingStatusCode.CLOSED);
-    // Restore the initial overlay state
+    // Reload
     ExpectedResponse.of(
-            requestSpecification()
-                .contentType("application/json")
-                .body(MAPPER.writeValueAsString(initialCmsOverlay))
-                .request(
-                    Method.POST, svc.urlWithApiPath() + "v1/facilities/" + id + "/cms-overlay"))
+            requestSpecificationInternal()
+                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
         .expect(200);
     // After reload, ensure that the operating status was updated from CLOSED to NORMAL. Since we
     // are testing with a facility that has a pod (VAST's ActiveStatus equivalent) of A, the
-    // operating status should
-    // be updated to NORMAL
+    // operating status should be updated to NORMAL
     facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -1009,7 +995,7 @@ public class CmsOverlayIT {
             .expectValid(FacilityReadResponse.class)
             .facility();
     assertThat(facility.attributes().operatingStatus().code())
-        .isEqualTo(OperatingStatusCode.NOTICE);
+        .isEqualTo(OperatingStatusCode.NORMAL);
   }
 
   @Test

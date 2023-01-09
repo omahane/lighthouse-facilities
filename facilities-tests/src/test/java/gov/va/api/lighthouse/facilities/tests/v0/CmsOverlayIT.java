@@ -1062,9 +1062,8 @@ public class CmsOverlayIT {
                     + "internal/management/facilities/"
                     + id
                     + "/cms-overlay/operating_status"));
-    // GET facility and check to make sure that the operating status was populate from the overlay
-    // correctly, should be
-    // set to CLOSED
+    // GET facility and check to make sure that the operating status was populated from the
+    // overlay correctly, should be set to CLOSED
     var facility =
         ExpectedResponse.of(
                 requestSpecification()
@@ -1081,8 +1080,7 @@ public class CmsOverlayIT {
         .expect(200);
     // After reload, ensure that the operating status was updated from CLOSED to NORMAL. Since we
     // are testing with a facility that has a pod (VAST's ActiveStatus equivalent) of A, the
-    // operating status should
-    // be updated to NORMAL
+    // operating status should be updated to NORMAL
     facility =
         ExpectedResponse.of(
                 requestSpecification()

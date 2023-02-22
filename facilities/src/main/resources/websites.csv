@@ -312,6 +312,7 @@ vc_0240V,https://www.va.gov/virginia-beach-vet-center/
 vc_0241V,https://www.va.gov/stark-county-vet-center/
 vc_0242V,https://www.va.gov/lancaster-vet-center/
 vc_0243V,https://www.va.gov/sussex-county-vet-center/
+vc_0301V,https://www.va.gov/st-petersburg-vet-center/
 vc_0303V,https://www.va.gov/charleston-sc-vet-center/
 vc_0304V,https://www.va.gov/atlanta-vet-center/
 vc_0305V,https://www.va.gov/jacksonville-fl-vet-center/
@@ -365,6 +366,7 @@ vc_0410V,https://www.va.gov/chicago-vet-center/
 vc_0411V,https://www.va.gov/forest-park-vet-center/
 vc_0412V,https://www.va.gov/gary-area-vet-center/
 vc_0413V,https://www.va.gov/indianapolis-vet-center/
+vc_0416V,https://www.va.gov/st-paul-vet-center/
 vc_0417V,https://www.va.gov/peoria-vet-center/
 vc_0418V,https://www.va.gov/evansville-vet-center/
 vc_0419V,https://www.va.gov/madison-vet-center/
@@ -1326,6 +1328,8 @@ vha_612GH,https://www.va.gov/northern-california-health-care/locations/mcclellan
 vha_612GI,https://www.va.gov/northern-california-health-care/locations/yuba-city-va-clinic/
 vha_612GJ,https://www.va.gov/northern-california-health-care/locations/yreka-va-clinic/
 vha_612GK,https://www.va.gov/northern-california-health-care/locations/sierra-foothills-va-clinic/
+vha_612GL,https://www.va.gov/northern-california-health-care/locations/sonora-va-clinic/
+vha_612GM,https://www.va.gov/northern-california-health-care/locations/modesto-va-clinic/
 vha_612QC,https://www.va.gov/northern-california-health-care/locations/cypress-avenue-va-clinic/
 vha_612QD,https://www.va.gov/northern-california-health-care/locations/howe-road-va-clinic/
 vha_613,https://www.va.gov/martinsburg-health-care/locations/martinsburg-va-medical-center/

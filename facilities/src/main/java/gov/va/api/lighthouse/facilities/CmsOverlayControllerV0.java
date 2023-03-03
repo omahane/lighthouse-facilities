@@ -301,7 +301,6 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
                 toSaveDetailedServices.isEmpty()
                     ? null
                     : toSaveDetailedServices.parallelStream()
-                        .filter(dds -> dds.active())
                         .filter(
                             dds ->
                                 HealthService.Covid19Vaccine.serviceId()

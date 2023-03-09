@@ -83,8 +83,6 @@ final class HealthTransformer {
 
   @NonNull private final ArrayList<String> cscFacilities;
 
-  @NonNull private final ArrayList<String> orthoFacilities;
-
   private static Map<String, HealthService> initHealthServicesMap() {
     Map<String, HealthService> map = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     map.put("AUDIOLOGY", Audiology);
@@ -241,10 +239,6 @@ final class HealthTransformer {
     return !allBlank(id()) && cscFacilities.contains(id());
   }
 
-  boolean hasOrthopedics() {
-    return !allBlank(id()) && orthoFacilities.contains(id());
-  }
-
   private Hours hours() {
     String mon = hoursToClosed(vast.monday());
     String tue = hoursToClosed(vast.tuesday());
@@ -398,13 +392,6 @@ final class HealthTransformer {
       services.add(
           Service.<HealthService>builder()
               .serviceType(CaregiverSupport)
-              .source(Source.internal)
-              .build());
-    }
-    if (hasOrthopedics()) {
-      services.add(
-          Service.<HealthService>builder()
-              .serviceType(Orthopedics)
               .source(Source.internal)
               .build());
     }

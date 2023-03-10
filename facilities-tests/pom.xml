@@ -126,7 +126,6 @@
                 <argument>facilities.jar${path.separator}h2.jar${path.separator}facilities-local-db-tests.jar</argument>
                 <argument>-Dlogging.level.root=INFO</argument>
                 <argument>-Dloader=gov.va.api.lighthouse.facilities.Application</argument>
-                <argument>-Dfacilities.url=http://localhost:8085</argument>
                 <argument>-Daccess-to-care.url=http://localhost:8666</argument>
                 <argument>-Daccess-to-pwt.url=http://localhost:8666</argument>
                 <argument>-Dbing.url=http://localhost:8666</argument>

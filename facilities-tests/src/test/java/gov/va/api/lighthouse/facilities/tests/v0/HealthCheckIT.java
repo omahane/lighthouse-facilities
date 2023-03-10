@@ -9,7 +9,7 @@ public class HealthCheckIT {
 
   @Test
   void healthCheckEndpoint() {
-    facilitiesRequest("application/json", "v0/actuator/health", 200)
+    facilitiesRequest("application/json", "v0/healthcheck", 200)
         .response()
         .then()
         .body("status", equalTo("UP"));

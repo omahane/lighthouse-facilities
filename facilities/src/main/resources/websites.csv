@@ -312,7 +312,7 @@ vc_0240V,https://www.va.gov/virginia-beach-vet-center/
 vc_0241V,https://www.va.gov/stark-county-vet-center/
 vc_0242V,https://www.va.gov/lancaster-vet-center/
 vc_0243V,https://www.va.gov/sussex-county-vet-center/
-vc_0301V,https://www.va.gov/st.-petersburg-vet-center/
+vc_0301V,https://www.va.gov/st-petersburg-vet-center/
 vc_0303V,https://www.va.gov/charleston-sc-vet-center/
 vc_0304V,https://www.va.gov/atlanta-vet-center/
 vc_0305V,https://www.va.gov/jacksonville-fl-vet-center/
@@ -366,7 +366,7 @@ vc_0410V,https://www.va.gov/chicago-vet-center/
 vc_0411V,https://www.va.gov/forest-park-vet-center/
 vc_0412V,https://www.va.gov/gary-area-vet-center/
 vc_0413V,https://www.va.gov/indianapolis-vet-center/
-vc_0416V,https://www.va.gov/st.-paul-vet-center/
+vc_0416V,https://www.va.gov/st-paul-vet-center/
 vc_0417V,https://www.va.gov/peoria-vet-center/
 vc_0418V,https://www.va.gov/evansville-vet-center/
 vc_0419V,https://www.va.gov/madison-vet-center/
@@ -501,6 +501,7 @@ vc_0716V,https://www.va.gov/midland-vet-center/
 vc_0717V,https://www.va.gov/new-orleans-vet-center/
 vc_0718V,https://www.va.gov/oklahoma-city-vet-center/
 vc_0719V,https://www.va.gov/memphis-vet-center/
+vc_0720V,https://www.va.gov/knoxville-vet-center/
 vc_0721V,https://www.va.gov/san-antonio-northeast-vet-center/
 vc_0722V,https://www.va.gov/chattanooga-vet-center/
 vc_0723V,https://www.va.gov/tulsa-vet-center/
@@ -528,6 +529,7 @@ vc_0802MVC,https://www.va.gov/hatillo-vet-center/
 vc_0803MVC,https://www.va.gov/white-river-junction-vet-center/
 vc_0804MVC,https://www.va.gov/lewiston-vet-center/
 vc_0805MVC,https://www.va.gov/watertown-vet-center/
+vc_0806MVC,https://www.va.gov/lexington-vet-center/
 vc_0808MVC,https://www.va.gov/richmond-vet-center/
 vc_0809MVC,https://www.va.gov/erie-vet-center/
 vc_0810MVC,https://www.va.gov/dayton-vet-center/
@@ -563,6 +565,7 @@ vc_0839MVC,https://www.va.gov/corona-vet-center/
 vc_0840MVC,https://www.va.gov/salem-vet-center/
 vc_0841MVC,https://www.va.gov/bakersfield-vet-center/
 vc_0842MVC,https://www.va.gov/santa-cruz-county-vet-center/
+vc_0844MVC,https://www.va.gov/knoxville-vet-center/
 vc_0845MVC,https://www.va.gov/amarillo-vet-center/
 vc_0846MVC,https://www.va.gov/abilene-vet-center/
 vc_0847MVC,https://www.va.gov/new-orleans-vet-center/
@@ -606,7 +609,11 @@ vc_1221OS,https://www.va.gov/white-river-junction-vet-center/
 vc_2081OS,https://www.va.gov/huntington-vet-center/
 vc_2091OS,https://www.va.gov/elkton-vet-center/
 vc_2092OS,https://www.va.gov/elkton-vet-center/
+vc_3121OS,https://www.va.gov/san-juan-vet-center/
+vc_3122OS,https://www.va.gov/san-juan-vet-center/
 vc_3271OS,https://www.va.gov/greensboro-vet-center/
+vc_4061OS,https://www.va.gov/fargo-vet-center/
+vc_4421OS,https://www.va.gov/la-crosse-vet-center/
 vc_5021OS,https://www.va.gov/anchorage-vet-center/
 vc_5081OS,https://www.va.gov/tacoma-vet-center/
 vc_5141OS,https://www.va.gov/salt-lake-city-vet-center/
@@ -1321,6 +1328,7 @@ vha_612GH,https://www.va.gov/northern-california-health-care/locations/mcclellan
 vha_612GI,https://www.va.gov/northern-california-health-care/locations/yuba-city-va-clinic/
 vha_612GJ,https://www.va.gov/northern-california-health-care/locations/yreka-va-clinic/
 vha_612GK,https://www.va.gov/northern-california-health-care/locations/sierra-foothills-va-clinic/
+vha_612GL,https://www.va.gov/northern-california-health-care/locations/sonora-va-clinic/
 vha_612GM,https://www.va.gov/northern-california-health-care/locations/modesto-va-clinic/
 vha_612QC,https://www.va.gov/northern-california-health-care/locations/cypress-avenue-va-clinic/
 vha_612QD,https://www.va.gov/northern-california-health-care/locations/howe-road-va-clinic/
@@ -1726,6 +1734,7 @@ vha_671GP,https://www.va.gov/south-texas-health-care/locations/balcones-heights-
 vha_671GQ,https://www.va.gov/south-texas-health-care/locations/shavano-park-va-clinic/
 vha_671GR,https://www.va.gov/south-texas-health-care/locations/north-bexar-va-clinic/
 vha_671GS,https://www.va.gov/south-texas-health-care/locations/north-west-san-antonio-va-clinic/
+vha_671GT,https://www.va.gov/south-texas-health-care/locations/walzem-va-clinic/
 vha_671QB,https://www.va.gov/south-texas-health-care/locations/data-point-va-clinic/
 vha_672,https://www.va.gov/caribbean-health-care/locations/san-juan-va-medical-center/
 vha_672B0,https://www.va.gov/caribbean-health-care/locations/euripides-rubio-department-of-veterans-affairs-outpatient-clinic/

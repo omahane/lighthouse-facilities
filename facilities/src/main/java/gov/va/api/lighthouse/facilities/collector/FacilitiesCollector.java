@@ -44,8 +44,6 @@ public class FacilitiesCollector {
 
   private static final String CSC_STATIONS_RESOURCE_NAME = "csc_stations.txt";
 
-  private static final String ORTHO_STATIONS_RESOURCE_NAME = "ortho_stations.txt";
-
   protected final InsecureRestTemplateProvider insecureRestTemplateProvider;
 
   protected final JdbcTemplate jdbcTemplate;
@@ -148,12 +146,10 @@ public class FacilitiesCollector {
     Map<String, String> websites;
     Collection<VastEntity> vastEntities;
     ArrayList<String> cscFacilities;
-    ArrayList<String> orthoFacilities;
     try {
       websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
       vastEntities = loadVast();
       cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
-      orthoFacilities = loadFacilitiesFromResource(ORTHO_STATIONS_RESOURCE_NAME);
     } catch (Exception e) {
       throw new CollectorExceptions.CollectorException(e);
     }
@@ -162,7 +158,6 @@ public class FacilitiesCollector {
             .atcBaseUrl(atcBaseUrl)
             .atpBaseUrl(atpBaseUrl)
             .cscFacilities(cscFacilities)
-            .orthoFacilities(orthoFacilities)
             .jdbcTemplate(jdbcTemplate)
             .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
             .vastEntities(vastEntities)

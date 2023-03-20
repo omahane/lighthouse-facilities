@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.ws.rs.GET;
@@ -34,8 +33,7 @@ public interface FacilitiesNearbyApi {
               + "`max_time` of 20 is a 10 to 20 minute drive from the requested location."
               + "\n\n"
               + "To retrieve full details for nearby facilities, "
-              + "see the documentation for `/facilities?ids`.",
-      security = @SecurityRequirement(name = "apikey"))
+              + "see the documentation for `/facilities?ids`.")
   @GET
   @Path("nearby")
   @ApiResponse(

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -14,8 +13,7 @@ public interface FacilitiesReadApi {
   @Operation(
       summary = "Retrieve a specific facility by ID",
       operationId = "getFacilityById",
-      tags = {"facilities"},
-      security = @SecurityRequirement(name = "apikey"))
+      tags = {"facilities"})
   @GET
   @Path("/facilities/{id}")
   @ApiResponse(

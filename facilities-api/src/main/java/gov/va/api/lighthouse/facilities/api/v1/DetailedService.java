@@ -299,7 +299,8 @@ public class DetailedService implements CanBeEmpty {
   @JsonSerialize(using = PatientWaitTimeSerializer.class)
   @Schema(
       description =
-          "Expected wait times for new and established patients for a given health care service",
+          "Expected wait times for new and established patients "
+              + "for a given health care service at VA health facilities.",
       nullable = true)
   public static final class PatientWaitTime implements CanBeEmpty {
     @Schema(

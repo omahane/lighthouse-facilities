@@ -397,7 +397,9 @@ public final class Facility {
     Hours hours;
 
     @Schema(
-        description = "Additional information about facility operating hours.",
+        description =
+            "Additional information about a VA health "
+                + "or Vet Center facility's operating hours.",
         example = "Normal business hours are Monday through Friday, 8:00 a.m. to 4:30 p.m.",
         nullable = true)
     @JsonProperty("operational_hours_special_instructions")
@@ -584,15 +586,21 @@ public final class Facility {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(
-      description = "Veteran-reported satisfaction scores for health care services.",
+      description =
+          "Veteran-reported satisfaction score for health care services at VA health facilities.",
       nullable = true)
   public static final class PatientSatisfaction {
     @Schema(
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need care right away at a primary care location.",
+            "Percentage of Veterans who say they usually or "
+                + "always get an appointment when they "
+                + "need urgent attention at a primary care"
+                + " location. NOTE: Veterans are rating their "
+                + "satisfaction of getting an appointment "
+                + "for an urgent primary care visit, "
+                + "NOT an urgent care visit.",
         nullable = true)
     @JsonProperty("primary_care_urgent")
     BigDecimal primaryCareUrgent;
@@ -601,8 +609,12 @@ public final class Facility {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need it at a primary care location.",
+            "Percentage of Veterans who say they usually or "
+                + "always get an appointment when they need "
+                + "routine attention at a primary care location. "
+                + "NOTE: Veterans are rating their satisfaction"
+                + " of getting an appointment for a routine "
+                + "primary care visit.",
         nullable = true)
     @JsonProperty("primary_care_routine")
     BigDecimal primaryCareRoutine;
@@ -611,8 +623,13 @@ public final class Facility {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need care right away at a specialty location.",
+            "Percentage of Veterans who say they usually "
+                + "or always get an appointment when they "
+                + "need urgent attention at a specialty care "
+                + "location. NOTE: Veterans are rating their "
+                + "satisfaction of getting an appointment for"
+                + " an urgent specialty care visit, "
+                + "NOT an urgent care visit.",
         nullable = true)
     @JsonProperty("specialty_care_urgent")
     BigDecimal specialtyCareUrgent;
@@ -621,8 +638,12 @@ public final class Facility {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need it at a specialty location.",
+            "Percentage of Veterans who say they usually"
+                + " or always get an appointment when they"
+                + " need routine attention at a specialty "
+                + "care location. NOTE: Veterans are rating"
+                + " their satisfaction of getting an appointment"
+                + " for a routine specialty care visit.",
         nullable = true)
     @JsonProperty("specialty_care_routine")
     BigDecimal specialtyCareRoutine;
@@ -634,7 +655,8 @@ public final class Facility {
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(
       description =
-          "Expected wait times for new and established patients for a given health care service.",
+          "Expected wait times for new and established"
+              + " patients for a given health care service at VA health facilities.",
       nullable = true)
   public static final class PatientWaitTime {
     @Schema(description = "Service being offered by facility.")
@@ -745,7 +767,8 @@ public final class Facility {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @Schema(
-      description = "All services offered by a facility grouped by service type.",
+      description =
+          "All services offered by a VA health or benefits facility grouped by service type.",
       nullable = true)
   public static final class Services {
     @ArraySchema(

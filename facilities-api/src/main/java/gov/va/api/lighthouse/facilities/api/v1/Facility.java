@@ -643,7 +643,9 @@ public final class Facility implements CanBeEmpty {
     Hours hours;
 
     @Schema(
-        description = "Additional information about facility operating hours.",
+        description =
+            "Additional information about a VA health "
+                + "or Vet Center facility's operating hours.",
         example =
             "[\"More hours are available for some services.\","
                 + "\"If you need to talk to someone, call the Vet Center at 1-877-927-8387.\","
@@ -841,15 +843,22 @@ public final class Facility implements CanBeEmpty {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonSerialize(using = PatientSatisfactionSerializer.class)
   @Schema(
-      description = "Veteran-reported satisfaction scores for health care services.",
+      description =
+          "Veteran-reported satisfaction score for health "
+              + "care services at VA health facilities.",
       nullable = true)
   public static final class PatientSatisfaction implements CanBeEmpty {
     @Schema(
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need care right away at a primary care location.",
+            "Percentage of Veterans who say they usually"
+                + " or always get an appointment when "
+                + "they need urgent attention at a primary"
+                + " care location. NOTE: Veterans are "
+                + "rating their satisfaction of getting "
+                + "an appointment for an urgent primary "
+                + "care visit, NOT an urgent care visit.",
         nullable = true)
     BigDecimal primaryCareUrgent;
 
@@ -857,8 +866,12 @@ public final class Facility implements CanBeEmpty {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need it at a primary care location.",
+            "Percentage of Veterans who say they usually "
+                + "or always get an appointment when "
+                + "they need routine attention at a primary "
+                + "care location. NOTE: Veterans are rating "
+                + "their satisfaction of getting an "
+                + "appointment for a routine primary care visit.",
         nullable = true)
     BigDecimal primaryCareRoutine;
 
@@ -866,8 +879,12 @@ public final class Facility implements CanBeEmpty {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need care right away at a specialty location.",
+            "Percentage of Veterans who say they usually or "
+                + "always get an appointment when they need"
+                + " urgent attention at a specialty care location."
+                + " NOTE: Veterans are rating their satisfaction"
+                + " of getting an appointment for an "
+                + "urgent specialty care visit, NOT an urgent care visit.",
         nullable = true)
     BigDecimal specialtyCareUrgent;
 
@@ -875,8 +892,12 @@ public final class Facility implements CanBeEmpty {
         example = "0.85",
         format = "float",
         description =
-            "% of Veterans who say they usually or always get an appointment when "
-                + "they need it at a specialty location.",
+            "Percentage of Veterans who say they usually"
+                + " or always get an appointment when they"
+                + " need routine attention at a specialty"
+                + " care location. NOTE: Veterans are"
+                + " rating their satisfaction of getting"
+                + " an appointment for a routine specialty care visit.",
         nullable = true)
     BigDecimal specialtyCareRoutine;
 
@@ -995,7 +1016,8 @@ public final class Facility implements CanBeEmpty {
   @JsonPropertyOrder({"health", "benefits", "other", "link", "lastUpdated"})
   @JsonSerialize(using = ServicesSerializer.class)
   @Schema(
-      description = "All services offered by a facility grouped by service type.",
+      description =
+          "All services offered by a VA health or benefits facility grouped by service type.",
       nullable = true)
   public static final class Services implements CanBeEmpty {
     @ArraySchema(

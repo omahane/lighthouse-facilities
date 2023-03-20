@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -38,8 +37,7 @@ public interface DetailedServicesApi {
               + "Both parameters are optional ,and both may "
               + "be used independently of each other or not at all.",
       operationId = "getServicesById",
-      tags = {"facilities"},
-      security = @SecurityRequirement(name = "apikey"))
+      tags = {"facilities"})
   @GET
   @Path("/facilities/{id}/services")
   @ApiResponse(

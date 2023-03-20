@@ -43,7 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
                     + "\n\n"
                     + "VA Facilities is an open data API. Open data API "
                     + "requests are authorized through a symmetric API "
-                    + "token that’s provided in an HTTP header "
+                    + "token that???s provided in an HTTP header "
                     + "with the name 'apikey'."
                     + "\n\n"
                     + "### Test data"

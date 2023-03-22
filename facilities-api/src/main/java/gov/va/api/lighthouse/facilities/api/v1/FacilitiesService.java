@@ -47,7 +47,7 @@ import javax.ws.rs.Path;
                     + "\n\n"
                     + "VA Facilities is an open data API. "
                     + "Open data API requests are authorized through "
-                    + "a symmetric API token that???s provided "
+                    + "a symmetric API token that's provided "
                     + "in an HTTP header with the name 'apikey'."
                     + "\n\n"
                     + "### Test data"

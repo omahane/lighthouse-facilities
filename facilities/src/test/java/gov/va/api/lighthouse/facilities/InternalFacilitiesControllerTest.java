@@ -379,9 +379,10 @@ public class InternalFacilitiesControllerTest {
     // then active status should not be used and facility operating status should not change
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus).isEqualTo(DatamartFacility.ActiveStatus.T);
   }
 
   @Test
@@ -396,7 +397,8 @@ public class InternalFacilitiesControllerTest {
     FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone().healthConnect()).isNull();
     assertDoesNotThrow(
-        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+        () -> facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().activeStatus).isEqualTo(DatamartFacility.ActiveStatus.A);
     assertThat(facility.attributes().phone().healthConnect()).isNull();
   }
 
@@ -413,7 +415,8 @@ public class InternalFacilitiesControllerTest {
     FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone()).isNull();
     assertDoesNotThrow(
-        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+        () -> facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
     assertThat(facility.attributes().phone()).isNull();
   }
 
@@ -428,7 +431,8 @@ public class InternalFacilitiesControllerTest {
     FacilitiesCollector facilitiesCollector = _facilitiesCollector();
     assertThat(facility.attributes().phone()).isNull();
     assertDoesNotThrow(
-        () -> facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility)));
+        () -> facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility)));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
     assertThat(facility.attributes().phone().healthConnect())
         .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
   }
@@ -715,7 +719,8 @@ public class InternalFacilitiesControllerTest {
     // status should not be
     // used, instead overlay operating status should be used
     assertThat(facility.attributes().operatingStatus()).isNull();
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(overlay.operatingStatus().code());
   }
@@ -737,7 +742,8 @@ public class InternalFacilitiesControllerTest {
     // populate facility operating status, then active status should be used to infer facility
     // operating status
     assertThat(facility.attributes().operatingStatus()).isNull();
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
     assertThat(facility.attributes().operatingStatus().code())
         .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
   }
@@ -759,9 +765,86 @@ public class InternalFacilitiesControllerTest {
             "atpBaseUrl",
             "cemeteriesBaseUrl");
     assertThat(facility.attributes().phone().healthConnect()).isNull();
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
     assertThat(facility.attributes().phone().healthConnect())
         .isEqualTo(_overlay().healthCareSystem().healthConnectPhone());
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateActiveStatusFromNullToA() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.NORMAL));
+    facility.attributes().operatingStatus(_operatingStatus(null));
+    facility.attributes().activeStatus(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().activeStatus()).isEqualTo(null);
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateActiveStatusFromNullToT() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().operatingStatus(_operatingStatus(null));
+    facility.attributes().activeStatus(null);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().activeStatus()).isEqualTo(null);
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateActiveStatusToA() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.NORMAL));
+    facility.attributes().operatingStatus(_operatingStatus(null));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.T);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
+  }
+
+  @Test
+  @SneakyThrows
+  void collect_updateActiveStatusToT() {
+    DatamartFacility facility = _facility("vha_f1", "FL", "32934", 91.4, 181.4, List.of());
+    DatamartCmsOverlay overlay = _overlay();
+    overlay.operatingStatus(_operatingStatus(DatamartFacility.OperatingStatusCode.CLOSED));
+    facility.attributes().operatingStatus(_operatingStatus(null));
+    facility.attributes().activeStatus(DatamartFacility.ActiveStatus.A);
+    HashMap<String, DatamartCmsOverlay> overlays = new HashMap<>();
+    overlays.put(facility.id(), overlay);
+    when(mockCmsOverlayCollector.loadAndUpdateCmsOverlays()).thenReturn(overlays);
+    FacilitiesCollector facilitiesCollector = _facilitiesCollector();
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
+    assertThat(facility.attributes.operatingStatus().code())
+        .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
   }
 
   @Test
@@ -784,9 +867,10 @@ public class InternalFacilitiesControllerTest {
     assertThat(facility.attributes().operatingStatus().code)
         .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
     assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
     assertThat(facility.attributes.operatingStatus().code())
         .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.T);
   }
 
   @Test
@@ -809,9 +893,10 @@ public class InternalFacilitiesControllerTest {
     assertThat(facility.attributes().operatingStatus().code)
         .isEqualTo(DatamartFacility.OperatingStatusCode.CLOSED);
     assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
-    facilitiesCollector.updateOperatingStatusFromCmsOverlay(List.of(facility));
+    facilitiesCollector.updateOperatingAndActiveStatusFromCmsOverlay(List.of(facility));
     assertThat(facility.attributes.operatingStatus().code())
         .isEqualTo(DatamartFacility.OperatingStatusCode.NORMAL);
+    assertThat(facility.attributes().activeStatus()).isEqualTo(DatamartFacility.ActiveStatus.A);
   }
 
   @Test

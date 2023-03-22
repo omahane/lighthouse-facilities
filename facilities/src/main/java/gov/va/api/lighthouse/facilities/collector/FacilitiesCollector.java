@@ -199,7 +199,7 @@ public class FacilitiesCollector {
         Streams.stream(Iterables.concat(benefits, cemeteries, healths, stateCems, vetCenters))
             .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
             .collect(toList());
-    updateOperatingStatusFromCmsOverlay(datamartFacilities);
+    updateOperatingAndActiveStatusFromCmsOverlay(datamartFacilities);
     updateServicesFromCmsOverlay(datamartFacilities);
     cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     return datamartFacilities;
@@ -256,7 +256,8 @@ public class FacilitiesCollector {
 
   /** Updates facility based on CMS Overlay data. * */
   @SneakyThrows
-  public void updateOperatingStatusFromCmsOverlay(List<DatamartFacility> datamartFacilities) {
+  public void updateOperatingAndActiveStatusFromCmsOverlay(
+      List<DatamartFacility> datamartFacilities) {
     HashMap<String, DatamartCmsOverlay> cmsOverlays;
     try {
       cmsOverlays = cmsOverlayCollector.loadAndUpdateCmsOverlays();
@@ -267,8 +268,15 @@ public class FacilitiesCollector {
       if (cmsOverlays.containsKey(datamartFacility.id())) {
         DatamartCmsOverlay cmsOverlay = cmsOverlays.get(datamartFacility.id());
         datamartFacility.attributes().operatingStatus(cmsOverlay.operatingStatus());
+        if (datamartFacility.attributes().operatingStatus() != null) {
+          datamartFacility
+              .attributes()
+              .activeStatus(
+                  cmsOverlay.operatingStatus().code() == DatamartFacility.OperatingStatusCode.CLOSED
+                      ? DatamartFacility.ActiveStatus.T
+                      : DatamartFacility.ActiveStatus.A);
+        }
         datamartFacility.attributes().detailedServices(cmsOverlay.detailedServices());
-
         if (cmsOverlay.healthCareSystem() != null) {
           if (cmsOverlay.healthCareSystem().healthConnectPhone() != null) {
             if (datamartFacility.attributes().phone() != null) {

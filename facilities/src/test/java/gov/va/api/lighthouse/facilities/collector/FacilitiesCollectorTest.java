@@ -248,7 +248,7 @@ public class FacilitiesCollectorTest {
             mockCemeteriesBaseUrl);
     assertThrows(
         CollectorExceptions.CollectorException.class,
-        () -> collector.updateOperatingStatusFromCmsOverlay(new ArrayList<>()));
+        () -> collector.updateOperatingAndActiveStatusFromCmsOverlay(new ArrayList<>()));
 
     ResultSet mockRs = mock(ResultSet.class);
     when(mockRs.getBoolean("VCTR2")).thenThrow(new SQLException("oh noes"));

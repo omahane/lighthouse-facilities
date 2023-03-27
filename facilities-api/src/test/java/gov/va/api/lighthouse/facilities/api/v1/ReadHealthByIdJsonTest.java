@@ -124,7 +124,6 @@ public class ReadHealthByIdJsonTest {
                                 .effectiveDate(LocalDate.parse("2019-06-20"))
                                 .build())
                         .mobile(false)
-                        .activeStatus(Facility.ActiveStatus.A)
                         .visn("1")
                         .build())
                 .build())

@@ -1,6 +1,6 @@
 package gov.va.api.lighthouse.facilities.deserializers;
 
-import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static gov.va.api.health.autoconfig.configuration.JacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;

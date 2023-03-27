@@ -94,7 +94,6 @@ final class HealthTransformer {
     map.put("MENTAL HEALTH INDIVIDUAL", MentalHealth);
     map.put("OPHTHALMOLOGY", Ophthalmology);
     map.put("OPTOMETRY", Optometry);
-    // ORTHOPEDICS no longer served by ATC
     map.put("ORTHOPEDICS", Orthopedics);
     map.put("PRIMARY CARE", PrimaryCare);
     // SPECIALTY CARE no longer served by ATC

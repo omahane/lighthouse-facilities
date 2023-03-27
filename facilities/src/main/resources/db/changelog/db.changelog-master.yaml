@@ -1235,3 +1235,16 @@ databaseChangeLog:
                   name: type
               - column:
                   name: services
+  - changeSet:
+      id: 51
+      author: axolotl
+      changes:
+        addColumn:
+          tableName: cms_overlay
+          schemaName: app
+          columns:
+            - column:
+                name: core
+                type: clob
+                constraints:
+                  nullable: true

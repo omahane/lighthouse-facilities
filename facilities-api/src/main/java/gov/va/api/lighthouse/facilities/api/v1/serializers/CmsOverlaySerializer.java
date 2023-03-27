@@ -22,6 +22,7 @@ public class CmsOverlaySerializer extends NonEmptySerializer<CmsOverlay> {
     writeNonEmpty(jgen, "operatingStatus", value.operatingStatus());
     writeNonEmpty(jgen, "detailedServices", value.detailedServices());
     writeNonEmpty(jgen, "system", value.healthCareSystem());
+    writeNonEmpty(jgen, "core", value.core());
     jgen.writeEndObject();
   }
 }

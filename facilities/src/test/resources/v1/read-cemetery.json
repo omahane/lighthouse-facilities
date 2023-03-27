@@ -42,7 +42,6 @@
         "Vet center 2 is available.",
         "Vet center 3 is available."
       ],
-      "activeStatus" : "A",
       "operatingStatus" : {
         "code" : "NORMAL"
       }

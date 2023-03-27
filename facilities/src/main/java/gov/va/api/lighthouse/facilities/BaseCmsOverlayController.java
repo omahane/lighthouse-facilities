@@ -209,6 +209,7 @@ public abstract class BaseCmsOverlayController {
       cmsOverlayEntity =
           CmsOverlayEntity.builder()
               .id(FacilityEntity.Pk.fromIdString(id))
+              .core(CmsOverlayHelper.serializeCore(overlay.core()))
               .cmsOperatingStatus(
                   CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
               .cmsServices(CmsOverlayHelper.serializeDetailedServices(activeServices))
@@ -239,6 +240,13 @@ public abstract class BaseCmsOverlayController {
       if (overlay.healthCareSystem() != null) {
         cmsOverlayEntity.healthCareSystem(
             CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()));
+      }
+
+      if (overlay.core() != null) {
+        cmsOverlayEntity.core(
+            overlay.core().facilityUrl() != null
+                ? CmsOverlayHelper.serializeCore(overlay.core())
+                : null);
       }
     }
     cmsOverlayRepository.save(cmsOverlayEntity);

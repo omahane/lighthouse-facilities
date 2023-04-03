@@ -1,9 +1,9 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: lighthouse-facilities-v0
+  name: lighthouse-facilities-v1
   description: Facilities API for VA Lighthouse program
-  title: VA Facilities API v0
+  title: VA Facilities API v1
   tags:
     - lighthouse
     - external
@@ -11,7 +11,7 @@ metadata:
     - json
     - rest
   links:
-    - url: https://developer.va.gov/explore/facilities/docs/facilities?version=v0
+    - url: https://dev-developer.va.gov/explore/facilities/docs/facilities?version=v1
       title: Public Docs
       icon: web
   annotations:
@@ -19,7 +19,7 @@ metadata:
     backstage.io/techdocs-ref: dir:.
 spec:
   type: openapi
-  lifecycle: production
+  lifecycle: experimental
   owner: lighthouse-axolotl
   definition:
-    $text: https://api.va.gov/services/va_facilities/docs/v0/api
+    $text: https://dev-api.va.gov/services/va_facilities/docs/v1/api

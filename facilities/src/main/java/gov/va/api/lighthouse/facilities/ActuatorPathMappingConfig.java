@@ -9,7 +9,7 @@ public class ActuatorPathMappingConfig implements WebMvcConfigurer {
 
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/v0/healthcheck").setViewName("/actuator/health");
-    registry.addViewController("/v1/healthcheck").setViewName("/actuator/health");
+    registry.addViewController("/v0/healthcheck").setViewName("/actuator/health/liveness");
+    registry.addViewController("/v1/healthcheck").setViewName("/actuator/health/liveness");
   }
 }

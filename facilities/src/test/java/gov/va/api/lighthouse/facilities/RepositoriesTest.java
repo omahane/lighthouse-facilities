@@ -47,7 +47,7 @@ public class RepositoriesTest {
             .longitude(30)
             .zip("90210")
             .state("CA")
-            .servicesTypes(Set.of(HealthService.PrimaryCare, HealthService.SpecialtyCare))
+            .servicesTypes(Set.of(HealthService.PrimaryCare, HealthService.EmergencyCare))
             .overlayServiceTypes(Set.of(HealthService.Covid19Vaccine))
             .facility("{garbage}")
             .version(null)

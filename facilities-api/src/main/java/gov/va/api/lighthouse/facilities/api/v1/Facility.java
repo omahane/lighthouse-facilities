@@ -309,8 +309,6 @@ public final class Facility implements CanBeEmpty {
     Smoking("smoking"),
     @JsonProperty("socialWork")
     SocialWork("socialWork"),
-    @JsonProperty("specialtyCare")
-    SpecialtyCare("specialtyCare"),
     @JsonProperty("spinalInjury")
     SpinalInjury("spinalInjury"),
     @JsonProperty("suicidePrevention")

@@ -155,6 +155,9 @@ public abstract class BaseCmsOverlayController {
   @SneakyThrows
   protected DatamartDetailedService getOverlayDetailedService(
       @NonNull String facilityId, @NonNull String serviceId) {
+    if (!isValidService(serviceId)) {
+      throw new ExceptionsUtils.InvalidParameter("service_id", serviceId);
+    }
     Optional<DatamartDetailedService> detailedService =
         getOverlayDetailedServices(facilityId).parallelStream()
             .filter(ds -> ds.serviceInfo().serviceId().equals(serviceId))
@@ -168,7 +171,12 @@ public abstract class BaseCmsOverlayController {
 
   @SneakyThrows
   protected List<DatamartDetailedService> getOverlayDetailedServices(@NonNull String facilityId) {
-    FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(facilityId);
+    FacilityEntity.Pk pk;
+    try {
+      pk = FacilityEntity.Pk.fromIdString(facilityId);
+    } catch (IllegalArgumentException e) {
+      throw new ExceptionsUtils.InvalidParameter("facility_id", facilityId);
+    }
     Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
     if (!existingOverlayEntity.isPresent()) {
       throw new ExceptionsUtils.NotFound(facilityId);
@@ -193,6 +201,12 @@ public abstract class BaseCmsOverlayController {
     return Facility.HealthService.isRecognizedServiceId(serviceId)
         || Facility.BenefitsService.isRecognizedServiceId(serviceId)
         || Facility.OtherService.isRecognizedServiceId(serviceId);
+  }
+
+  protected boolean isValidService(String serviceId) {
+    return DatamartFacility.HealthService.isRecognizedEnumOrCovidService(serviceId)
+        || DatamartFacility.BenefitsService.isRecognizedServiceEnum(serviceId)
+        || DatamartFacility.OtherService.isRecognizedServiceEnum(serviceId);
   }
 
   @SneakyThrows

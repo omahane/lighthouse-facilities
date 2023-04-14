@@ -350,12 +350,10 @@ public class CmsOverlayIT {
     SystemDefinitions.Service svc = systemDefinition().facilities();
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
-    // Note: Performing a GET request to /v1/facilities/%/services/%/ through Postman produces an
-    // HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services/%/"))
-        .expect(500);
+        .expect(400);
     // 404 - Facility Not Found
     ExpectedResponse.of(
             requestSpecification()
@@ -363,7 +361,25 @@ public class CmsOverlayIT {
                     Method.GET,
                     svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
                     "vba_1234",
-                    "COVID-19%20vaccines"))
+                    "covid19Vaccine"))
+        .expect(404);
+    // 400 - Invalid service_id
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    "vba_322c",
+                    "uh oh"))
+        .expect(400);
+    // 404 - Facility does not have the provided valid service_id
+    ExpectedResponse.of(
+            requestSpecification()
+                .request(
+                    Method.GET,
+                    svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
+                    "vba_322c",
+                    "smoking"))
         .expect(404);
     // 406 - Request Format Unavailable
     ExpectedResponse.of(
@@ -373,7 +389,7 @@ public class CmsOverlayIT {
                     Method.GET,
                     svc.urlWithApiPath() + "v1/facilities/{facility_id}/services/{service_id}/",
                     "vha_558GA",
-                    "COVID-19%20vaccines"))
+                    "covid19Vaccine"))
         .expect(406);
   }
 
@@ -384,12 +400,10 @@ public class CmsOverlayIT {
     SystemDefinitions.Service svc = systemDefinition().facilities();
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
-    // Note: Performing a GET request to /v1/facilities/%/services through Postman produces an
-    // HTTP 400 error as expected.
     ExpectedResponse.of(
             requestSpecification()
                 .request(Method.GET, svc.urlWithApiPath() + "v1/facilities/%/services"))
-        .expect(500);
+        .expect(400);
     // 404 - Facility Not Found
     ExpectedResponse.of(
             requestSpecification()

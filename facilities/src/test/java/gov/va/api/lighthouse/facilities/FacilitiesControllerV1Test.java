@@ -55,9 +55,9 @@ public class FacilitiesControllerV1Test {
         .thenReturn(
             new ArrayList<>(
                 List.of(
-                    samples.facilityEntity("vha_691GB"),
-                    samples.facilityEntity("vha_740GA"),
-                    samples.facilityEntity("vha_757"))));
+                    samples.facilityEntityV1("vha_691GB"),
+                    samples.facilityEntityV1("vha_740GA"),
+                    samples.facilityEntityV1("vha_757"))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -123,9 +123,9 @@ public class FacilitiesControllerV1Test {
     when(fr.findAllProjectedBy())
         .thenReturn(
             List.of(
-                samples.facilityEntity("vha_691GB"),
-                samples.facilityEntity("vha_740GA"),
-                samples.facilityEntity("vha_757")));
+                samples.facilityEntityV1("vha_691GB"),
+                samples.facilityEntityV1("vha_740GA"),
+                samples.facilityEntityV1("vha_757")));
     String actual = controller(baseUrl, basePath).allCsv();
     List<String> actualLines = Splitter.onPattern("\\r?\\n").omitEmptyStrings().splitToList(actual);
     assertThat(actualLines.size()).isEqualTo(4);
@@ -191,9 +191,9 @@ public class FacilitiesControllerV1Test {
     when(fr.findAllIds())
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB").id(),
-                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA").id(),
-                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757").id()));
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB").id(),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA").id(),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_757").id()));
     assertThat(controller(baseUrl, basePath).facilityIdsByType("benefits").data()).isEmpty();
     assertThat(controller(baseUrl, basePath).facilityIdsByType("health").data())
         .usingRecursiveComparison()
@@ -393,8 +393,8 @@ public class FacilitiesControllerV1Test {
                 .build()))
         .thenReturn(
             List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB")));
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"),
+                FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB")));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -459,9 +459,9 @@ public class FacilitiesControllerV1Test {
         .thenReturn(
             new ArrayList<>(
                 List.of(
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"))));
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"),
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB"),
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_757"))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -523,9 +523,9 @@ public class FacilitiesControllerV1Test {
         .thenReturn(
             new ArrayList<>(
                 List.of(
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"),
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"),
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"))));
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB"),
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"),
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_757"))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -579,7 +579,8 @@ public class FacilitiesControllerV1Test {
                 .mobile(
                     FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
                 .build()))
-        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId)));
+        .thenReturn(
+            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1(facilityId)));
     // Query for facilities without constraining to a specified radius
     assertThat(
             controller(baseUrl, basePath)
@@ -755,7 +756,7 @@ public class FacilitiesControllerV1Test {
                 .build()))
         .thenReturn(
             new ArrayList<>(
-                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))));
+                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -819,7 +820,7 @@ public class FacilitiesControllerV1Test {
                 .build()))
         .thenReturn(
             new ArrayList<>(
-                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId))));
+                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1(facilityId))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -871,7 +872,7 @@ public class FacilitiesControllerV1Test {
                 .build()))
         .thenReturn(
             new ArrayList<>(
-                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))));
+                List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -915,7 +916,7 @@ public class FacilitiesControllerV1Test {
                 .build()))
         .thenReturn(
             new ArrayList<>(
-                List.of((FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId)))));
+                List.of((FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1(facilityId)))));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilities(
@@ -1045,7 +1046,7 @@ public class FacilitiesControllerV1Test {
   @Test
   void readJson() {
     Facility facility = FacilitySamples.defaultSamples(linkerUrl).facilityV1("vha_691GB");
-    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB");
+    FacilityEntity entity = FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB");
     when(fr.findById(FacilityEntity.Pk.of(FacilityEntity.Type.vha, "691GB")))
         .thenReturn(Optional.of(entity));
     assertThat(controller(baseUrl, basePath).readJson("vha_691GB"))

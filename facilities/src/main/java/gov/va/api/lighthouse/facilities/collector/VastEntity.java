@@ -75,6 +75,8 @@ final class VastEntity {
 
   private Instant lastUpdated;
 
+  private String parentStationNumber;
+
   boolean isVetCenter() {
     return BooleanUtils.isTrue(vetCenter()) || BooleanUtils.isTrue(mobileVetCenter());
   }

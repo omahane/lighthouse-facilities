@@ -7,15 +7,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import lombok.Value;
 
 @Builder
-@Value
+@Data
 public class FacilityOverlayV1
     implements TriFunction<HasFacilityPayload, String, List<String>, Facility> {
   private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
+  private String linkerUrl;
 
   @Override
   @SneakyThrows

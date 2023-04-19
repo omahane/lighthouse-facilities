@@ -506,6 +506,7 @@ public class DatamartFacility {
     "operational_hours_special_instructions",
     "services",
     "satisfaction",
+    "parentId",
     "wait_times",
     "mobile",
     "active_status",
@@ -521,6 +522,9 @@ public class DatamartFacility {
     FacilityType facilityType;
 
     String classification;
+
+    @JsonProperty("parent_id")
+    String parentId;
 
     String website;
 

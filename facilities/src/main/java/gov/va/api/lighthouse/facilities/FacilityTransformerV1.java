@@ -42,6 +42,7 @@ public final class FacilityTransformerV1 {
                     .name(df.attributes().name())
                     .phone(toFacilityPhone(df.attributes().phone()))
                     .website(df.attributes().website())
+                    .parent(toFacilityParent(df.attributes().parentId(), linkerUrl))
                     .classification(df.attributes().classification())
                     .timeZone(df.attributes().timeZone())
                     .mobile(df.attributes().mobile())
@@ -197,6 +198,16 @@ public final class FacilityTransformerV1 {
         : null;
   }
 
+  /** Transform DatamartFacility parentId to version 1 facility parent. */
+  public static Facility.Parent toFacilityParent(String datamartParentId, String linkerUrl) {
+    return datamartParentId == null
+        ? null
+        : Facility.Parent.builder()
+            .id(datamartParentId)
+            .link(linkerUrl + "facilities/" + datamartParentId)
+            .build();
+  }
+
   /** Transform DatamartFacility phone to version 1 facility phone. */
   private static Facility.Phone toFacilityPhone(DatamartFacility.Phone datamartFacilityPhone) {
     return (datamartFacilityPhone != null)
@@ -338,6 +349,7 @@ public final class FacilityTransformerV1 {
                     .mobile(f.attributes().mobile())
                     .services(toVersionAgnosticFacilityServices(f.attributes().services()))
                     .visn(f.attributes().visn())
+                    .parentId(toVersionAgnosticFacilityParent(f.attributes().parent()))
                     .satisfaction(
                         toVersionAgnosticFacilitySatisfaction(f.attributes().satisfaction()))
                     .operatingStatus(
@@ -484,6 +496,11 @@ public final class FacilityTransformerV1 {
   public static Optional<DatamartFacility.OtherService> toVersionAgnosticFacilityOtherServiceType(
       @NonNull Facility.OtherService facilityOtherService) {
     return DatamartFacility.OtherService.fromServiceId(facilityOtherService.serviceId());
+  }
+
+  /** Transform v1 facility parent to datamartFacility parentId. */
+  public static String toVersionAgnosticFacilityParent(Facility.Parent parent) {
+    return parent != null ? parent.id() : null;
   }
 
   /** Transform version 1 facility phone to DatamartFacility phone. */

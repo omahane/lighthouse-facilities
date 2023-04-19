@@ -72,6 +72,17 @@ public class FacilitySamples {
         df);
   }
 
+  FacilityEntity facilityEntityV1(String id) {
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facilityV1(id));
+    df.attributes().services().health().stream().forEach(hs -> hs.source(Source.ATC));
+    return InternalFacilitiesController.populate(
+        FacilityEntity.builder()
+            .id(FacilityEntity.Pk.fromIdString(id))
+            .lastUpdated(Instant.now())
+            .build(),
+        df);
+  }
+
   gov.va.api.lighthouse.facilities.api.v1.Facility facilityV1(String id) {
     var fV1 = facilitiesV1.get(id);
     assertThat(fV1).describedAs(id).isNotNull();

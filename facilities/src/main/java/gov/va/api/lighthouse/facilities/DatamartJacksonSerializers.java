@@ -179,6 +179,7 @@ final class DatamartJacksonSerializers {
       jgen.writeObjectField("name", value.name());
       jgen.writeObjectField("facility_type", value.facilityType());
       jgen.writeObjectField("classification", value.classification());
+      jgen.writeObjectField("parent_id", value.parentId());
       jgen.writeObjectField("website", value.website());
       jgen.writeObjectField("lat", value.latitude());
       jgen.writeObjectField("long", value.longitude());

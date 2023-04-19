@@ -147,7 +147,8 @@ public class FacilitiesCollectorTest {
             + "POD VARCHAR,"
             + "MOBILE VARCHAR,"
             + "VISN VARCHAR,"
-            + "LASTUPDATED VARCHAR"
+            + "LASTUPDATED VARCHAR,"
+            + "PAR_STA_NO VARCHAR"
             + ")");
     jdbcTemplate.execute(
         "CREATE TABLE App.VHA_Mental_Health_Contact_Info ("

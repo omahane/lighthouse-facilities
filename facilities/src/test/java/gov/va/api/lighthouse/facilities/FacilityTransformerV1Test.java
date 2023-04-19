@@ -146,6 +146,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                                 .build())
                         .effectiveDate(LocalDate.parse("2018-02-01"))
                         .build())
+                .parentId("vha_123")
                 .waitTimes(
                     DatamartFacility.WaitTimes.builder()
                         .health(
@@ -190,6 +191,12 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
     Facility facility =
         FacilityTransformerV1.toFacility(
             datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL"));
+    facility
+        .attributes()
+        .parent(
+            FacilityTransformerV1.toFacilityParent(
+                datamartFacility.attributes().parentId(),
+                "https:foo/bar/v1/facilities/" + datamartFacility().attributes.parentId));
     assertThat(datamartFacility).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
@@ -338,6 +345,11 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                                 .build())
                         .effectiveDate(LocalDate.parse("2018-02-01"))
                         .build())
+                .parent(
+                    Facility.Parent.builder()
+                        .id("vha_123")
+                        .link("https:foo/bar/v1/facilities/vha_123")
+                        .build())
                 .operatingStatus(
                     Facility.OperatingStatus.builder()
                         .code(Facility.OperatingStatusCode.NORMAL)
@@ -366,13 +378,21 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   }
 
   @Test
-  public void facilityRoundtrip() {
+  public void facilityRoundtrip2() {
     final Facility facility = facility(linkerUrl, facilityId);
-    assertThat(
-            FacilityTransformerV1.toFacility(
-                FacilityTransformerV1.toVersionAgnostic(facility),
-                linkerUrl,
-                List.of("ATC", "CMS", "DST", "internal", "BISL")))
+    Facility actual =
+        FacilityTransformerV1.toFacility(
+            FacilityTransformerV1.toVersionAgnostic(facility),
+            linkerUrl,
+            List.of("ATC", "CMS", "DST", "internal", "BISL"));
+    actual
+        .attributes()
+        .parent(
+            Facility.Parent.builder()
+                .id("vha_123")
+                .link("https:foo/bar/v1/facilities/vha_123")
+                .build());
+    assertThat(actual)
         .usingRecursiveComparison()
         .ignoringFields("attributes.services")
         .isEqualTo(facility);
@@ -569,6 +589,25 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   @Test
   public void losslessFacilityVisitorRoundtrip() {
     Facility facility = facility(linkerUrl, facilityId);
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facility);
+    assertThat(df).hasFieldOrProperty("attributes.parentId");
+    // Assert that there is no parent for V0 Facility when it is transformed from datamartFacility
+    assertThatThrownBy(
+            () ->
+                assertThat(FacilityTransformerV0.toFacility(df))
+                    .hasFieldOrProperty("attributes.parent"))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("\"attributes.parent\"");
+
+    assertThat(
+            FacilityTransformerV1.toFacility(
+                FacilityTransformerV0.toVersionAgnostic(FacilityTransformerV0.toFacility(df)),
+                linkerUrl,
+                List.of("ATC", "CMS", "DST", "internal", "BISL")))
+        .usingRecursiveComparison()
+        .ignoringFields("attributes.parent", "attributes.services")
+        .isEqualTo(facility);
+    ;
     assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
@@ -577,7 +616,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 linkerUrl,
                 List.of("ATC", "CMS", "DST", "internal", "BISL")))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.services")
+        .ignoringFields("attributes.parent", "attributes.services")
         .isEqualTo(facility);
   }
 
@@ -679,6 +718,22 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             linkerUrl,
             facilityId);
     assertThat(
+        FacilityTransformerV1.toFacility(
+            FacilityTransformerV0.toVersionAgnostic(
+                FacilityTransformerV0.toFacility(
+                    FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth))),
+            linkerUrl,
+            List.of("ATC", "CMS", "DST", "internal", "BISL")));
+    DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facilityWithWholeHealth);
+    assertThat(df).hasFieldOrProperty("attributes.parentId");
+    // Assert that there is no parent for V0 Facility when it is transformed from datamartFacility
+    assertThatThrownBy(
+            () ->
+                assertThat(FacilityTransformerV0.toFacility(df))
+                    .hasFieldOrProperty("attributes.parent"))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("\"attributes.parent\"");
+    assertThat(
             FacilityTransformerV1.toFacility(
                 FacilityTransformerV0.toVersionAgnostic(
                     FacilityTransformerV0.toFacility(
@@ -686,7 +741,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 linkerUrl,
                 List.of("ATC", "CMS", "DST", "internal", "BISL")))
         .usingRecursiveComparison()
-        .ignoringFields("attributes.services")
+        .ignoringFields("attributes.parent", "attributes.services")
         .isEqualTo(facilityWithoutWholeHealth);
   }
 
@@ -991,11 +1046,15 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
   public void transformDatamartFacility() {
     Facility expected = facility(linkerUrl, facilityId);
     DatamartFacility datamartFacility = datamartFacility();
-    assertThat(
-            FacilityTransformerV1.toFacility(
-                datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL")))
-        .usingRecursiveComparison()
-        .isEqualTo(expected);
+    Facility actual =
+        FacilityTransformerV1.toFacility(
+            datamartFacility, linkerUrl, List.of("ATC", "CMS", "DST", "internal", "BISL"));
+    actual
+        .attributes()
+        .parent(
+            FacilityTransformerV1.toFacilityParent(
+                datamartFacility.attributes().parentId(), "https:foo/bar/v1/"));
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test

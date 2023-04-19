@@ -457,6 +457,17 @@ public class SerializerTest {
 
   @Test
   @SneakyThrows
+  void serializeFacilityParent() {
+    Facility.Parent parent = Facility.Parent.builder().build();
+    assertJsonIsEmpty(parent);
+    final var id = "vha_402";
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar/");
+    parent = Facility.Parent.builder().id(id).link(linkerUrl).build();
+    assertJson(parent, "{\"id\":\"vha_402\"," + "\"link\":\"http://foo/bar/v1/\"}");
+  }
+
+  @Test
+  @SneakyThrows
   void serializeFacilityReadResponse() {
     // Empty
     FacilityReadResponse response = FacilityReadResponse.builder().build();

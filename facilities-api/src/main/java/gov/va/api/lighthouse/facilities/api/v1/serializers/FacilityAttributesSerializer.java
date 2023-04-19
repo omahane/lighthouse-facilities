@@ -22,6 +22,7 @@ public class FacilityAttributesSerializer extends NonEmptySerializer<FacilityAtt
     writeNonEmpty(jgen, "name", value.name());
     writeNonEmpty(jgen, "facilityType", value.facilityType());
     writeNonEmpty(jgen, "classification", value.classification());
+    writeNonEmpty(jgen, "parent", value.parent());
     writeNonEmpty(jgen, "website", value.website());
     writeNonEmpty(jgen, "lat", value.latitude());
     writeNonEmpty(jgen, "long", value.longitude());

@@ -81,7 +81,8 @@ final class VetCenterTransformer {
         vast.operationalHoursSpecialInstructions(),
         vast.mobile(),
         activeStatus(),
-        vast.visn())) {
+        vast.visn(),
+        vast.parentStationNumber())) {
       return null;
     }
     return FacilityAttributes.builder()
@@ -98,6 +99,7 @@ final class VetCenterTransformer {
         .mobile(vast.mobile())
         .activeStatus(activeStatus())
         .visn(vast.visn())
+        .parentId(parentId())
         .build();
   }
 
@@ -128,6 +130,10 @@ final class VetCenterTransformer {
       return null;
     }
     return "vc_" + vast.stationNumber();
+  }
+
+  private String parentId() {
+    return allBlank(vast.parentStationNumber()) ? null : "vc_" + vast.parentStationNumber();
   }
 
   private Phone phone() {

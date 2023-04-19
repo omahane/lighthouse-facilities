@@ -52,7 +52,7 @@ public class FacilitiesControllerV1 {
 
   private static final ObjectMapper MAPPER_V1 = createMapper();
 
-  private static final FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
+  private static FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
 
   private final FacilityRepository facilityRepository;
 

@@ -20,6 +20,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.FacilityAttributesSer
 import gov.va.api.lighthouse.facilities.api.v1.serializers.FacilitySerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.HoursSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.OperatingStatusSerializer;
+import gov.va.api.lighthouse.facilities.api.v1.serializers.ParentSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientSatisfactionSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.PhoneSerializer;
 import gov.va.api.lighthouse.facilities.api.v1.serializers.SatisfactionSerializer;
@@ -560,6 +561,7 @@ public final class Facility implements CanBeEmpty {
     "name",
     "facilityType",
     "classification",
+    "parent",
     "website",
     "lat",
     "long",
@@ -598,8 +600,12 @@ public final class Facility implements CanBeEmpty {
         nullable = true)
     String classification;
 
+    @Schema(description = "Reference to facility's parent", nullable = true)
+    @Valid
+    Parent parent;
+
     @Schema(
-        description = "Web address of facility.",
+        description = "Web address of facility",
         example = "http://www.washingtondc.va.gov",
         nullable = true)
     String website;
@@ -1051,6 +1057,28 @@ public final class Facility implements CanBeEmpty {
           && ObjectUtils.isEmpty(health())
           && ObjectUtils.isEmpty(benefits())
           && ObjectUtils.isEmpty(lastUpdated());
+    }
+  }
+
+  @Data
+  @Builder
+  @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonSerialize(using = ParentSerializer.class)
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @Schema(description = "Reference to facility's parent")
+  public static final class Parent implements CanBeEmpty {
+    @Schema(description = "Parent facility id", example = "vha_402", nullable = true)
+    String id;
+
+    @Schema(
+        description = "URL for an API request for parent facility",
+        example = "https://api.va.gov/services/va_facilities/v0/facilities/vha_402",
+        nullable = true)
+    String link;
+
+    @JsonIgnore
+    public boolean isEmpty() {
+      return isBlank(id()) && isBlank(link());
     }
   }
 

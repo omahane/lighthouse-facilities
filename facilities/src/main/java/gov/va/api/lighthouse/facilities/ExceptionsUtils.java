@@ -21,6 +21,7 @@ final class ExceptionsUtils {
   }
 
   static final class NotFound extends RuntimeException {
+
     public NotFound(String serviceId, String facilityId) {
       super(
           String.format(

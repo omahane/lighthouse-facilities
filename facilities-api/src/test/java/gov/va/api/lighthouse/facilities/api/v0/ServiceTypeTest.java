@@ -114,7 +114,6 @@ public class ServiceTypeTest {
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.Nutrition,
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.Podiatry,
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.PrimaryCare,
-            gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.SpecialtyCare,
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.UrgentCare,
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.Urology,
             gov.va.api.lighthouse.facilities.api.v1.Facility.HealthService.WomensHealth);

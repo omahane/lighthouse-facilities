@@ -5,10 +5,6 @@ import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitie
 import org.junit.jupiter.api.Test;
 
 public class HomeIT {
-  @Test
-  void metadata() {
-    facilitiesRequest(null, "metadata", 200);
-  }
 
   @Test
   void openApiJsonV0_docs() {

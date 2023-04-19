@@ -16,7 +16,6 @@ import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Op
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Orthopedics;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Podiatry;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.PrimaryCare;
-import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.SpecialtyCare;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.UrgentCare;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.Urology;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService.WomensHealth;
@@ -97,7 +96,6 @@ final class HealthTransformer {
     map.put("ORTHOPEDICS", Orthopedics);
     map.put("PRIMARY CARE", PrimaryCare);
     // SPECIALTY CARE no longer served by ATC
-    map.put("SPECIALTY CARE", SpecialtyCare);
     map.put("UROLOGY", Urology);
     return map;
   }

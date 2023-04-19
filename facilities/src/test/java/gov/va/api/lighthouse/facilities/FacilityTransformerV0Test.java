@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import gov.va.api.lighthouse.facilities.api.v0.DetailedService;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.lang.reflect.InvocationTargetException;
@@ -517,7 +518,45 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
   }
 
   @Test
-  void healthServiceRoundTripUsingServiceId() {
+  void healthServiceExceptionSpecialtyCare() {
+    for (String json :
+        List.of(
+            "\"Audiology\"",
+            "\"Cardiology\"",
+            "\"CaregiverSupport\"",
+            "\"Covid19Vaccine\"",
+            "\"DentalServices\"",
+            "\"Dermatology\"",
+            "\"EmergencyCare\"",
+            "\"Gastroenterology\"",
+            "\"Gynecology\"",
+            "\"MentalHealthCare\"",
+            "\"Ophthalmology\"",
+            "\"Optometry\"",
+            "\"Orthopedics\"",
+            "\"Nutrition\"",
+            "\"Podiatry\"",
+            "\"PrimaryCare\"",
+            "\"SpecialtyCare\"",
+            "\"UrgentCare\"",
+            "\"Urology\"",
+            "\"WomensHealth\"")) {
+      // Convert to FAPI V0 Health Service
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthServiceV0 =
+          convertToHealthServiceV0(json);
+      // Convert to Datamart Health Service and
+      // ensure exception thrown in case of SpecialtyCare
+      String jsonHealthService = convertToJson(healthServiceV0);
+      if (jsonHealthService.equals("SpecialtyCare")) {
+        assertThrows(
+            ValueInstantiationException.class,
+            () -> convertToDatamartHealthService(jsonHealthService));
+      }
+    }
+  }
+
+  @Test
+  void healthServiceExceptionSpecialtyCareServiceId() {
     for (String json :
         List.of(
             "\"audiology\"",
@@ -545,6 +584,42 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
           convertToHealthServiceV0(json);
       // Convert to Datamart Health Service
       String jsonHealthService = convertToJson(healthServiceV0);
+      if (jsonHealthService.equals("SpecialtyCare")) {
+        assertThrows(
+            ValueInstantiationException.class,
+            () -> convertToDatamartHealthService(jsonHealthService));
+      }
+    }
+  }
+
+  @Test
+  void healthServiceRoundTripUsingServiceIdWithoutSpecialtyCare() {
+    for (String json :
+        List.of(
+            "\"audiology\"",
+            "\"cardiology\"",
+            "\"caregiverSupport\"",
+            "\"covid19Vaccine\"",
+            "\"dentalServices\"",
+            "\"dermatology\"",
+            "\"emergencyCare\"",
+            "\"gastroenterology\"",
+            "\"gynecology\"",
+            "\"mentalHealthCare\"",
+            "\"ophthalmology\"",
+            "\"optometry\"",
+            "\"orthopedics\"",
+            "\"nutrition\"",
+            "\"podiatry\"",
+            "\"primaryCare\"",
+            "\"urgentCare\"",
+            "\"urology\"",
+            "\"womensHealth\"")) {
+      // Convert to FAPI V0 Health Service
+      gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService healthServiceV0 =
+          convertToHealthServiceV0(json);
+      // Convert to Datamart Health Service
+      String jsonHealthService = convertToJson(healthServiceV0);
       DatamartFacility.HealthService datamartHealthService =
           convertToDatamartHealthService(jsonHealthService);
       // Convert to FAPI V1 Health Service
@@ -560,7 +635,7 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
   }
 
   @Test
-  void healthServiceRoundTripUsingServiceName() {
+  void healthServiceRoundTripUsingServiceNameWithoutSpecialtyCare() {
     for (String json :
         List.of(
             "\"Audiology\"",
@@ -579,7 +654,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
             "\"Nutrition\"",
             "\"Podiatry\"",
             "\"PrimaryCare\"",
-            "\"SpecialtyCare\"",
             "\"UrgentCare\"",
             "\"Urology\"",
             "\"WomensHealth\"")) {

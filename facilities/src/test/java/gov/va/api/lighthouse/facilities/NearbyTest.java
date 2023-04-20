@@ -7,9 +7,6 @@ import static gov.va.api.lighthouse.facilities.api.v0.NearbyResponse.Type.Nearby
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,17 +20,12 @@ import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
@@ -52,9 +44,6 @@ public class NearbyTest {
     return NearbyControllerV0.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
-        .restTemplateProvider(restTemplateProvider)
-        .bingKey("bingKey")
-        .bingUrl("http://bing")
         .build();
   }
 
@@ -153,130 +142,6 @@ public class NearbyTest {
     facility.attributes.services().health().stream().forEach(hs -> hs.source(Source.ATC));
 
     return facility;
-  }
-
-  @Test
-  @SneakyThrows
-  void address() {
-    when(restTemplate.exchange(
-            startsWith("http://bing"),
-            eq(HttpMethod.GET),
-            Mockito.any(HttpEntity.class),
-            eq(String.class)))
-        .thenReturn(
-            ResponseEntity.of(
-                Optional.of(
-                    JacksonConfig.createMapper()
-                        .writeValueAsString(
-                            BingResponse.builder()
-                                .resourceSets(
-                                    List.of(
-                                        BingResponse.ResourceSet.builder().build(),
-                                        BingResponse.ResourceSet.builder()
-                                            .resources(
-                                                List.of(
-                                                    BingResponse.Resource.builder().build(),
-                                                    BingResponse.Resource.builder()
-                                                        .resourcePoint(
-                                                            BingResponse.Point.builder().build())
-                                                        .build(),
-                                                    BingResponse.Resource.builder()
-                                                        .resourcePoint(
-                                                            BingResponse.Point.builder()
-                                                                .coordinates(
-                                                                    List.of(BigDecimal.ZERO))
-                                                                .build())
-                                                        .build(),
-                                                    BingResponse.Resource.builder()
-                                                        .resourcePoint(
-                                                            BingResponse.Point.builder()
-                                                                .coordinates(
-                                                                    List.of(
-                                                                        new BigDecimal("-0.1"),
-                                                                        new BigDecimal("0.1")))
-                                                                .build())
-                                                        .build()))
-                                            .build()))
-                                .build()))));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
-    driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
-    driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
-    NearbyResponse response =
-        _controller()
-            .nearbyAddress("505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null);
-    assertThat(response)
-        .isEqualTo(
-            NearbyResponse.builder()
-                .data(
-                    List.of(
-                        NearbyResponse.Nearby.builder()
-                            .id("vha_666")
-                            .type(NearbyFacility)
-                            .attributes(
-                                NearbyResponse.NearbyAttributes.builder()
-                                    .minTime(0)
-                                    .maxTime(10)
-                                    .build())
-                            .build()))
-                .meta(NearbyResponse.Meta.builder().bandVersion("Unknown").build())
-                .build());
-  }
-
-  @Test
-  void address_bingException() {
-    when(restTemplate.exchange(
-            startsWith("http://bing"),
-            eq(HttpMethod.GET),
-            Mockito.any(HttpEntity.class),
-            eq(String.class)))
-        .thenThrow(new IllegalStateException("Google instead?"));
-    assertThrows(
-        ExceptionsUtilsV0.BingException.class,
-        () ->
-            _controller()
-                .nearbyAddress("505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null));
-  }
-
-  @Test
-  @SneakyThrows
-  void address_bingNoResults() {
-    when(restTemplate.exchange(
-            startsWith("http://bing"),
-            eq(HttpMethod.GET),
-            Mockito.any(HttpEntity.class),
-            eq(String.class)))
-        .thenReturn(
-            ResponseEntity.of(
-                Optional.of(
-                    JacksonConfig.createMapper()
-                        .writeValueAsString(
-                            BingResponse.builder()
-                                .resourceSets(
-                                    List.of(
-                                        BingResponse.ResourceSet.builder().build(),
-                                        BingResponse.ResourceSet.builder()
-                                            .resources(
-                                                List.of(
-                                                    BingResponse.Resource.builder().build(),
-                                                    BingResponse.Resource.builder()
-                                                        .resourcePoint(
-                                                            BingResponse.Point.builder().build())
-                                                        .build(),
-                                                    BingResponse.Resource.builder()
-                                                        .resourcePoint(
-                                                            BingResponse.Point.builder()
-                                                                .coordinates(
-                                                                    List.of(BigDecimal.ZERO))
-                                                                .build())
-                                                        .build()))
-                                            .build()))
-                                .build()))));
-    assertThrows(
-        ExceptionsUtilsV0.BingException.class,
-        () ->
-            _controller()
-                .nearbyAddress("505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null));
   }
 
   @Test

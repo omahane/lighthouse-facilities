@@ -21,10 +21,12 @@ public interface FacilitiesNearbyApi {
           "Retrieve all VA health facilities reachable by driving "
               + "within the specified time period",
       description =
-          "Retrieve all VA health facilities that are located within a specified drive time from "
-              + "a specified location based on address (`street_address`, "
-              + "`city`, `state`, and `zip`) or coordinates (`lat` and `lng`). "
-              + "Optional filter parameters include `drive_time` and `services[]`. "
+          "Retrieve all VA health facilities that are located within"
+              + " a specified drive time from a specified location based "
+              + "on coordinates (lat and lng). "
+              + "Optional filter parameters include drive_time and services[]. "
+              + "Address (street_address, city, state, and zip) "
+              + "no longer returns results."
               + "\n\n"
               + "The \"attributes\" element has information about the "
               + "drive-time band that contains the requested location for each facility "
@@ -80,6 +82,22 @@ public interface FacilitiesNearbyApi {
               schema = @Schema(implementation = ApiError.class)))
   NearbyResponse getNearbyFacilities(
       @Parameter(
+              name = "lat",
+              in = ParameterIn.QUERY,
+              description = "Latitude of the location from which drive time will be calculated.",
+              schema = @Schema(type = "number", format = "float"),
+              examples = @ExampleObject(name = "coordinates", value = "56.7"))
+          BigDecimal lat,
+      @Parameter(
+              name = "lng",
+              in = ParameterIn.QUERY,
+              description = "Longitude of the location from which drive time will be calculated.",
+              style = ParameterStyle.FORM,
+              explode = Explode.TRUE,
+              schema = @Schema(type = "number", format = "float"),
+              examples = @ExampleObject(name = "coordinates", value = "-123.4"))
+          BigDecimal lng,
+      @Parameter(
               name = "street_address",
               in = ParameterIn.QUERY,
               description =
@@ -107,22 +125,6 @@ public interface FacilitiesNearbyApi {
               schema = @Schema(description = "##### or #####-####"),
               examples = @ExampleObject(name = "address", value = "20005-3305"))
           String zip,
-      @Parameter(
-              name = "lat",
-              in = ParameterIn.QUERY,
-              description = "Latitude of the location from which drive time will be calculated.",
-              schema = @Schema(type = "number", format = "float"),
-              examples = @ExampleObject(name = "coordinates", value = "56.7"))
-          BigDecimal lat,
-      @Parameter(
-              name = "lng",
-              in = ParameterIn.QUERY,
-              description = "Longitude of the location from which drive time will be calculated.",
-              style = ParameterStyle.FORM,
-              explode = Explode.TRUE,
-              schema = @Schema(type = "number", format = "float"),
-              examples = @ExampleObject(name = "coordinates", value = "-123.4"))
-          BigDecimal lng,
       @Parameter(
               name = "drive_time",
               description =

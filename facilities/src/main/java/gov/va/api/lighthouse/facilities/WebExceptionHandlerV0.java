@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.collect.Iterables;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.api.v0.ApiError;
+import java.util.Arrays;
 import java.util.List;
 import javax.validation.ConstraintViolationException;
 import lombok.SneakyThrows;
@@ -23,6 +24,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @Slf4j
 @RestControllerAdvice
 public final class WebExceptionHandlerV0 {
+  private static final String[] nearbyAddressRequestParams = {
+    "street_address", "city", "state", "zip", "!lat", "!lng"
+  };
+
+  private static final String nearbyAddressMessageRegex =
+      "(?:OR)? \"street_address, city, state, zip, !lat, !lng\" (?:OR)?";
+
   @SneakyThrows
   private static ResponseEntity<ApiError> response(
       HttpStatus status, Throwable tr, ApiError error) {
@@ -41,11 +49,11 @@ public final class WebExceptionHandlerV0 {
                     ApiError.ErrorMessage.builder()
                         .title("Bing error")
                         .detail(ex.getMessage())
-                        .code("503")
-                        .status("503")
+                        .code("400")
+                        .status("400")
                         .build()))
             .build();
-    return response(HttpStatus.SERVICE_UNAVAILABLE, ex, response);
+    return response(HttpStatus.BAD_REQUEST, ex, response);
   }
 
   @ExceptionHandler(ExceptionsUtils.InvalidParameter.class)
@@ -148,16 +156,26 @@ public final class WebExceptionHandlerV0 {
     return response(HttpStatus.INTERNAL_SERVER_ERROR, ex, response);
   }
 
+  /*
+  Logic in place to catch & strip nearby search by address parameters from USRe message
+  as this functionality has been deprecated and should not show up in the supported endpoints
+   */
   @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
   ResponseEntity<ApiError> handleUnsatisfiedServletRequestParameter(
       UnsatisfiedServletRequestParameterException ex) {
+    String message = ex.getMessage();
+    if (message != null
+        && ex.getParamConditionGroups().stream()
+            .anyMatch(e -> Arrays.equals(e, nearbyAddressRequestParams))) {
+      message = message.replaceAll(nearbyAddressMessageRegex, "");
+    }
     ApiError response =
         ApiError.builder()
             .errors(
                 List.of(
                     ApiError.ErrorMessage.builder()
                         .title("Missing parameter")
-                        .detail(ex.getMessage())
+                        .detail(message)
                         .code("108")
                         .status("400")
                         .build()))

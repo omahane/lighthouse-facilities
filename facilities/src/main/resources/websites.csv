@@ -686,7 +686,7 @@ vha_442HK,https://www.cheyenne.va.gov/locations/Wheatland_VA_Mobile_Clinic.asp
 vha_442QA,https://www.va.gov/cheyenne-health-care/locations/rawlins-va-clinic/
 vha_442QB,https://www.cheyenne.va.gov/locations/Torrington_VA_Mobile_Clinic.asp
 vha_442QD,https://www.cheyenne.va.gov/locations/Laramie.asp
-vha_442QE,https://www.va.gov/cheyenne-health-care/locations/sterling-va-clinic/
+vha_442QG,https://www.va.gov/cheyenne-health-care/locations/sterling-va-clinic/
 vha_459,https://www.va.gov/pacific-islands-health-care/locations/spark-m-matsunaga-department-of-veterans-affairs-medical-center/
 vha_459GA,https://www.va.gov/pacific-islands-health-care/locations/maui-va-clinic/
 vha_459GB,https://www.va.gov/pacific-islands-health-care/locations/hilo-va-clinic/
@@ -705,7 +705,7 @@ vha_460GC,https://www.va.gov/wilmington-health-care/locations/kent-county-va-cli
 vha_460GD,https://www.va.gov/wilmington-health-care/locations/cape-may-county-va-clinic/
 vha_460HE,https://www.va.gov/wilmington-health-care/locations/atlantic-county-va-clinic/
 vha_460HG,https://www.va.gov/wilmington-health-care/locations/cumberland-county-va-clinic/
-vha_463,https://www.va.gov/alaska-health-care/locations/anchorage-va-medical-center/
+vha_463,https://www.va.gov/alaska-health-care/locations/colonel-mary-louise-rasmuson-campus-of-the-alaska-va-healthcare-system/
 vha_463GA,https://www.va.gov/alaska-health-care/locations/fairbanks-va-clinic/
 vha_463GB,https://www.va.gov/alaska-health-care/locations/soldotna-va-clinic/
 vha_463GC,https://www.va.gov/alaska-health-care/locations/mat-su-va-clinic/
@@ -814,7 +814,7 @@ vha_519GA,https://www.va.gov/west-texas-health-care/locations/wilson-and-young-m
 vha_519GB,https://www.va.gov/west-texas-health-care/locations/hobbs-va-clinic/
 vha_519GD,https://www.va.gov/west-texas-health-care/locations/fort-stockton-va-clinic/
 vha_519HC,https://www.va.gov/west-texas-health-care/locations/abilene-va-clinic/
-vha_519HF,https://www.va.gov/west-texas-health-care/locations/san-angelo-va-clinic/
+vha_519HF,https://www.va.gov/west-texas-health-care/locations/colonel-charles-and-joanne-powell-va-clinic/
 vha_520,https://www.va.gov/gulf-coast-health-care/locations/biloxi-va-medical-center/
 vha_520BZ,https://www.va.gov/gulf-coast-health-care/locations/pensacola-va-clinic/
 vha_520GA,https://www.va.gov/gulf-coast-health-care/locations/mobile-va-clinic/
@@ -1215,7 +1215,7 @@ vha_589GC,https://www.va.gov/kansas-city-health-care/locations/paola-va-clinic/
 vha_589GD,https://www.va.gov/kansas-city-health-care/locations/nevada-va-clinic/
 vha_589GE,https://www.va.gov/columbia-missouri-health-care/locations/kirksville-va-clinic/
 vha_589GF,https://www.va.gov/columbia-missouri-health-care/locations/waynesville-va-clinic/
-vha_589GH,https://www.va.gov/columbia-missouri-health-care/locations/lake-of-the-ozarks-va-clinic/
+vha_589GH,https://www.va.gov/columbia-missouri-health-care/locations/camdenton-va-clinic/
 vha_589GI,https://www.va.gov/eastern-kansas-health-care/locations/st-joseph-va-clinic/
 vha_589GJ,https://www.va.gov/eastern-kansas-health-care/locations/kansas-city-kansas-va-clinic/
 vha_589GM,https://www.va.gov/eastern-kansas-health-care/locations/chanute-va-clinic/
@@ -1582,7 +1582,7 @@ vha_650GB,https://www.va.gov/providence-health-care/locations/hyannis-va-clinic/
 vha_650GD,https://www.va.gov/providence-health-care/locations/middletown-va-clinic/
 vha_650QA,https://www.va.gov/providence-health-care/locations/eagle-square-va-clinic/
 vha_650QB,https://www.va.gov/providence-health-care/locations/eagle-street-va-clinic/
-vha_652,https://www.va.gov/richmond-health-care/locations/hunter-holmes-mcguire-hospital/
+vha_652,https://www.va.gov/richmond-health-care/locations/richmond-va-medical-center/
 vha_652GA,https://www.va.gov/richmond-health-care/locations/fredericksburg-va-clinic/
 vha_652GB,https://www.va.gov/richmond-health-care/locations/fredericksburg-2-va-clinic/
 vha_652GC,https://www.va.gov/richmond-health-care/locations/henrico-county-va-clinic/
@@ -1839,8 +1839,8 @@ vha_691GF,https://www.va.gov/greater-los-angeles-health-care/locations/east-los-
 vha_691GG,https://www.va.gov/greater-los-angeles-health-care/locations/antelope-valley-va-clinic/
 vha_691GK,https://www.va.gov/greater-los-angeles-health-care/locations/san-luis-obispo-va-clinic/
 vha_691GL,https://www.va.gov/greater-los-angeles-health-care/locations/santa-maria-va-clinic/
-vha_691GM,https://www.va.gov/greater-los-angeles-health-care/locations/oxnard-va-clinic/
 vha_691GP,https://www.va.gov/greater-los-angeles-health-care/locations/san-gabriel-valley-va-clinic/
+vha_691GQ,https://www.va.gov/greater-los-angeles-health-care/locations/captain-rosemary-bryant-mariner-outpatient-clinic/
 vha_692,https://www.va.gov/southern-oregon-health-care/locations/white-city-va-medical-center/
 vha_692GA,https://www.va.gov/southern-oregon-health-care/locations/klamath-falls-va-clinic/
 vha_692GB,https://www.va.gov/southern-oregon-health-care/locations/grants-pass-va-clinic/

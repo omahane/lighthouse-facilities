@@ -751,7 +751,7 @@ vha_506GC,https://www.va.gov/ann-arbor-health-care/locations/jackson-va-clinic/
 vha_506GF,https://www.va.gov/ann-arbor-health-care/locations/adrian-va-clinic/
 vha_506QA,https://www.va.gov/ann-arbor-health-care/locations/packard-road-va-clinic/
 vha_506QB,https://www.va.gov/ann-arbor-health-care/locations/green-road-va-clinic/
-vha_508,https://www.va.gov/atlanta-health-care/locations/atlanta-va-medical-center/
+vha_508,https://www.va.gov/atlanta-health-care/locations/joseph-maxwell-cleland-atlanta-va-medical-center
 vha_508GA,https://www.va.gov/atlanta-health-care/locations/fort-mcpherson-va-clinic/
 vha_508GE,https://www.va.gov/atlanta-health-care/locations/oakwood-va-clinic/
 vha_508GF,https://www.va.gov/atlanta-health-care/locations/west-cobb-county-va-clinic/
@@ -959,7 +959,7 @@ vha_542,https://www.va.gov/coatesville-health-care/locations/coatesville-va-medi
 vha_542GA,https://www.va.gov/coatesville-health-care/locations/delaware-county-va-clinic/
 vha_542GE,https://www.va.gov/coatesville-health-care/locations/west-norriton-va-clinic/
 vha_544,https://www.va.gov/columbia-south-carolina-health-care/locations/wm-jennings-bryan-dorn-department-of-veterans-affairs-medical-center/
-vha_544BZ,https://www.va.gov/columbia-south-carolina-health-care/locations/greenville-va-clinic/
+vha_544BZ,https://www.va.gov/columbia-south-carolina-health-care/locations/lance-corporal-dana-cornell-darnell-va-clinic/
 vha_544GB,https://www.va.gov/columbia-south-carolina-health-care/locations/florence-va-clinic/
 vha_544GC,https://www.va.gov/columbia-south-carolina-health-care/locations/rock-hill-va-clinic/
 vha_544GD,https://www.va.gov/columbia-south-carolina-health-care/locations/anderson-va-clinic/
@@ -1313,7 +1313,7 @@ vha_608GD,https://www.va.gov/manchester-health-care/locations/conway-va-clinic/
 vha_608HA,https://www.va.gov/manchester-health-care/locations/tilton-va-clinic/
 vha_610,https://www.va.gov/northern-indiana-health-care/locations/marion-va-medical-center/
 vha_610A4,https://www.va.gov/northern-indiana-health-care/locations/fort-wayne-va-medical-center/
-vha_610BY,https://www.va.gov/northern-indiana-health-care/locations/st-joseph-county-va-clinic/
+vha_610BY,https://www.va.gov/northern-indiana-health-care/locations/jackie-walorski-va-clinic/
 vha_610GB,https://www.va.gov/northern-indiana-health-care/locations/muncie-va-clinic/
 vha_610GC,https://www.va.gov/northern-indiana-health-care/locations/goshen-va-clinic/
 vha_610GD,https://www.va.gov/northern-indiana-health-care/locations/hoosier-va-clinic/
@@ -1341,7 +1341,7 @@ vha_613GD,https://www.va.gov/martinsburg-health-care/locations/franklin-va-clini
 vha_613GE,https://www.va.gov/martinsburg-health-care/locations/petersburg-va-clinic/
 vha_613GF,https://www.va.gov/martinsburg-health-care/locations/harrisonburg-va-clinic/
 vha_613GG,https://www.va.gov/martinsburg-health-care/locations/fort-detrick-va-clinic/
-vha_614,https://www.va.gov/memphis-health-care/locations/memphis-va-medical-center/
+vha_614,https://www.va.gov/memphis-health-care/locations/lt-col-luke-weathers-jr-va-medical-center/
 vha_614GA,https://www.va.gov/memphis-health-care/locations/tupelo-va-clinic/
 vha_614GB,https://www.va.gov/memphis-health-care/locations/jonesboro-va-clinic/
 vha_614GC,https://www.va.gov/memphis-health-care/locations/holly-springs-va-clinic/
@@ -1370,7 +1370,7 @@ vha_618QA,https://www.va.gov/minneapolis-health-care/locations/fort-snelling-va-
 vha_618QB,https://www.va.gov/minneapolis-health-care/locations/ely-va-clinic/
 vha_619,https://www.va.gov/central-alabama-health-care/locations/central-alabama-va-medical-center-montgomery/
 vha_619A4,https://www.va.gov/central-alabama-health-care/locations/central-alabama-va-medical-center-tuskegee/
-vha_619GA,https://www.va.gov/central-alabama-health-care/locations/columbus-va-clinic/
+vha_619GA,https://www.va.gov/central-alabama-health-care/locations/robert-s-poydasheff-va-clinic/
 vha_619GD,https://www.va.gov/central-alabama-health-care/locations/wiregrass-va-clinic/
 vha_619GE,https://www.va.gov/central-alabama-health-care/locations/monroe-county-va-clinic/
 vha_619GF,https://www.va.gov/central-alabama-health-care/locations/central-alabama-montgomery-va-clinic/
@@ -1421,7 +1421,7 @@ vha_626GH,https://www.va.gov/tennessee-valley-health-care/locations/cookeville-v
 vha_626GJ,https://www.va.gov/tennessee-valley-health-care/locations/hopkinsville-va-clinic/
 vha_626GK,https://www.va.gov/tennessee-valley-health-care/locations/mcminnville-va-clinic/
 vha_626GL,https://www.va.gov/tennessee-valley-health-care/locations/roane-county-va-clinic/
-vha_626GM,https://www.va.gov/tennessee-valley-health-care/locations/maury-county-va-clinic/
+vha_626GM,https://www.va.gov/tennessee-valley-health-care/locations/columbia-va-clinic
 vha_626GN,https://www.va.gov/tennessee-valley-health-care/locations/athens-va-clinic/
 vha_626GO,https://www.va.gov/tennessee-valley-health-care/locations/international-plaza-va-clinic/
 vha_626GP,https://www.va.gov/tennessee-valley-health-care/locations/gallatin-va-clinic/
@@ -1470,6 +1470,7 @@ vha_635GG,https://www.va.gov/oklahoma-city-health-care/locations/enid-va-clinic/
 vha_635GH,https://www.va.gov/oklahoma-city-health-care/locations/clinton-va-clinic/
 vha_635GI,https://www.va.gov/oklahoma-city-health-care/locations/norman-va-clinic/
 vha_635GJ,https://www.va.gov/oklahoma-city-health-care/locations/yukon-va-clinic/
+vha_635GL,https://www.va.gov/oklahoma-city-health-care/locations/north-oklahoma-city-va-clinic/
 vha_635HB,https://www.va.gov/oklahoma-city-health-care/locations/ardmore-va-clinic/
 vha_635QA,https://www.va.gov/oklahoma-city-health-care/locations/north-may-va-clinic/
 vha_635QB,https://www.va.gov/oklahoma-city-health-care/locations/south-oklahoma-city-va-clinic/
@@ -1511,7 +1512,7 @@ vha_636QI,https://www.va.gov/iowa-city-health-care/locations/davenport-va-clinic
 vha_636QJ,https://www.va.gov/iowa-city-health-care/locations/iowa-city-va-clinic/
 vha_637,https://www.va.gov/asheville-health-care/locations/charles-george-department-of-veterans-affairs-medical-center/
 vha_637GA,https://www.va.gov/asheville-health-care/locations/franklin-va-clinic/
-vha_637GB,https://www.va.gov/asheville-health-care/locations/rutherford-county-va-clinic/
+vha_637GB,https://www.va.gov/asheville-health-care/locations/master-sergeant-jerry-k-crump-va-clinic/
 vha_637GC,https://www.va.gov/asheville-health-care/locations/hickory-va-clinic/
 vha_640,https://www.va.gov/palo-alto-health-care/locations/palo-alto-va-medical-center/
 vha_640A0,https://www.va.gov/palo-alto-health-care/locations/palo-alto-va-medical-center-menlo-park/
@@ -1553,7 +1554,7 @@ vha_646GC,https://www.va.gov/pittsburgh-health-care/locations/beaver-county-va-c
 vha_646GD,https://www.va.gov/pittsburgh-health-care/locations/washington-county-va-clinic/
 vha_646GE,https://www.va.gov/pittsburgh-health-care/locations/fayette-county-va-clinic/
 vha_648,https://www.va.gov/portland-health-care/locations/portland-va-medical-center/
-vha_648A4,https://www.va.gov/portland-health-care/locations/portland-va-medical-center-vancouver/
+vha_648A4,https://www.va.gov/portland-health-care/locations/vancouver-va-medical-center/
 vha_648GA,https://www.va.gov/portland-health-care/locations/robert-d-maxwell-department-of-veterans-affairs-clinic/
 vha_648GB,https://www.va.gov/portland-health-care/locations/salem-va-clinic/
 vha_648GD,https://www.va.gov/portland-health-care/locations/north-coast-va-clinic/

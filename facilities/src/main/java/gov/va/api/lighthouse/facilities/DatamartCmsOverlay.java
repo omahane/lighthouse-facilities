@@ -10,6 +10,8 @@ import java.util.List;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -27,6 +29,11 @@ public class DatamartCmsOverlay {
 
   @JsonProperty("system")
   HealthCareSystem healthCareSystem;
+
+  public boolean containsHealthConnectPhoneNumber() {
+    return ObjectUtils.isNotEmpty(healthCareSystem())
+        && StringUtils.isNotEmpty(healthCareSystem().healthConnectPhone());
+  }
 
   @Data
   @Builder

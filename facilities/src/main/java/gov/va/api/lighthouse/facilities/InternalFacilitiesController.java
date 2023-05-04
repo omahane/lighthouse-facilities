@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import gov.va.api.health.autoconfig.logging.Loggable;
+import gov.va.api.lighthouse.facilities.DatamartCmsOverlay.HealthCareSystem;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Addresses;
 import gov.va.api.lighthouse.facilities.DatamartFacility.FacilityAttributes;
@@ -42,8 +43,10 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -274,9 +277,10 @@ public class InternalFacilitiesController {
         facilityEntity.overlayServices(new HashSet<>());
       }
 
+      DatamartFacility df =
+          DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
+
       if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("detailed_services")) {
-        DatamartFacility df =
-            DATAMART_MAPPER.readValue(facilityEntity.facility(), DatamartFacility.class);
         if (df.attributes().services().health() != null) {
           List<Service<HealthService>> healthServicesWithoutCovid19Vaccine =
               df.attributes().services().health().parallelStream()
@@ -296,10 +300,24 @@ public class InternalFacilitiesController {
             // Remove Covid-19 expressed in prior non-object service format
             facilityEntity.services().remove("Covid19Vaccine");
           }
-
-          facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(df));
         }
       }
+
+      if (thisNodeOnly == null || thisNodeOnly.equalsIgnoreCase("system")) {
+        // Update health connect phone number for facility attributes
+        if (ObjectUtils.isNotEmpty(df.attributes().phone())) {
+          final HealthCareSystem healthCareSystem =
+              CmsOverlayHelper.getHealthCareSystem(overlayEntity.healthCareSystem());
+          if (ObjectUtils.isNotEmpty(healthCareSystem)
+              && StringUtils.isNotEmpty(healthCareSystem.healthConnectPhone())) {
+            df.attributes().phone().healthConnect(healthCareSystem.healthConnectPhone());
+          } else {
+            df.attributes().phone().healthConnect(null);
+          }
+        }
+      }
+
+      facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(df));
       facilityRepository.save(facilityEntity);
     }
     return ResponseEntity.ok().build();
@@ -416,19 +434,37 @@ public class InternalFacilitiesController {
   private ResponseEntity<ReloadResponse> process(
       ReloadResponse response, List<DatamartFacility> collectedFacilities) {
     response.timing().markCompleteCollection();
-    log.info("Facilities collected: {}", collectedFacilities.size());
     try {
-      collectedFacilities.stream().forEach(f -> updateFacility(response, f));
-      for (FacilityEntity.Pk missingId : missingIds(collectedFacilities)) {
-        processMissingFacility(response, missingId);
-      }
+      processExistingFacilities(response, collectedFacilities);
     } catch (Exception e) {
-      log.error("Failed to process facilities: {}", e.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    } finally {
+      log.error("Failed to process existing facilities: {}", e.getMessage());
       response.timing().markComplete();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+    try {
+      processMissingFacilities(response, collectedFacilities);
+    } catch (Exception e) {
+      log.error("Failed to process missing facilities: {}", e.getMessage());
+      response.timing().markComplete();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+    response.timing().markComplete();
     return ResponseEntity.ok(response);
+  }
+
+  @SneakyThrows
+  private void processExistingFacilities(
+      ReloadResponse response, List<DatamartFacility> collectedFacilities) {
+    log.info("Facilities collected: {}", collectedFacilities.size());
+    collectedFacilities.parallelStream().forEach(f -> updateFacility(response, f));
+  }
+
+  @SneakyThrows
+  private void processMissingFacilities(
+      ReloadResponse response, List<DatamartFacility> collectedFacilities) {
+    final Set<FacilityEntity.Pk> missingIds = missingIds(collectedFacilities);
+    log.info("Missing facilities: {}", missingIds.size());
+    missingIds.stream().forEach(missingId -> processMissingFacility(response, missingId));
   }
 
   @SneakyThrows
@@ -476,7 +512,9 @@ public class InternalFacilitiesController {
     return process(response, collectedFacilities);
   }
 
+  /** Mark facility as missing. */
   @SneakyThrows
+  @Synchronized
   private void saveAsMissing(ReloadResponse response, FacilityEntity entity) {
     FacilityEntity.Pk id = entity.id();
     try {
@@ -495,7 +533,9 @@ public class InternalFacilitiesController {
     }
   }
 
+  /** Update and save facility record. */
   @SneakyThrows
+  @Synchronized
   void updateAndSave(
       ReloadResponse response, FacilityEntity record, DatamartFacility datamartFacility) {
     datamartFacility
@@ -690,7 +730,7 @@ public class InternalFacilitiesController {
           .add(ReloadResponse.Problem.of(datamartFacility.id(), "Missing coordinates"));
       return;
     }
-    var existing = facilityRepository.findById(pk);
+    final var existing = facilityRepository.findById(pk);
     if (existing.isPresent()) {
       response.facilitiesUpdated().add(datamartFacility.id());
       log.warn("Updating facility {}", datamartFacility.id());

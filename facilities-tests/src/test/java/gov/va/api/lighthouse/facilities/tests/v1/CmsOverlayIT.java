@@ -246,11 +246,6 @@ public class CmsOverlayIT {
                     Method.DELETE,
                     svcInternal.urlWithApiPath() + "internal/management/facilities/" + id))
         .expect(200);
-    // Call reload since we deleted the facility
-    ExpectedResponse.of(
-            requestSpecificationInternal()
-                .request(Method.GET, svcInternal.urlWithApiPath() + "internal/management/reload"))
-        .expect(200);
   }
 
   private List<DetailedService> detailedServices(@NonNull String facilityId) {

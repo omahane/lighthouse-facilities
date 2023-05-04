@@ -372,6 +372,18 @@ public class CmsOverlayControllerV0 extends BaseCmsOverlayController {
       Collections.sort(facilityHealthServiceList);
       facility.attributes().services().other(facilityOtherServiceList);
 
+      // Update health connect phone number for facility attributes
+      if (ObjectUtils.isNotEmpty(facility.attributes().phone())) {
+        if (overlay.containsHealthConnectPhoneNumber()) {
+          facility
+              .attributes()
+              .phone()
+              .healthConnect(overlay.healthCareSystem().healthConnectPhone());
+        } else {
+          facility.attributes().phone().healthConnect(null);
+        }
+      }
+
       facilityEntity.facility(DATAMART_MAPPER.writeValueAsString(facility));
     }
 

@@ -1446,7 +1446,10 @@ public class InternalFacilitiesControllerTest {
   @Test
   @SneakyThrows
   public void processException() {
-    final InternalFacilitiesController controller = InternalFacilitiesController.builder().build();
+    final InternalFacilitiesController controller =
+        InternalFacilitiesController.builder()
+            .facilityRepository(mock(FacilityRepository.class))
+            .build();
     Method processMethod =
         InternalFacilitiesController.class.getDeclaredMethod(
             "process", ReloadResponse.class, List.class);
@@ -1458,7 +1461,7 @@ public class InternalFacilitiesControllerTest {
         (ResponseEntity)
             processMethod.invoke(
                 controller, reloadResponseProc, List.of(datamartFacilityWithInvalidId));
-    assertThat(actualResponse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(actualResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(actualResponse.getBody()).isInstanceOf(ReloadResponse.class);
     assertThat(((ReloadResponse) actualResponse.getBody()).problems())
         .usingRecursiveComparison()

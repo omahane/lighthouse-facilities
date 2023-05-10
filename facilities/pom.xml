@@ -19,7 +19,7 @@
     <guava.version>[30.0-jre,)</guava.version>
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.13</swagger-maven-plugin.version>
-    <timezonemap.version>LATEST</timezonemap.version>
+    <timezonemap.version>4.5</timezonemap.version>
     <talos.version>5.0.1</talos.version>
   </properties>
   <dependencies>

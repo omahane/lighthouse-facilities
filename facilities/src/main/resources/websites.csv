@@ -748,6 +748,7 @@ vha_506,https://www.va.gov/ann-arbor-health-care/locations/lieutenant-colonel-ch
 vha_506GA,https://www.va.gov/ann-arbor-health-care/locations/toledo-va-clinic/
 vha_506GB,https://www.va.gov/ann-arbor-health-care/locations/flint-va-clinic/
 vha_506GC,https://www.va.gov/ann-arbor-health-care/locations/jackson-va-clinic/
+vha_506GE,https://www.va.gov/ann-arbor-health-care/locations/howell-va-clinic/
 vha_506GF,https://www.va.gov/ann-arbor-health-care/locations/adrian-va-clinic/
 vha_506QA,https://www.va.gov/ann-arbor-health-care/locations/packard-road-va-clinic/
 vha_506QB,https://www.va.gov/ann-arbor-health-care/locations/green-road-va-clinic/
@@ -1470,6 +1471,7 @@ vha_635GG,https://www.va.gov/oklahoma-city-health-care/locations/enid-va-clinic/
 vha_635GH,https://www.va.gov/oklahoma-city-health-care/locations/clinton-va-clinic/
 vha_635GI,https://www.va.gov/oklahoma-city-health-care/locations/norman-va-clinic/
 vha_635GJ,https://www.va.gov/oklahoma-city-health-care/locations/yukon-va-clinic/
+vha_635GK,https://www.va.gov/oklahoma-city-health-care/locations/shawnee-va-clinic/
 vha_635GL,https://www.va.gov/oklahoma-city-health-care/locations/north-oklahoma-city-va-clinic/
 vha_635HB,https://www.va.gov/oklahoma-city-health-care/locations/ardmore-va-clinic/
 vha_635QA,https://www.va.gov/oklahoma-city-health-care/locations/north-may-va-clinic/
@@ -1680,6 +1682,7 @@ vha_662GF,https://www.va.gov/san-francisco-health-care/locations/san-francisco-v
 vha_662GG,https://www.va.gov/san-francisco-health-care/locations/clearlake-va-clinic/
 vha_662GH,https://www.va.gov/san-francisco-health-care/locations/oakland-va-clinic/
 vha_662QA,https://www.va.gov/san-francisco-health-care/locations/twenty-first-street-va-clinic/
+vha_662QB,https://www.va.gov/san-francisco-health-care/locations/north-santa-rosa-va-clinic
 vha_663,https://www.va.gov/puget-sound-health-care/locations/seattle-va-medical-center/
 vha_663A4,https://www.va.gov/puget-sound-health-care/locations/american-lake-va-medical-center/
 vha_663GB,https://www.va.gov/puget-sound-health-care/locations/silverdale-va-clinic/

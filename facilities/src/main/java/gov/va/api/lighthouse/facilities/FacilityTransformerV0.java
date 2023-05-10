@@ -100,7 +100,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform DatamartFacility health service to version 0 facility health service. */
   private static Facility.HealthService toFacilityHealthServiceType(
-      @NonNull DatamartFacility.HealthService datamartFacilityHealthServiceType) {
+      DatamartFacility.@NonNull HealthService datamartFacilityHealthServiceType) {
     return Facility.HealthService.fromServiceId(datamartFacilityHealthServiceType.serviceId())
         .orElse(null);
   }
@@ -148,7 +148,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform DatamartFacility patient wait times to version 0 facility patient wait times. */
   private static Facility.PatientWaitTime toFacilityPatientWaitTime(
-      @NonNull DatamartFacility.PatientWaitTime datamartPatientWaitTime) {
+      DatamartFacility.@NonNull PatientWaitTime datamartPatientWaitTime) {
     return Facility.PatientWaitTime.builder()
         .newPatientWaitTime(datamartPatientWaitTime.newPatientWaitTime())
         .establishedPatientWaitTime(datamartPatientWaitTime.establishedPatientWaitTime())
@@ -238,7 +238,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform DatamartFacility supplemental status to version 0 facility supplemental status. */
   public static Facility.SupplementalStatus toFacilitySupplementalStatus(
-      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+      DatamartFacility.@NonNull SupplementalStatus datamartFacilitySupplementalStatus) {
     return Facility.SupplementalStatus.builder()
         .id(datamartFacilitySupplementalStatus.id())
         .label(datamartFacilitySupplementalStatus.label())
@@ -363,7 +363,7 @@ public final class FacilityTransformerV0 {
   /** Transform version 0 facility benefits service to DatamartFacility benefits service. */
   public static DatamartFacility.Service<DatamartFacility.BenefitsService>
       toVersionAgnosticFacilityBenefitsService(
-          @NonNull Facility.BenefitsService facilityBenefitsService) {
+          Facility.@NonNull BenefitsService facilityBenefitsService) {
     final Optional<DatamartFacility.BenefitsService> versionAgnosticBenefitsService =
         DatamartFacility.BenefitsService.fromServiceId(facilityBenefitsService.serviceId());
     return versionAgnosticBenefitsService.isPresent()
@@ -377,7 +377,7 @@ public final class FacilityTransformerV0 {
   /** Transform version 0 facility health service to DatamartFacility health service. */
   public static DatamartFacility.Service<DatamartFacility.HealthService>
       toVersionAgnosticFacilityHealthService(
-          @NonNull Facility.HealthService facilityHealthService) {
+          Facility.@NonNull HealthService facilityHealthService) {
     final Optional<DatamartFacility.HealthService> versionAgnosticHealthService =
         DatamartFacility.HealthService.fromServiceId(facilityHealthService.serviceId());
     return versionAgnosticHealthService.isPresent()
@@ -390,7 +390,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform version 0 facility health service to DatamartFacility health service. */
   private static DatamartFacility.HealthService toVersionAgnosticFacilityHealthServiceType(
-      @NonNull Facility.HealthService facilityHealthService) {
+      Facility.@NonNull HealthService facilityHealthService) {
     return DatamartFacility.HealthService.fromServiceId(facilityHealthService.serviceId())
         .orElse(null);
   }
@@ -431,7 +431,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform version 0 facility other service to DatamartFacility other service. */
   public static DatamartFacility.Service<DatamartFacility.OtherService>
-      toVersionAgnosticFacilityOtherService(@NonNull Facility.OtherService facilityOtherService) {
+      toVersionAgnosticFacilityOtherService(Facility.@NonNull OtherService facilityOtherService) {
     final Optional<DatamartFacility.OtherService> versionAgnosticOtherService =
         DatamartFacility.OtherService.fromServiceId(facilityOtherService.serviceId());
     return versionAgnosticOtherService.isPresent()
@@ -444,7 +444,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform version 0 facility patient wait times to DatamartFacility patient wait times. */
   private static DatamartFacility.PatientWaitTime toVersionAgnosticFacilityPatientWaitTime(
-      @NonNull Facility.PatientWaitTime facilityPatientWaitTime) {
+      Facility.@NonNull PatientWaitTime facilityPatientWaitTime) {
     return DatamartFacility.PatientWaitTime.builder()
         .newPatientWaitTime(facilityPatientWaitTime.newPatientWaitTime())
         .establishedPatientWaitTime(facilityPatientWaitTime.establishedPatientWaitTime())
@@ -548,7 +548,7 @@ public final class FacilityTransformerV0 {
 
   /** Transform version 0 facility supplemental status to DatamartFacility supplemental status. */
   public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
-      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+      Facility.@NonNull SupplementalStatus facilitySupplementalStatus) {
     return DatamartFacility.SupplementalStatus.builder()
         .id(facilitySupplementalStatus.id())
         .label(facilitySupplementalStatus.label())

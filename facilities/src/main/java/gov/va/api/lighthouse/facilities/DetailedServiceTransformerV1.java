@@ -117,7 +117,7 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform DatamartDetailedService ServiceInfo object into DetailedService ServiceInfo. */
   public static DetailedService.ServiceInfo toDetailedServiceInfo(
-      @NonNull DatamartDetailedService.ServiceInfo datamartDetailedServiceInfo) {
+      DatamartDetailedService.@NonNull ServiceInfo datamartDetailedServiceInfo) {
     return DetailedService.ServiceInfo.builder()
         .serviceId(datamartDetailedServiceInfo.serviceId())
         .name(toDetailedServiceName(datamartDetailedServiceInfo.name()))
@@ -401,7 +401,7 @@ public class DetailedServiceTransformerV1 {
 
   /** Transform DetailedService ServiceInfo object into DatamartDetailedService ServiceInfo. */
   public static DatamartDetailedService.ServiceInfo toVersionAgnosticServiceInfo(
-      @NonNull DetailedService.ServiceInfo serviceInfo) {
+      DetailedService.@NonNull ServiceInfo serviceInfo) {
     return DatamartDetailedService.ServiceInfo.builder()
         .serviceId(serviceInfo.serviceId())
         .name(toVersionAgnosticDetailedServiceName(serviceInfo.name()))

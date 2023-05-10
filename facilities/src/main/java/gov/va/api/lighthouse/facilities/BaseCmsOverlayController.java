@@ -148,7 +148,7 @@ public abstract class BaseCmsOverlayController {
   }
 
   @SneakyThrows
-  protected Optional<CmsOverlayEntity> getExistingOverlayEntity(@NonNull FacilityEntity.Pk pk) {
+  protected Optional<CmsOverlayEntity> getExistingOverlayEntity(FacilityEntity.@NonNull Pk pk) {
     return cmsOverlayRepository.findById(pk);
   }
 

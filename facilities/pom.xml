@@ -4,12 +4,12 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>11.0.17</version>
+    <version>13.0.5</version>
     <relativePath/>
   </parent>
   <groupId>gov.va.api.lighthouse</groupId>
   <artifactId>facilities</artifactId>
-  <version>3.1.40-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <github.repository-name>lighthouse-facilities</github.repository-name>
@@ -20,7 +20,7 @@
     <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.13</swagger-maven-plugin.version>
     <timezonemap.version>LATEST</timezonemap.version>
-    <talos.version>3.0.2</talos.version>
+    <talos.version>5.0.1</talos.version>
   </properties>
   <dependencies>
     <dependency>

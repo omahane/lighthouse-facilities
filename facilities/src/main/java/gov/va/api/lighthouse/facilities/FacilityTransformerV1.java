@@ -294,7 +294,7 @@ public final class FacilityTransformerV1 {
 
   /** Transform DatamartFacility supplemental status to version 1 facility supplemental status. */
   public static Facility.SupplementalStatus toFacilitySupplementalStatus(
-      @NonNull DatamartFacility.SupplementalStatus datamartFacilitySupplementalStatus) {
+      DatamartFacility.@NonNull SupplementalStatus datamartFacilitySupplementalStatus) {
     return Facility.SupplementalStatus.builder()
         .id(datamartFacilitySupplementalStatus.id())
         .label(datamartFacilitySupplementalStatus.label())
@@ -407,7 +407,7 @@ public final class FacilityTransformerV1 {
    */
   public static Optional<DatamartFacility.BenefitsService>
       toVersionAgnosticFacilityBenefitsServiceType(
-          @NonNull Facility.BenefitsService facilityBenefitsService) {
+          Facility.@NonNull BenefitsService facilityBenefitsService) {
     return DatamartFacility.BenefitsService.fromServiceId(facilityBenefitsService.serviceId());
   }
 
@@ -427,7 +427,7 @@ public final class FacilityTransformerV1 {
 
   /** Transform version 1 facility health service type to DatamartFacility health service type. */
   public static Optional<DatamartFacility.HealthService> toVersionAgnosticFacilityHealthServiceType(
-      @NonNull Facility.HealthService facilityHealthService) {
+      Facility.@NonNull HealthService facilityHealthService) {
     return DatamartFacility.HealthService.fromServiceId(facilityHealthService.serviceId());
   }
 
@@ -494,7 +494,7 @@ public final class FacilityTransformerV1 {
 
   /** Transform version 1 facility other service type to DatamartFacility other service type. */
   public static Optional<DatamartFacility.OtherService> toVersionAgnosticFacilityOtherServiceType(
-      @NonNull Facility.OtherService facilityOtherService) {
+      Facility.@NonNull OtherService facilityOtherService) {
     return DatamartFacility.OtherService.fromServiceId(facilityOtherService.serviceId());
   }
 
@@ -580,7 +580,7 @@ public final class FacilityTransformerV1 {
 
   /** Transform version 1 facility supplemental status to DatamartFacility supplemental status. */
   public static DatamartFacility.SupplementalStatus toVersionAgnosticSupplementalStatus(
-      @NonNull Facility.SupplementalStatus facilitySupplementalStatus) {
+      Facility.@NonNull SupplementalStatus facilitySupplementalStatus) {
     return DatamartFacility.SupplementalStatus.builder()
         .id(facilitySupplementalStatus.id())
         .label(facilitySupplementalStatus.label())

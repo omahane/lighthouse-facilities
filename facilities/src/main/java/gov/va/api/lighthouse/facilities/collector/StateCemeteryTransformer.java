@@ -31,7 +31,7 @@ final class StateCemeteryTransformer {
   private static final Pattern ZIP_PATTERN =
       Pattern.compile(".*(\\d{5}-\\d{4}$)|.*(\\d{9}$)|.*(\\d{5}$)");
 
-  @NonNull private final StateCemeteries.StateCemetery xml;
+  private final StateCemeteries.@NonNull StateCemetery xml;
 
   @NonNull private final Map<String, String> websites;
 

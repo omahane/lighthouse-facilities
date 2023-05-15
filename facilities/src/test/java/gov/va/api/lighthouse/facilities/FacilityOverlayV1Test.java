@@ -87,7 +87,6 @@ public class FacilityOverlayV1Test {
         .active(cmsServiceActiveValue)
         .changed("2021-02-04T22:36:49+00:00")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-        .onlineSchedulingAvailable("True")
         .path("\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines")
         .phoneNumbers(
             List.of(
@@ -97,15 +96,16 @@ public class FacilityOverlayV1Test {
                     .number("555-555-1212")
                     .type("tel")
                     .build()))
-        .referralRequired("True")
-        .walkInsAccepted("False")
         .serviceLocations(
             List.of(
                 DetailedService.DetailedServiceLocation.builder()
-                    .serviceLocationAddress(
+                    .onlineSchedulingAvailable("True")
+                    .referralRequired("True")
+                    .walkInsAccepted("False")
+                    .officeName("ENT Clinic")
+                    .serviceAddress(
                         DetailedService.DetailedServiceAddress.builder()
                             .buildingNameNumber("Baxter Building")
-                            .clinicName("Baxter Clinic")
                             .wingFloorOrRoomNumber("Wing East")
                             .address1("122 Main St.")
                             .address2(null)
@@ -114,7 +114,7 @@ public class FacilityOverlayV1Test {
                             .zipCode("14623-1345")
                             .countryCode("US")
                             .build())
-                    .appointmentPhoneNumbers(
+                    .phoneNumbers(
                         List.of(
                             DetailedService.AppointmentPhoneNumber.builder()
                                 .extension("567")
@@ -128,7 +128,7 @@ public class FacilityOverlayV1Test {
                                 .emailAddress("georgea@va.gov")
                                 .emailLabel("George Anderson")
                                 .build()))
-                    .facilityServiceHours(
+                    .serviceHours(
                         DetailedService.DetailedServiceHours.builder()
                             .monday("8:30AM-7:00PM")
                             .tuesday("8:30AM-7:00PM")

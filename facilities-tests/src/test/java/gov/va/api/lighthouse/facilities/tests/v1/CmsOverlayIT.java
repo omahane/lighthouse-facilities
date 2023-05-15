@@ -43,7 +43,8 @@ public class CmsOverlayIT {
 
   @SneakyThrows
   private static void assertUpdate(OperatingStatusCode code, String message) {
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     log.info("Updating facility {} operating status to be {}", id, code);
     OperatingStatus op =
         OperatingStatus.builder().code(code).additionalInfo(message + " " + code).build();
@@ -88,7 +89,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByServiceApiId() {
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -127,7 +129,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByServiceId() {
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -166,7 +169,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByService_Id() {
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -218,7 +222,8 @@ public class CmsOverlayIT {
       matches = "false")
   void deleteOverlayAndFacility() {
     assumeEnvironmentIn(Environment.LOCAL);
-    var id = systemDefinition().ids().facilityToDelete(); // vha_516
+    // vha_516
+    var id = systemDefinition().ids().facilityToDelete();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -257,12 +262,13 @@ public class CmsOverlayIT {
                     .name("COVID-19 vaccines")
                     .build())
             .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-            .onlineSchedulingAvailable("Unknown")
             .path(
                 "https://www.va.gov/"
                     + (StringUtils.startsWithIgnoreCase(facilityId, "vha_516")
-                        ? "bay-pines-health-care" // vha_516
-                        : "beckley-health-care") // vha_517
+                        ? // vha_516
+                        "bay-pines-health-care"
+                        : // vha_517
+                        "beckley-health-care")
                     + "/programs/covid-19-vaccines/")
             .phoneNumbers(
                 List.of(
@@ -277,10 +283,13 @@ public class CmsOverlayIT {
                         .number("444-444-1212")
                         .type("fax")
                         .build()))
-            .referralRequired("False")
             .serviceLocations(
                 List.of(
                     DetailedService.DetailedServiceLocation.builder()
+                        .officeName("ENT Clinic")
+                        .walkInsAccepted("True")
+                        .onlineSchedulingAvailable("Unknown")
+                        .referralRequired("False")
                         .additionalHoursInfo("Please use call for an apt outside...")
                         .emailContacts(
                             List.of(
@@ -292,7 +301,7 @@ public class CmsOverlayIT {
                                     .emailAddress("confirmations@va.gov")
                                     .emailLabel("Confirm your appointment")
                                     .build()))
-                        .facilityServiceHours(
+                        .serviceHours(
                             DetailedService.DetailedServiceHours.builder()
                                 .monday("830AM-700PM")
                                 .tuesday("830AM-700PM")
@@ -302,7 +311,7 @@ public class CmsOverlayIT {
                                 .saturday("Closed")
                                 .sunday("Closed")
                                 .build())
-                        .appointmentPhoneNumbers(
+                        .phoneNumbers(
                             List.of(
                                 DetailedService.AppointmentPhoneNumber.builder()
                                     .extension("123")
@@ -315,19 +324,17 @@ public class CmsOverlayIT {
                                     .number("222-222-1212")
                                     .type("tty")
                                     .build()))
-                        .serviceLocationAddress(
+                        .serviceAddress(
                             DetailedService.DetailedServiceAddress.builder()
                                 .address1("122 Main St.")
                                 .state("NY")
                                 .buildingNameNumber("Baxter Bulding")
-                                .clinicName("Baxter Clinic")
                                 .countryCode("US")
                                 .city("Rochester")
                                 .zipCode("14623-1345")
                                 .wingFloorOrRoomNumber("Wing East")
                                 .build())
                         .build()))
-            .walkInsAccepted("True")
             .build());
   }
 
@@ -341,7 +348,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void getDetailedServiceErrorStatuses() {
-    var id = SystemDefinitions.systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = SystemDefinitions.systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
@@ -391,7 +399,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void getDetailedServicesErrorStatuses() {
-    var id = SystemDefinitions.systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = SystemDefinitions.systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     // ==== Only for V1 CMS Overlays. NOT intended for V0 CMS Overlays. ====
     // 400 - Bad Request
@@ -436,7 +445,8 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    var id = systemDefinition().ids().facilityToDelete(); // vha_516
+    // vha_516
+    var id = systemDefinition().ids().facilityToDelete();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -600,7 +610,8 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -764,7 +775,8 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -939,13 +951,54 @@ public class CmsOverlayIT {
 
   @Test
   @SneakyThrows
+  void serviceLocationFieldsPresent() {
+    // vha_517
+    var id = systemDefinition().ids().facility();
+    SystemDefinitions.Service svc = systemDefinition().facilities();
+    ExpectedResponse.of(
+            requestSpecification()
+                .contentType("application/json")
+                .body(
+                    getCmsOverlayRequestBody(
+                        "serviceInfoBlockFormat/detailed_services_identified_by_service_api_id.json"))
+                .request(
+                    Method.POST, svc.urlWithApiPath() + "v1/facilities/" + id + "/cms-overlay"))
+        .expect(200);
+    var cmsOverlayDetailedService =
+        ExpectedResponse.of(
+                requestSpecification()
+                    .request(
+                        Method.GET, svc.urlWithApiPath() + "v1/facilities/" + id + "/cms-overlay"))
+            .expect(200)
+            .expectValid(gov.va.api.lighthouse.facilities.api.v0.CmsOverlayResponse.class)
+            .overlay()
+            .detailedServices()
+            .get(0);
+    // Confirm that the serviceLocation is not null
+    assertThat(cmsOverlayDetailedService.serviceLocations()).isNotNull();
+    // Confirm that the three 'String-boolean' fields are not present on the top level (V0 only)
+    assertThat(cmsOverlayDetailedService.onlineSchedulingAvailable()).isNull();
+    assertThat(cmsOverlayDetailedService.referralRequired()).isNull();
+    assertThat(cmsOverlayDetailedService.walkInsAccepted()).isNull();
+    // Confirm that the three 'String-boolean' fields are present on the serviceLocation object
+    assertThat(cmsOverlayDetailedService.serviceLocations().get(0).onlineSchedulingAvailable())
+        .isEqualTo("Unknown");
+    assertThat(cmsOverlayDetailedService.serviceLocations().get(0).referralRequired())
+        .isEqualTo("False");
+    assertThat(cmsOverlayDetailedService.serviceLocations().get(0).walkInsAccepted())
+        .isEqualTo("True");
+  }
+
+  @Test
+  @SneakyThrows
   void updateFacilityOperatingStatus() {
     OperatingStatus ops =
         OperatingStatus.builder()
             .code(OperatingStatusCode.CLOSED)
             .additionalInfo("Update1")
             .build();
-    var id = systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = systemDefinition().ids().facility();
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Clean up overlay before test
@@ -1007,7 +1060,8 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void validation() {
-    var id = SystemDefinitions.systemDefinition().ids().facility(); // vha_517
+    // vha_517
+    var id = SystemDefinitions.systemDefinition().ids().facility();
     StringBuilder longMessage = new StringBuilder();
     for (int i = 1; i <= 301; i++) {
       longMessage.append(i % 10);

@@ -21,7 +21,6 @@ public class DetailedServiceAddressSerializer extends NonEmptySerializer<Detaile
       DetailedServiceAddress value, JsonGenerator jgen, SerializerProvider provider) {
     jgen.writeStartObject();
     writeNonEmpty(jgen, "buildingNameNumber", value.buildingNameNumber());
-    writeNonEmpty(jgen, "clinicName", value.clinicName());
     writeNonEmpty(jgen, "wingFloorOrRoomNumber", value.wingFloorOrRoomNumber());
     writeNonEmpty(jgen, "addressLine1", value.address1());
     writeNonEmpty(jgen, "addressLine2", value.address2());

@@ -43,7 +43,6 @@ public class DetailedServiceTransformerV0 {
             .address2(dda.address2())
             .state(dda.state())
             .buildingNameNumber(dda.buildingNameNumber())
-            .clinicName(dda.clinicName())
             .countryCode(dda.countryCode())
             .city(dda.city())
             .zipCode(dda.zipCode())
@@ -127,9 +126,13 @@ public class DetailedServiceTransformerV0 {
         ? DetailedService.DetailedServiceLocation.builder()
             .additionalHoursInfo(ddl.additionalHoursInfo())
             .emailContacts(toDetailedServiceEmailContacts(ddl.emailContacts()))
-            .facilityServiceHours(toDetailedServiceHours(ddl.facilityServiceHours()))
-            .appointmentPhoneNumbers(toDetailedServicePhoneNumbers(ddl.appointmentPhoneNumbers()))
-            .serviceLocationAddress(toDetailedServiceAddress(ddl.serviceLocationAddress()))
+            .serviceHours(toDetailedServiceHours(ddl.serviceHours()))
+            .phoneNumbers(toDetailedServicePhoneNumbers(ddl.phoneNumbers()))
+            .serviceAddress(toDetailedServiceAddress(ddl.serviceAddress()))
+            .onlineSchedulingAvailable(ddl.onlineSchedulingAvailable())
+            .referralRequired(ddl.referralRequired())
+            .walkInsAccepted(ddl.walkInsAccepted())
+            .officeName(ddl.officeName())
             .build()
         : null;
   }
@@ -221,7 +224,6 @@ public class DetailedServiceTransformerV0 {
             .address2(da.address2())
             .state(da.state())
             .buildingNameNumber(da.buildingNameNumber())
-            .clinicName(da.clinicName())
             .countryCode(da.countryCode())
             .city(da.city())
             .zipCode(da.zipCode())
@@ -305,12 +307,14 @@ public class DetailedServiceTransformerV0 {
     return (dl != null)
         ? DatamartDetailedService.DetailedServiceLocation.builder()
             .additionalHoursInfo(dl.additionalHoursInfo())
+            .officeName(dl.officeName())
+            .onlineSchedulingAvailable(dl.onlineSchedulingAvailable())
+            .walkInsAccepted(dl.walkInsAccepted())
+            .referralRequired(dl.referralRequired())
             .emailContacts(toVersionAgnosticDetailedServiceEmailContacts(dl.emailContacts()))
-            .facilityServiceHours(toVersionAgnosticDetailedServiceHours(dl.facilityServiceHours()))
-            .appointmentPhoneNumbers(
-                toVersionAgnosticDetailedServicePhoneNumbers(dl.appointmentPhoneNumbers()))
-            .serviceLocationAddress(
-                toVersionAgnosticDetailedServiceAddress(dl.serviceLocationAddress()))
+            .serviceHours(toVersionAgnosticDetailedServiceHours(dl.serviceHours()))
+            .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(dl.phoneNumbers()))
+            .serviceAddress(toVersionAgnosticDetailedServiceAddress(dl.serviceAddress()))
             .build()
         : null;
   }

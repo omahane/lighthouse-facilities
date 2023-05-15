@@ -87,7 +87,6 @@ public class DatamartDetailedServicesTestUtils {
         .active(isActive)
         .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-        .onlineSchedulingAvailable("True")
         .path("replaceable path here")
         .phoneNumbers(
             List.of(
@@ -97,15 +96,12 @@ public class DatamartDetailedServicesTestUtils {
                     .number("555-555-1234")
                     .type("tel")
                     .build()))
-        .referralRequired("True")
-        .walkInsAccepted("False")
         .serviceLocations(
             List.of(
                 DatamartDetailedService.DetailedServiceLocation.builder()
-                    .serviceLocationAddress(
+                    .serviceAddress(
                         DatamartDetailedService.DetailedServiceAddress.builder()
                             .buildingNameNumber("Baxter Building")
-                            .clinicName("Baxter Clinic")
                             .wingFloorOrRoomNumber("Wing East")
                             .address1("122 Main St.")
                             .address2(null)
@@ -114,7 +110,7 @@ public class DatamartDetailedServicesTestUtils {
                             .zipCode("14623-1345")
                             .countryCode("US")
                             .build())
-                    .appointmentPhoneNumbers(
+                    .phoneNumbers(
                         List.of(
                             DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .extension("567")
@@ -128,7 +124,7 @@ public class DatamartDetailedServicesTestUtils {
                                 .emailAddress("georgea@va.gov")
                                 .emailLabel("George Anderson")
                                 .build()))
-                    .facilityServiceHours(
+                    .serviceHours(
                         DatamartDetailedService.DetailedServiceHours.builder()
                             .monday("8:30AM-7:00PM")
                             .tuesday("8:30AM-7:00PM")
@@ -139,6 +135,10 @@ public class DatamartDetailedServicesTestUtils {
                             .sunday("CLOSED")
                             .build())
                     .additionalHoursInfo("Please call for an appointment outside...")
+                    .onlineSchedulingAvailable("True")
+                    .referralRequired("True")
+                    .walkInsAccepted("False")
+                    .officeName("ENT Clinic")
                     .build()))
         .build();
   }

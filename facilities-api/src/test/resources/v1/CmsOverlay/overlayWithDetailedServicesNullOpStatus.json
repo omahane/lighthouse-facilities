@@ -15,14 +15,11 @@
           "type" : "tel"
         }
       ],
-      "onlineSchedulingAvailable" : "True",
-      "referralRequired" : "True",
-      "walkInsAccepted" : "False",
       "serviceLocations" : [
         {
-          "serviceLocationAddress" : {
+          "officeName" : "ENT Clinic",
+          "serviceAddress" : {
             "buildingNameNumber" : "Baxter Building",
-            "clinicName" : "Baxter Clinic",
             "wingFloorOrRoomNumber" : "Wing East",
             "addressLine1" : "122 Main St.",
             "addressLine2" : "West Side Apt# 227",
@@ -31,7 +28,7 @@
             "zipCode" : "14623-1345",
             "countryCode" : "US"
           },
-          "appointmentPhones" : [
+          "phones" : [
             {
               "extension" : "567",
               "label" : "Alt phone",
@@ -45,7 +42,7 @@
               "emailLabel" : "George Anderson"
             }
           ],
-          "facilityServiceHours" : {
+          "serviceHours" : {
             "monday" : "8:30AM-7:00PM",
             "tuesday" : "8:30AM-7:00PM",
             "wednesday" : "8:30AM-7:00PM",
@@ -53,7 +50,10 @@
             "friday" : "8:30AM-7:00PM",
             "saturday" : "8:30AM-7:00PM",
             "sunday" : "CLOSED"
-          }
+          },
+          "onlineSchedulingAvailable" : "True",
+          "referralRequired" : "True",
+          "walkInsAccepted" : "False"
         }
       ],
       "path" : "replaceable path here"
@@ -73,14 +73,11 @@
           "type" : "tel"
         }
       ],
-      "onlineSchedulingAvailable" : "True",
-      "referralRequired" : "True",
-      "walkInsAccepted" : "False",
       "serviceLocations" : [
         {
-          "serviceLocationAddress" : {
+          "officeName" : "ENT Clinic",
+          "serviceAddress" : {
             "buildingNameNumber" : "Baxter Building",
-            "clinicName" : "Baxter Clinic",
             "wingFloorOrRoomNumber" : "Wing East",
             "addressLine1" : "122 Main St.",
             "addressLine2" : "West Side Apt# 227",
@@ -89,7 +86,7 @@
             "zipCode" : "14623-1345",
             "countryCode" : "US"
           },
-          "appointmentPhones" : [
+          "phones" : [
             {
               "extension" : "567",
               "label" : "Alt phone",
@@ -103,7 +100,7 @@
               "emailLabel" : "George Anderson"
             }
           ],
-          "facilityServiceHours" : {
+          "serviceHours" : {
             "monday" : "8:30AM-7:00PM",
             "tuesday" : "8:30AM-7:00PM",
             "wednesday" : "8:30AM-7:00PM",
@@ -111,7 +108,10 @@
             "friday" : "8:30AM-7:00PM",
             "saturday" : "8:30AM-7:00PM",
             "sunday" : "CLOSED"
-          }
+          },
+          "onlineSchedulingAvailable" : "True",
+          "referralRequired" : "True",
+          "walkInsAccepted" : "False"
         }
       ],
       "path" : "replaceable path here"
@@ -131,14 +131,11 @@
           "type" : "tel"
         }
       ],
-      "onlineSchedulingAvailable" : "True",
-      "referralRequired" : "True",
-      "walkInsAccepted" : "False",
       "serviceLocations" : [
         {
-          "serviceLocationAddress" : {
+          "officeName" : "ENT Clinic",
+          "serviceAddress" : {
             "buildingNameNumber" : "Baxter Building",
-            "clinicName" : "Baxter Clinic",
             "wingFloorOrRoomNumber" : "Wing East",
             "addressLine1" : "122 Main St.",
             "addressLine2" : "West Side Apt# 227",
@@ -147,7 +144,7 @@
             "zipCode" : "14623-1345",
             "countryCode" : "US"
           },
-          "appointmentPhones" : [
+          "phones" : [
             {
               "extension" : "567",
               "label" : "Alt phone",
@@ -161,7 +158,7 @@
               "emailLabel" : "George Anderson"
             }
           ],
-          "facilityServiceHours" : {
+          "serviceHours" : {
             "monday" : "8:30AM-7:00PM",
             "tuesday" : "8:30AM-7:00PM",
             "wednesday" : "8:30AM-7:00PM",
@@ -169,7 +166,10 @@
             "friday" : "8:30AM-7:00PM",
             "saturday" : "8:30AM-7:00PM",
             "sunday" : "CLOSED"
-          }
+          },
+          "onlineSchedulingAvailable" : "True",
+          "referralRequired" : "True",
+          "walkInsAccepted" : "False"
         }
       ],
       "path" : "replaceable path here"

@@ -17,7 +17,6 @@ public class DetailedServiceUtils {
         .active(true)
         .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-        .onlineSchedulingAvailable("True")
         .path("replaceable path here")
         .phoneNumbers(
             List.of(
@@ -27,15 +26,13 @@ public class DetailedServiceUtils {
                     .number("555-555-1212")
                     .type("tel")
                     .build()))
-        .referralRequired("True")
-        .walkInsAccepted("False")
         .serviceLocations(
             List.of(
                 DetailedService.DetailedServiceLocation.builder()
-                    .serviceLocationAddress(
+                    .officeName("ENT Clinic")
+                    .serviceAddress(
                         DetailedService.DetailedServiceAddress.builder()
                             .buildingNameNumber("Baxter Building")
-                            .clinicName("Baxter Clinic")
                             .wingFloorOrRoomNumber("Wing East")
                             .address1("122 Main St.")
                             .address2("West Side Apt# 227")
@@ -44,7 +41,7 @@ public class DetailedServiceUtils {
                             .zipCode("14623-1345")
                             .countryCode("US")
                             .build())
-                    .appointmentPhoneNumbers(
+                    .phoneNumbers(
                         List.of(
                             DetailedService.AppointmentPhoneNumber.builder()
                                 .extension("567")
@@ -58,7 +55,7 @@ public class DetailedServiceUtils {
                                 .emailAddress("georgea@va.gov")
                                 .emailLabel("George Anderson")
                                 .build()))
-                    .facilityServiceHours(
+                    .serviceHours(
                         DetailedService.DetailedServiceHours.builder()
                             .monday("8:30AM-7:00PM")
                             .tuesday("8:30AM-7:00PM")
@@ -69,6 +66,9 @@ public class DetailedServiceUtils {
                             .sunday("CLOSED")
                             .build())
                     .additionalHoursInfo("")
+                    .referralRequired("True")
+                    .walkInsAccepted("False")
+                    .onlineSchedulingAvailable("True")
                     .build()))
         .build();
   }

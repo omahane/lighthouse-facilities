@@ -109,8 +109,8 @@ public class DetailedService {
   @JsonAlias("referralRequired")
   String referralRequired;
 
-  @Schema(description = "List of service locations.", nullable = true)
-  @JsonProperty("service_locations")
+  @JsonProperty(value = "service_locations")
+  @Schema(deprecated = true)
   @JsonAlias("serviceLocations")
   List<DetailedServiceLocation> serviceLocations;
 
@@ -128,7 +128,6 @@ public class DetailedService {
   @JsonInclude(value = Include.NON_NULL, content = Include.NON_NULL)
   @JsonPropertyOrder({
     "building_name_number",
-    "clinic_name",
     "wing_floor_or_room_number",
     "address_line1",
     "address_line2",
@@ -162,11 +161,6 @@ public class DetailedService {
     @JsonProperty("building_name_number")
     @JsonAlias("buildingNameNumber")
     String buildingNameNumber;
-
-    @Schema(description = "Clinic name for service.", example = "Baxter Clinic", nullable = true)
-    @JsonProperty("clinic_name")
-    @JsonAlias("clinicName")
-    String clinicName;
 
     @Schema(description = "Country code.", example = "US", nullable = true)
     @JsonProperty("country_code")
@@ -227,7 +221,10 @@ public class DetailedService {
     "facility_service_hours",
     "additional_hours_info"
   })
-  @Schema(description = "Details for a location offering a service.", nullable = true)
+  @Schema(
+      description = "Details for a location offering a service.",
+      nullable = true,
+      deprecated = true)
   public static final class DetailedServiceLocation {
     @Schema(
         description = "Additional information related to service location hours.",
@@ -245,20 +242,49 @@ public class DetailedService {
     List<DetailedServiceEmailContact> emailContacts;
 
     @Schema(nullable = true)
-    @JsonProperty("facility_service_hours")
-    @JsonAlias("facilityServiceHours")
+    @JsonProperty("service_hours")
+    @JsonAlias("serviceHours")
     @Valid
-    DetailedServiceHours facilityServiceHours;
+    DetailedServiceHours serviceHours;
 
     @Schema(description = "List of appointment phone information.", nullable = true)
-    @JsonProperty("appointment_phones")
-    @JsonAlias("appointmentPhones")
-    List<AppointmentPhoneNumber> appointmentPhoneNumbers;
+    @JsonProperty("phones")
+    @JsonAlias("phones")
+    List<AppointmentPhoneNumber> phoneNumbers;
+
+    @Schema(
+        description = "String detailing if walk-ins are accepted for the service.",
+        example = "True",
+        nullable = true)
+    @JsonProperty("walk_ins_accepted")
+    @JsonAlias("walkInsAccepted")
+    String walkInsAccepted;
+
+    @Schema(
+        description = "String detailing online scheduling availability.",
+        example = "True",
+        nullable = true)
+    @JsonProperty("online_scheduling_available")
+    @JsonAlias("onlineSchedulingAvailable")
+    String onlineSchedulingAvailable;
+
+    @Schema(
+        description = "String detailing if referrals are required for the service.",
+        example = "False",
+        nullable = true)
+    @JsonProperty("referral_required")
+    @JsonAlias("referralRequired")
+    String referralRequired;
+
+    @Schema(description = "Name of given office location.", example = "ENT Clinic", nullable = true)
+    @JsonProperty("office_name")
+    @JsonAlias("officeName")
+    String officeName;
 
     @Schema(nullable = true)
-    @JsonProperty("service_location_address")
-    @JsonAlias("serviceLocationAddress")
-    DetailedServiceAddress serviceLocationAddress;
+    @JsonProperty("service_address")
+    @JsonAlias("serviceAddress")
+    DetailedServiceAddress serviceAddress;
   }
 
   @Data

@@ -82,7 +82,6 @@ public class CmsOverlayControllerV0Test {
                     .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
-                    .onlineSchedulingAvailable("True")
                     .path("replaceable path here")
                     .phoneNumbers(
                         List.of(
@@ -91,50 +90,6 @@ public class CmsOverlayControllerV0Test {
                                 .label("Main phone")
                                 .number("555-555-1212")
                                 .type("tel")
-                                .build()))
-                    .referralRequired("True")
-                    .walkInsAccepted("False")
-                    .serviceLocations(
-                        List.of(
-                            DatamartDetailedService.DetailedServiceLocation.builder()
-                                .serviceLocationAddress(
-                                    DatamartDetailedService.DetailedServiceAddress.builder()
-                                        .buildingNameNumber("Baxter Building")
-                                        .clinicName("Baxter Clinic")
-                                        .wingFloorOrRoomNumber("Wing East")
-                                        .address1("122 Main St.")
-                                        .address2(null)
-                                        .city("Rochester")
-                                        .state("NY")
-                                        .zipCode("14623-1345")
-                                        .countryCode("US")
-                                        .build())
-                                .appointmentPhoneNumbers(
-                                    List.of(
-                                        DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                            .extension("567")
-                                            .label("Alt phone")
-                                            .number("556-565-1119")
-                                            .type("tel")
-                                            .build()))
-                                .emailContacts(
-                                    List.of(
-                                        DatamartDetailedService.DetailedServiceEmailContact
-                                            .builder()
-                                            .emailAddress("georgea@va.gov")
-                                            .emailLabel("George Anderson")
-                                            .build()))
-                                .facilityServiceHours(
-                                    DatamartDetailedService.DetailedServiceHours.builder()
-                                        .monday("8:30AM-7:00PM")
-                                        .tuesday("8:30AM-7:00PM")
-                                        .wednesday("8:30AM-7:00PM")
-                                        .thursday("8:30AM-7:00PM")
-                                        .friday("8:30AM-7:00PM")
-                                        .saturday("8:30AM-7:00PM")
-                                        .sunday("CLOSED")
-                                        .build())
-                                .additionalHoursInfo("Please call for an appointment outside...")
                                 .build()))
                     .build())
         .collect(Collectors.toList());
@@ -155,7 +110,6 @@ public class CmsOverlayControllerV0Test {
         .active(isActive)
         .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
-        .onlineSchedulingAvailable("True")
         .path("replaceable path here")
         .phoneNumbers(
             List.of(
@@ -164,49 +118,6 @@ public class CmsOverlayControllerV0Test {
                     .label("Main phone")
                     .number("555-555-1212")
                     .type("tel")
-                    .build()))
-        .referralRequired("True")
-        .walkInsAccepted("False")
-        .serviceLocations(
-            List.of(
-                DatamartDetailedService.DetailedServiceLocation.builder()
-                    .serviceLocationAddress(
-                        DatamartDetailedService.DetailedServiceAddress.builder()
-                            .buildingNameNumber("Baxter Building")
-                            .clinicName("Baxter Clinic")
-                            .wingFloorOrRoomNumber("Wing East")
-                            .address1("122 Main St.")
-                            .address2(null)
-                            .city("Rochester")
-                            .state("NY")
-                            .zipCode("14623-1345")
-                            .countryCode("US")
-                            .build())
-                    .appointmentPhoneNumbers(
-                        List.of(
-                            DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                .extension("567")
-                                .label("Alt phone")
-                                .number("556-565-1119")
-                                .type("tel")
-                                .build()))
-                    .emailContacts(
-                        List.of(
-                            DatamartDetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("georgea@va.gov")
-                                .emailLabel("George Anderson")
-                                .build()))
-                    .facilityServiceHours(
-                        DatamartDetailedService.DetailedServiceHours.builder()
-                            .monday("8:30AM-7:00PM")
-                            .tuesday("8:30AM-7:00PM")
-                            .wednesday("8:30AM-7:00PM")
-                            .thursday("8:30AM-7:00PM")
-                            .friday("8:30AM-7:00PM")
-                            .saturday("8:30AM-7:00PM")
-                            .sunday("CLOSED")
-                            .build())
-                    .additionalHoursInfo("Please call for an appointment outside...")
                     .build()))
         .build();
   }
@@ -245,7 +156,6 @@ public class CmsOverlayControllerV0Test {
                     .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
-                    .onlineSchedulingAvailable("True")
                     .path("replaceable path here")
                     .phoneNumbers(
                         List.of(
@@ -255,15 +165,15 @@ public class CmsOverlayControllerV0Test {
                                 .number("555-555-1212")
                                 .type("tel")
                                 .build()))
-                    .referralRequired("True")
-                    .walkInsAccepted("False")
                     .serviceLocations(
                         List.of(
                             DatamartDetailedService.DetailedServiceLocation.builder()
-                                .serviceLocationAddress(
+                                .onlineSchedulingAvailable("True")
+                                .referralRequired("True")
+                                .walkInsAccepted("False")
+                                .serviceAddress(
                                     DatamartDetailedService.DetailedServiceAddress.builder()
                                         .buildingNameNumber("Baxter Building")
-                                        .clinicName("Baxter Clinic")
                                         .wingFloorOrRoomNumber("Wing East")
                                         .address1("122 Main St.")
                                         .address2(null)
@@ -272,7 +182,7 @@ public class CmsOverlayControllerV0Test {
                                         .zipCode("14623-1345")
                                         .countryCode("US")
                                         .build())
-                                .appointmentPhoneNumbers(
+                                .phoneNumbers(
                                     List.of(
                                         DatamartDetailedService.AppointmentPhoneNumber.builder()
                                             .extension("567")
@@ -287,7 +197,7 @@ public class CmsOverlayControllerV0Test {
                                             .emailAddress("georgea@va.gov")
                                             .emailLabel("George Anderson")
                                             .build()))
-                                .facilityServiceHours(
+                                .serviceHours(
                                     DatamartDetailedService.DetailedServiceHours.builder()
                                         .monday("8:30AM-7:00PM")
                                         .tuesday("8:30AM-7:00PM")

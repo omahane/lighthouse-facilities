@@ -23,9 +23,6 @@ public class DetailedServiceSerializer extends NonEmptySerializer<DetailedServic
     writeNonEmpty(jgen, "waitTime", value.waitTime());
     writeNonEmpty(jgen, "appointmentLeadIn", value.appointmentLeadIn());
     writeNonEmpty(jgen, "appointmentPhones", value.phoneNumbers());
-    writeNonEmpty(jgen, "onlineSchedulingAvailable", value.onlineSchedulingAvailable());
-    writeNonEmpty(jgen, "referralRequired", value.referralRequired());
-    writeNonEmpty(jgen, "walkInsAccepted", value.walkInsAccepted());
     writeNonEmpty(jgen, "serviceLocations", value.serviceLocations());
     writeNonEmpty(jgen, "path", value.path());
     jgen.writeEndObject();

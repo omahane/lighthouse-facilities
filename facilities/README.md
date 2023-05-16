@@ -434,7 +434,6 @@ curl -s -w %{http_code} http://localhost:8085/v0/facilities/vha_402/cms-overlay 
          "address_line1": "122 Main St.",
          "address_line2": null,
          "building_name_number": "Baxter Bulding",
-         "clinic_name": "Baxter Clinic",
          "country_code": "US",
          "city": "Rochester",
          "state": "NY",

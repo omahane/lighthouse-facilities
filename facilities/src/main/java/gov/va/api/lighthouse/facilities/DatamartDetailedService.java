@@ -220,7 +220,6 @@ public class DatamartDetailedService {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
     "building_name_number",
-    "clinic_name",
     "wing_floor_or_room_number",
     "address_line1",
     "address_line2",
@@ -240,9 +239,6 @@ public class DatamartDetailedService {
 
     @JsonProperty("building_name_number")
     String buildingNameNumber;
-
-    @JsonProperty("clinic_name")
-    String clinicName;
 
     @JsonProperty("country_code")
     String countryCode;
@@ -275,11 +271,15 @@ public class DatamartDetailedService {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({
-    "service_location_address",
-    "appointment_phones",
+    "office_name",
+    "service_address",
+    "phones",
     "email_contacts",
-    "facility_service_hours",
-    "additional_hours_info"
+    "service_hours",
+    "additional_hours_info",
+    "walk_ins_accepted",
+    "online_scheduling_available",
+    "referral_required",
   })
   public static final class DetailedServiceLocation {
     @JsonProperty("additional_hours_info")
@@ -288,15 +288,27 @@ public class DatamartDetailedService {
     @JsonProperty("email_contacts")
     List<DetailedServiceEmailContact> emailContacts;
 
-    @JsonProperty("facility_service_hours")
+    @JsonProperty("service_hours")
     @Valid
-    DetailedServiceHours facilityServiceHours;
+    DetailedServiceHours serviceHours;
 
-    @JsonProperty("appointment_phones")
-    List<AppointmentPhoneNumber> appointmentPhoneNumbers;
+    @JsonProperty("phones")
+    List<AppointmentPhoneNumber> phoneNumbers;
 
-    @JsonProperty("service_location_address")
-    DetailedServiceAddress serviceLocationAddress;
+    @JsonProperty("service_address")
+    DetailedServiceAddress serviceAddress;
+
+    @JsonProperty("office_name")
+    String officeName;
+
+    @JsonProperty("online_scheduling_available")
+    String onlineSchedulingAvailable;
+
+    @JsonProperty("referral_required")
+    String referralRequired;
+
+    @JsonProperty("walk_ins_accepted")
+    String walkInsAccepted;
   }
 
   @Data

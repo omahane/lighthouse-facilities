@@ -41,7 +41,6 @@ public class DetailedServiceTransformerV1 {
             .address2(dda.address2())
             .state(dda.state())
             .buildingNameNumber(dda.buildingNameNumber())
-            .clinicName(dda.clinicName())
             .countryCode(dda.countryCode())
             .city(dda.city())
             .zipCode(dda.zipCode())
@@ -134,10 +133,14 @@ public class DetailedServiceTransformerV1 {
     return (ddl != null)
         ? DetailedService.DetailedServiceLocation.builder()
             .additionalHoursInfo(ddl.additionalHoursInfo())
+            .officeName(ddl.officeName())
+            .onlineSchedulingAvailable(ddl.onlineSchedulingAvailable())
+            .referralRequired(ddl.referralRequired())
+            .walkInsAccepted(ddl.walkInsAccepted())
             .emailContacts(toDetailedServiceEmailContacts(ddl.emailContacts()))
-            .facilityServiceHours(toDetailedServiceHours(ddl.facilityServiceHours()))
-            .appointmentPhoneNumbers(toDetailedServicePhoneNumbers(ddl.appointmentPhoneNumbers()))
-            .serviceLocationAddress(toDetailedServiceAddress(ddl.serviceLocationAddress()))
+            .serviceHours(toDetailedServiceHours(ddl.serviceHours()))
+            .phoneNumbers(toDetailedServicePhoneNumbers(ddl.phoneNumbers()))
+            .serviceAddress(toDetailedServiceAddress(ddl.serviceAddress()))
             .build()
         : null;
   }
@@ -242,7 +245,6 @@ public class DetailedServiceTransformerV1 {
             .address2(da.address2())
             .state(da.state())
             .buildingNameNumber(da.buildingNameNumber())
-            .clinicName(da.clinicName())
             .countryCode(da.countryCode())
             .city(da.city())
             .zipCode(da.zipCode())
@@ -326,12 +328,14 @@ public class DetailedServiceTransformerV1 {
     return (dl != null)
         ? DatamartDetailedService.DetailedServiceLocation.builder()
             .additionalHoursInfo(dl.additionalHoursInfo())
+            .officeName(dl.officeName())
+            .referralRequired(dl.referralRequired())
+            .walkInsAccepted(dl.walkInsAccepted())
+            .onlineSchedulingAvailable(dl.onlineSchedulingAvailable())
             .emailContacts(toVersionAgnosticDetailedServiceEmailContacts(dl.emailContacts()))
-            .facilityServiceHours(toVersionAgnosticDetailedServiceHours(dl.facilityServiceHours()))
-            .appointmentPhoneNumbers(
-                toVersionAgnosticDetailedServicePhoneNumbers(dl.appointmentPhoneNumbers()))
-            .serviceLocationAddress(
-                toVersionAgnosticDetailedServiceAddress(dl.serviceLocationAddress()))
+            .serviceHours(toVersionAgnosticDetailedServiceHours(dl.serviceHours()))
+            .phoneNumbers(toVersionAgnosticDetailedServicePhoneNumbers(dl.phoneNumbers()))
+            .serviceAddress(toVersionAgnosticDetailedServiceAddress(dl.serviceAddress()))
             .build()
         : null;
   }

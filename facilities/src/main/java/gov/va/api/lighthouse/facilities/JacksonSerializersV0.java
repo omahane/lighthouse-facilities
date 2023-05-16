@@ -98,8 +98,6 @@ final class JacksonSerializersV0 {
         new DetailedServiceEmailContactSerializer());
     mod.addSerializer(
         DetailedService.DetailedServiceHours.class, new DetailedServiceHoursSerializer());
-    mod.addSerializer(
-        DetailedService.DetailedServiceLocation.class, new DetailedServiceLocationSerializer());
     return mod;
   }
 
@@ -123,7 +121,6 @@ final class JacksonSerializersV0 {
       jgen.writeStringField("online_scheduling_available", value.onlineSchedulingAvailable());
       jgen.writeStringField("referral_required", value.referralRequired());
       jgen.writeStringField("walk_ins_accepted", value.walkInsAccepted());
-      jgen.writeObjectField("service_locations", value.serviceLocations());
       jgen.writeStringField("path", value.path());
       jgen.writeEndObject();
     }
@@ -147,7 +144,6 @@ final class JacksonSerializersV0 {
         SerializerProvider provider) {
       jgen.writeStartObject();
       jgen.writeStringField("building_name_number", value.buildingNameNumber());
-      jgen.writeStringField("clinic_name", value.clinicName());
       jgen.writeStringField("wing_floor_or_room_number", value.wingFloorOrRoomNumber());
       jgen.writeStringField("address_line1", value.address1());
       jgen.writeStringField("address_line2", value.address2());
@@ -183,41 +179,6 @@ final class JacksonSerializersV0 {
       jgen.writeStringField("Friday", value.friday());
       jgen.writeStringField("Saturday", value.saturday());
       jgen.writeStringField("Sunday", value.sunday());
-      jgen.writeEndObject();
-    }
-  }
-
-  private static final class DetailedServiceLocationSerializer
-      extends StdSerializer<DetailedService.DetailedServiceLocation> {
-    public DetailedServiceLocationSerializer() {
-      this(null);
-    }
-
-    public DetailedServiceLocationSerializer(Class<DetailedService.DetailedServiceLocation> t) {
-      super(t);
-    }
-
-    @Override
-    @SneakyThrows
-    public void serialize(
-        DetailedService.DetailedServiceLocation value,
-        JsonGenerator jgen,
-        SerializerProvider provider) {
-      jgen.writeStartObject();
-      jgen.writeObjectField(
-          "service_location_address",
-          Optional.ofNullable(value.serviceLocationAddress())
-              .orElse(DetailedService.DetailedServiceAddress.builder().build()));
-      jgen.writeObjectField(
-          "appointment_phones",
-          Optional.ofNullable(value.appointmentPhoneNumbers()).orElse(emptyList()));
-      jgen.writeObjectField(
-          "email_contacts", Optional.ofNullable(value.emailContacts()).orElse(emptyList()));
-      jgen.writeObjectField(
-          "facility_service_hours",
-          Optional.ofNullable(value.facilityServiceHours())
-              .orElse(DetailedService.DetailedServiceHours.builder().build()));
-      jgen.writeStringField("additional_hours_info", value.additionalHoursInfo());
       jgen.writeEndObject();
     }
   }

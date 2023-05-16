@@ -94,19 +94,20 @@ public class CmsOverlayTransformerV1Test {
                     .type("tel")
                     .extension("12345")
                     .build()))
-        .walkInsAccepted("true")
-        .referralRequired("false")
         .appointmentLeadIn(
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(
                 DatamartDetailedService.DetailedServiceLocation.builder()
+                    .officeName("ENT Clinic")
+                    .walkInsAccepted("true")
+                    .referralRequired("false")
+                    .onlineSchedulingAvailable("true")
                     .additionalHoursInfo(
                         "Location hours times may vary depending on staff availability")
-                    .facilityServiceHours(
+                    .serviceHours(
                         DatamartDetailedService.DetailedServiceHours.builder()
                             .sunday("Closed")
                             .monday("9AM-5PM")
@@ -130,7 +131,7 @@ public class CmsOverlayTransformerV1Test {
                                 .emailAddress("jane.doe@va.gov")
                                 .emailLabel("Jane Doe")
                                 .build()))
-                    .appointmentPhoneNumbers(
+                    .phoneNumbers(
                         List.of(
                             DatamartDetailedService.AppointmentPhoneNumber.builder()
                                 .number("932-934-6731")
@@ -143,7 +144,7 @@ public class CmsOverlayTransformerV1Test {
                                 .type("mobile")
                                 .label("Mobile phone")
                                 .build()))
-                    .serviceLocationAddress(
+                    .serviceAddress(
                         DatamartDetailedService.DetailedServiceAddress.builder()
                             .address1("50 Irving Street, Northwest")
                             .buildingNameNumber("Baxter Building")
@@ -151,7 +152,6 @@ public class CmsOverlayTransformerV1Test {
                             .state("DC")
                             .zipCode("20422-0001")
                             .countryCode("US")
-                            .clinicName("Baxter Clinic")
                             .wingFloorOrRoomNumber("Wing East")
                             .build())
                     .build()))
@@ -197,19 +197,20 @@ public class CmsOverlayTransformerV1Test {
                     .type("tel")
                     .extension("12345")
                     .build()))
-        .walkInsAccepted("true")
-        .referralRequired("false")
         .appointmentLeadIn(
             "Your VA health care team will contact you if you???re eligible to get a vaccine "
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
-        .onlineSchedulingAvailable("true")
         .serviceLocations(
             List.of(
                 DetailedService.DetailedServiceLocation.builder()
+                    .officeName("ENT Clinic")
+                    .walkInsAccepted("true")
+                    .referralRequired("false")
+                    .onlineSchedulingAvailable("true")
                     .additionalHoursInfo(
                         "Location hours times may vary depending on staff availability")
-                    .facilityServiceHours(
+                    .serviceHours(
                         DetailedService.DetailedServiceHours.builder()
                             .sunday("Closed")
                             .monday("9AM-5PM")
@@ -233,7 +234,7 @@ public class CmsOverlayTransformerV1Test {
                                 .emailAddress("jane.doe@va.gov")
                                 .emailLabel("Jane Doe")
                                 .build()))
-                    .appointmentPhoneNumbers(
+                    .phoneNumbers(
                         List.of(
                             DetailedService.AppointmentPhoneNumber.builder()
                                 .number("932-934-6731")
@@ -246,7 +247,7 @@ public class CmsOverlayTransformerV1Test {
                                 .type("mobile")
                                 .label("Mobile phone")
                                 .build()))
-                    .serviceLocationAddress(
+                    .serviceAddress(
                         DetailedService.DetailedServiceAddress.builder()
                             .address1("50 Irving Street, Northwest")
                             .buildingNameNumber("Baxter Building")
@@ -254,7 +255,6 @@ public class CmsOverlayTransformerV1Test {
                             .state("DC")
                             .zipCode("20422-0001")
                             .countryCode("US")
-                            .clinicName("Baxter Clinic")
                             .wingFloorOrRoomNumber("Wing East")
                             .build())
                     .build()))

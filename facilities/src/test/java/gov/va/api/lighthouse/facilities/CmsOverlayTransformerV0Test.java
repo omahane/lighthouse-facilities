@@ -106,60 +106,6 @@ public class CmsOverlayTransformerV0Test {
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
         .onlineSchedulingAvailable("true")
-        .serviceLocations(
-            List.of(
-                DatamartDetailedService.DetailedServiceLocation.builder()
-                    .additionalHoursInfo(
-                        "Location hours times may vary depending on staff availability")
-                    .facilityServiceHours(
-                        DatamartDetailedService.DetailedServiceHours.builder()
-                            .sunday("Closed")
-                            .monday("9AM-5PM")
-                            .tuesday("9AM-5PM")
-                            .wednesday("9AM-5PM")
-                            .thursday("9AM-5PM")
-                            .friday("9AM-5PM")
-                            .saturday("Closed")
-                            .build())
-                    .emailContacts(
-                        List.of(
-                            DatamartDetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("georgea@va.gov")
-                                .emailLabel("George Anderson")
-                                .build(),
-                            DatamartDetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("john.doe@va.gov")
-                                .emailLabel("John Doe")
-                                .build(),
-                            DatamartDetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("jane.doe@va.gov")
-                                .emailLabel("Jane Doe")
-                                .build()))
-                    .appointmentPhoneNumbers(
-                        List.of(
-                            DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                .number("932-934-6731")
-                                .type("tel")
-                                .label("Main Phone")
-                                .extension("3245")
-                                .build(),
-                            DatamartDetailedService.AppointmentPhoneNumber.builder()
-                                .number("956-862-6651")
-                                .type("mobile")
-                                .label("Mobile phone")
-                                .build()))
-                    .serviceLocationAddress(
-                        DatamartDetailedService.DetailedServiceAddress.builder()
-                            .address1("50 Irving Street, Northwest")
-                            .buildingNameNumber("Baxter Building")
-                            .city("Washington")
-                            .state("DC")
-                            .zipCode("20422-0001")
-                            .countryCode("US")
-                            .clinicName("Baxter Clinic")
-                            .wingFloorOrRoomNumber("Wing East")
-                            .build())
-                    .build()))
         .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
@@ -205,60 +151,6 @@ public class CmsOverlayTransformerV0Test {
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
         .onlineSchedulingAvailable("true")
-        .serviceLocations(
-            List.of(
-                DetailedService.DetailedServiceLocation.builder()
-                    .additionalHoursInfo(
-                        "Location hours times may vary depending on staff availability")
-                    .facilityServiceHours(
-                        DetailedService.DetailedServiceHours.builder()
-                            .sunday("Closed")
-                            .monday("9AM-5PM")
-                            .tuesday("9AM-5PM")
-                            .wednesday("9AM-5PM")
-                            .thursday("9AM-5PM")
-                            .friday("9AM-5PM")
-                            .saturday("Closed")
-                            .build())
-                    .emailContacts(
-                        List.of(
-                            DetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("georgea@va.gov")
-                                .emailLabel("George Anderson")
-                                .build(),
-                            DetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("john.doe@va.gov")
-                                .emailLabel("John Doe")
-                                .build(),
-                            DetailedService.DetailedServiceEmailContact.builder()
-                                .emailAddress("jane.doe@va.gov")
-                                .emailLabel("Jane Doe")
-                                .build()))
-                    .appointmentPhoneNumbers(
-                        List.of(
-                            DetailedService.AppointmentPhoneNumber.builder()
-                                .number("932-934-6731")
-                                .type("tel")
-                                .label("Main Phone")
-                                .extension("3245")
-                                .build(),
-                            DetailedService.AppointmentPhoneNumber.builder()
-                                .number("956-862-6651")
-                                .type("mobile")
-                                .label("Mobile phone")
-                                .build()))
-                    .serviceLocationAddress(
-                        DetailedService.DetailedServiceAddress.builder()
-                            .address1("50 Irving Street, Northwest")
-                            .buildingNameNumber("Baxter Building")
-                            .city("Washington")
-                            .state("DC")
-                            .zipCode("20422-0001")
-                            .countryCode("US")
-                            .clinicName("Baxter Clinic")
-                            .wingFloorOrRoomNumber("Wing East")
-                            .build())
-                    .build()))
         .changed("2021-02-04T22:36:49+00:00")
         .build();
   }

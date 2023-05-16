@@ -279,9 +279,7 @@ public class SerializerIsEmptyTest {
         new DetailedServiceLocationSerializer(),
         mock(SerializerProvider.class));
     assertIsEmptyUsingObjectSerializer(
-        DetailedService.DetailedServiceLocation.builder()
-            .appointmentPhoneNumbers(emptyList())
-            .build(),
+        DetailedService.DetailedServiceLocation.builder().phoneNumbers(emptyList()).build(),
         new DetailedServiceLocationSerializer(),
         mock(SerializerProvider.class));
     // Not empty

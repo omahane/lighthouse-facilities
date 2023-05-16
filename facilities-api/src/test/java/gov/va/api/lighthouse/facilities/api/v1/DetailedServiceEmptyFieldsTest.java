@@ -52,8 +52,6 @@ public class DetailedServiceEmptyFieldsTest {
                 .build()
                 .isEmpty())
         .isTrue();
-    assertThat(DetailedService.DetailedServiceAddress.builder().clinicName(blank).build().isEmpty())
-        .isTrue();
     assertThat(
             DetailedService.DetailedServiceAddress.builder()
                 .wingFloorOrRoomNumber(blank)
@@ -82,9 +80,6 @@ public class DetailedServiceEmptyFieldsTest {
                 .buildingNameNumber(nonBlank)
                 .build()
                 .isEmpty())
-        .isFalse();
-    assertThat(
-            DetailedService.DetailedServiceAddress.builder().clinicName(nonBlank).build().isEmpty())
         .isFalse();
     assertThat(
             DetailedService.DetailedServiceAddress.builder()
@@ -185,19 +180,40 @@ public class DetailedServiceEmptyFieldsTest {
     assertThat(DetailedService.DetailedServiceLocation.builder().build().isEmpty()).isTrue();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .serviceLocationAddress(DetailedService.DetailedServiceAddress.builder().build())
+                .serviceAddress(DetailedService.DetailedServiceAddress.builder().build())
                 .build()
                 .isEmpty())
         .isTrue();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .facilityServiceHours(DetailedService.DetailedServiceHours.builder().build())
+                .serviceHours(DetailedService.DetailedServiceHours.builder().build())
                 .build()
                 .isEmpty())
         .isTrue();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
                 .additionalHoursInfo("   ")
+                .build()
+                .isEmpty())
+        .isTrue();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder().officeName("   ").build().isEmpty())
+        .isTrue();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .onlineSchedulingAvailable("   ")
+                .build()
+                .isEmpty())
+        .isTrue();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .referralRequired("   ")
+                .build()
+                .isEmpty())
+        .isTrue();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .walkInsAccepted("   ")
                 .build()
                 .isEmpty())
         .isTrue();
@@ -209,7 +225,7 @@ public class DetailedServiceEmptyFieldsTest {
         .isTrue();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .appointmentPhoneNumbers(emptyList())
+                .phoneNumbers(emptyList())
                 .build()
                 .isEmpty())
         .isTrue();
@@ -217,6 +233,30 @@ public class DetailedServiceEmptyFieldsTest {
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
                 .additionalHoursInfo("additional hours info")
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .officeName("ENT Clinic")
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .onlineSchedulingAvailable("True")
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .walkInsAccepted("True")
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.DetailedServiceLocation.builder()
+                .referralRequired("False")
                 .build()
                 .isEmpty())
         .isFalse();
@@ -232,14 +272,14 @@ public class DetailedServiceEmptyFieldsTest {
         .isFalse();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .facilityServiceHours(
+                .serviceHours(
                     DetailedService.DetailedServiceHours.builder().monday("9AM-5PM").build())
                 .build()
                 .isEmpty())
         .isFalse();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .appointmentPhoneNumbers(
+                .phoneNumbers(
                     List.of(
                         DetailedService.AppointmentPhoneNumber.builder()
                             .number("937-268-6511")
@@ -249,7 +289,7 @@ public class DetailedServiceEmptyFieldsTest {
         .isFalse();
     assertThat(
             DetailedService.DetailedServiceLocation.builder()
-                .serviceLocationAddress(
+                .serviceAddress(
                     DetailedService.DetailedServiceAddress.builder().city("Melbourne").build())
                 .build()
                 .isEmpty())
@@ -332,7 +372,6 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .onlineSchedulingAvailable(blank)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -365,7 +404,6 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .referralRequired(blank)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -376,7 +414,6 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .walkInsAccepted(blank)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -431,40 +468,7 @@ public class DetailedServiceEmptyFieldsTest {
                         .serviceId(Facility.HealthService.Cardiology.serviceId())
                         .serviceType(Facility.HealthService.Cardiology.serviceType())
                         .build())
-                .onlineSchedulingAvailable(nonBlank)
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(
-            DetailedService.builder()
-                .serviceInfo(
-                    DetailedService.ServiceInfo.builder()
-                        .serviceId(Facility.HealthService.Cardiology.serviceId())
-                        .serviceType(Facility.HealthService.Cardiology.serviceType())
-                        .build())
                 .path(nonBlank)
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(
-            DetailedService.builder()
-                .serviceInfo(
-                    DetailedService.ServiceInfo.builder()
-                        .serviceId(Facility.HealthService.Cardiology.serviceId())
-                        .serviceType(Facility.HealthService.Cardiology.serviceType())
-                        .build())
-                .referralRequired(nonBlank)
-                .build()
-                .isEmpty())
-        .isFalse();
-    assertThat(
-            DetailedService.builder()
-                .serviceInfo(
-                    DetailedService.ServiceInfo.builder()
-                        .serviceId(Facility.HealthService.Cardiology.serviceId())
-                        .serviceType(Facility.HealthService.Cardiology.serviceType())
-                        .build())
-                .walkInsAccepted(nonBlank)
                 .build()
                 .isEmpty())
         .isFalse();
@@ -494,6 +498,66 @@ public class DetailedServiceEmptyFieldsTest {
                     List.of(
                         DetailedService.DetailedServiceLocation.builder()
                             .additionalHoursInfo("additional hours info")
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.builder()
+                .serviceInfo(
+                    DetailedService.ServiceInfo.builder()
+                        .serviceId(Facility.HealthService.Cardiology.serviceId())
+                        .serviceType(Facility.HealthService.Cardiology.serviceType())
+                        .build())
+                .serviceLocations(
+                    List.of(
+                        DetailedService.DetailedServiceLocation.builder()
+                            .officeName("ENT Clinic")
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.builder()
+                .serviceInfo(
+                    DetailedService.ServiceInfo.builder()
+                        .serviceId(Facility.HealthService.Cardiology.serviceId())
+                        .serviceType(Facility.HealthService.Cardiology.serviceType())
+                        .build())
+                .serviceLocations(
+                    List.of(
+                        DetailedService.DetailedServiceLocation.builder()
+                            .onlineSchedulingAvailable(nonBlank)
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.builder()
+                .serviceInfo(
+                    DetailedService.ServiceInfo.builder()
+                        .serviceId(Facility.HealthService.Cardiology.serviceId())
+                        .serviceType(Facility.HealthService.Cardiology.serviceType())
+                        .build())
+                .serviceLocations(
+                    List.of(
+                        DetailedService.DetailedServiceLocation.builder()
+                            .walkInsAccepted(nonBlank)
+                            .build()))
+                .build()
+                .isEmpty())
+        .isFalse();
+    assertThat(
+            DetailedService.builder()
+                .serviceInfo(
+                    DetailedService.ServiceInfo.builder()
+                        .serviceId(Facility.HealthService.Cardiology.serviceId())
+                        .serviceType(Facility.HealthService.Cardiology.serviceType())
+                        .build())
+                .serviceLocations(
+                    List.of(
+                        DetailedService.DetailedServiceLocation.builder()
+                            .referralRequired(nonBlank)
                             .build()))
                 .build()
                 .isEmpty())

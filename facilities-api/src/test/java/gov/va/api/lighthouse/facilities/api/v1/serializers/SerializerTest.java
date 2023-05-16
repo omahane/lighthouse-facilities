@@ -242,9 +242,7 @@ public class SerializerTest {
         DetailedService.DetailedServiceLocation.builder().build();
     assertJsonIsEmpty(serviceLocation);
     serviceLocation =
-        DetailedService.DetailedServiceLocation.builder()
-            .appointmentPhoneNumbers(emptyList())
-            .build();
+        DetailedService.DetailedServiceLocation.builder().phoneNumbers(emptyList()).build();
     assertJsonIsEmpty(serviceLocation);
     // Not empty
     serviceLocation =

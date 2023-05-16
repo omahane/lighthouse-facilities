@@ -20,11 +20,15 @@ public class DetailedServiceLocationSerializer extends NonEmptySerializer<Detail
   public void serialize(
       DetailedServiceLocation value, JsonGenerator jgen, SerializerProvider provider) {
     jgen.writeStartObject();
-    writeNonEmpty(jgen, "serviceLocationAddress", value.serviceLocationAddress());
-    writeNonEmpty(jgen, "appointmentPhones", value.appointmentPhoneNumbers());
+    writeNonEmpty(jgen, "officeName", value.officeName());
+    writeNonEmpty(jgen, "serviceAddress", value.serviceAddress());
+    writeNonEmpty(jgen, "phones", value.phoneNumbers());
     writeNonEmpty(jgen, "emailContacts", value.emailContacts());
-    writeNonEmpty(jgen, "facilityServiceHours", value.facilityServiceHours());
+    writeNonEmpty(jgen, "serviceHours", value.serviceHours());
     writeNonEmpty(jgen, "additionalHoursInfo", value.additionalHoursInfo());
+    writeNonEmpty(jgen, "onlineSchedulingAvailable", value.onlineSchedulingAvailable());
+    writeNonEmpty(jgen, "referralRequired", value.referralRequired());
+    writeNonEmpty(jgen, "walkInsAccepted", value.walkInsAccepted());
     jgen.writeEndObject();
   }
 }

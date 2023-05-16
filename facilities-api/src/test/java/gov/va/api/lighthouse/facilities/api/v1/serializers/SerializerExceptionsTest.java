@@ -127,7 +127,7 @@ public class SerializerExceptionsTest {
         new DetailedServiceLocationSerializer(),
         mock(JsonGenerator.class),
         mock(SerializerProvider.class),
-        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.DetailedService$DetailedServiceLocation.serviceLocationAddress()\" because \"value\" is null");
+        "Cannot invoke \"gov.va.api.lighthouse.facilities.api.v1.DetailedService$DetailedServiceLocation.officeName()\" because \"value\" is null");
   }
 
   @Test

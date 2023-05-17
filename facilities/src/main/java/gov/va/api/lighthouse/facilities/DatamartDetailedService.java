@@ -329,25 +329,32 @@ public class DatamartDetailedService {
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonPropertyOrder({"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"})
   public static final class DetailedServiceHours {
-    @JsonProperty("Monday")
+    @JsonProperty("monday")
+    @JsonAlias("Monday")
     String monday;
 
-    @JsonProperty("Tuesday")
+    @JsonProperty("tuesday")
+    @JsonAlias("Tuesday")
     String tuesday;
 
-    @JsonProperty("Wednesday")
+    @JsonProperty("wednesday")
+    @JsonAlias("Wednesday")
     String wednesday;
 
-    @JsonProperty("Thursday")
+    @JsonProperty("thursday")
+    @JsonAlias("Thursday")
     String thursday;
 
-    @JsonProperty("Friday")
+    @JsonProperty("friday")
+    @JsonAlias("Friday")
     String friday;
 
-    @JsonProperty("Saturday")
+    @JsonProperty("saturday")
+    @JsonAlias("Saturday")
     String saturday;
 
-    @JsonProperty("Sunday")
+    @JsonProperty("sunday")
+    @JsonAlias("Sunday")
     String sunday;
   }
 

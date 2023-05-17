@@ -41,13 +41,13 @@
             }
           ],
           "service_hours" : {
-            "Friday" : "830AM-430PM",
-            "Monday" : "830AM-700PM",
-            "Sunday" : "Closed",
-            "Tuesday" : "830AM-700PM",
-            "Saturday" : "Closed",
-            "Thursday" : "830AM-600PM",
-            "Wednesday" : "ANY STRING b"
+            "friday" : "830AM-430PM",
+            "monday" : "830AM-700PM",
+            "sunday" : "Closed",
+            "tuesday" : "830AM-700PM",
+            "saturday" : "Closed",
+            "thursday" : "830AM-600PM",
+            "wednesday" : "ANY STRING b"
           },
           "phones" : [
             {

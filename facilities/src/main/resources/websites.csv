@@ -748,6 +748,7 @@ vha_506,https://www.va.gov/ann-arbor-health-care/locations/lieutenant-colonel-ch
 vha_506GA,https://www.va.gov/ann-arbor-health-care/locations/toledo-va-clinic/
 vha_506GB,https://www.va.gov/ann-arbor-health-care/locations/flint-va-clinic/
 vha_506GC,https://www.va.gov/ann-arbor-health-care/locations/jackson-va-clinic/
+vha_506GD,https://www.va.gov/ann-arbor-health-care/locations/major-general-oliver-w-dillard-va-clinic
 vha_506GE,https://www.va.gov/ann-arbor-health-care/locations/howell-va-clinic/
 vha_506GF,https://www.va.gov/ann-arbor-health-care/locations/adrian-va-clinic/
 vha_506QA,https://www.va.gov/ann-arbor-health-care/locations/packard-road-va-clinic/
@@ -772,7 +773,7 @@ vha_508QE,https://www.va.gov/atlanta-health-care/locations/gwinnett-county-va-cl
 vha_508QF,https://www.va.gov/atlanta-health-care/locations/atlanta-va-clinic/
 vha_508QH,https://www.atlanta.va.gov/locations/South_Fulton_VA_Clinic.asp
 vha_508QI,https://www.va.gov/atlanta-health-care/locations/north-dekalb-county-va-clinic/
-vha_508QJ,https://www.va.gov/atlanta-health-care/locations/north-fulton-county-va-clinic/
+vha_508QJ,https://www.va.gov/atlanta-health-care/locations/tucker-va-clinic/
 vha_509,https://www.va.gov/augusta-health-care/locations/charlie-norwood-department-of-veterans-affairs-medical-center/
 vha_509A0,https://www.va.gov/augusta-health-care/locations/augusta-va-medical-center-uptown/
 vha_509GA,https://www.va.gov/augusta-health-care/locations/athens-va-clinic/
@@ -908,7 +909,7 @@ vha_534GD,https://www.va.gov/charleston-health-care/locations/goose-creek-va-cli
 vha_534GE,https://www.va.gov/charleston-health-care/locations/hinesville-va-clinic/
 vha_534GF,https://www.va.gov/charleston-health-care/locations/north-charleston-va-clinic/
 vha_534QA,https://www.va.gov/charleston-health-care/locations/market-commons-va-clinic/
-vha_534QB,https://www.va.gov/charleston-health-care/locations/trident-2-va-clinic/
+vha_534QB,https://www.va.gov/charleston-health-care/locations/trident-va-clinic/
 vha_534QC,https://www.va.gov/charleston-health-care/locations/charleston-va-clinic/
 vha_537,https://www.va.gov/chicago-health-care/locations/jesse-brown-department-of-veterans-affairs-medical-center/
 vha_537BY,https://www.va.gov/chicago-health-care/locations/adam-benjamin-jr-veterans-administration-outpatient-clinic/
@@ -1123,13 +1124,13 @@ vha_573GK,https://www.va.gov/north-florida-health-care/locations/marianna-va-cli
 vha_573GL,https://www.va.gov/north-florida-health-care/locations/palatka-va-clinic/
 vha_573GM,https://www.va.gov/north-florida-health-care/locations/waycross-va-clinic/
 vha_573GN,https://www.va.gov/north-florida-health-care/locations/perry-va-clinic/
-vha_573GO,https://www.va.gov/north-florida-health-care/locations/middleburg-va-clinic/
+vha_573GO,https://www.va.gov/north-florida-health-care/locations/ak-baker-va-clinic
 vha_573QA,https://www.va.gov/north-florida-health-care/locations/gainesville-sixteenth-street-va-clinic/
 vha_573QB,https://www.va.gov/north-florida-health-care/locations/gainesville-ninety-eighth-street-va-clinic/
 vha_573QC,https://www.va.gov/north-florida-health-care/locations/gainesville-sixty-fourth-street-1-va-clinic/
 vha_573QD,https://www.va.gov/north-florida-health-care/locations/gainesville-sixty-fourth-street-2-va-clinic/
 vha_573QE,https://www.va.gov/north-florida-health-care/locations/gainesville-sixty-fourth-street-3-va-clinic/
-vha_573QF,https://www.va.gov/north-florida-health-care/locations/gainesville-twenty-third-avenue-va-clinic/
+vha_573QF,https://www.va.gov/north-florida-health-care/locations/gainesville-1-va-clinic/
 vha_573QG,https://www.va.gov/north-florida-health-care/locations/jacksonville-southpoint-va-clinic/
 vha_573QH,https://www.va.gov/north-florida-health-care/locations/ocala-west-va-clinic/
 vha_573QJ,https://www.va.gov/north-florida-health-care/locations/jacksonville-2-va-clinic/
@@ -1591,6 +1592,7 @@ vha_652GB,https://www.va.gov/richmond-health-care/locations/fredericksburg-2-va-
 vha_652GC,https://www.va.gov/richmond-health-care/locations/henrico-county-va-clinic/
 vha_652GE,https://www.va.gov/richmond-health-care/locations/charlottesville-va-clinic/
 vha_652GF,https://www.va.gov/richmond-health-care/locations/emporia-va-clinic/
+vha_652GH,https://www.va.gov/richmond-health-care/locations/richmond-2-va-mobile-clinic
 vha_652GI,https://www.va.gov/richmond-health-care/locations/massaponax-va-clinic/
 vha_653,https://www.va.gov/roseburg-health-care/locations/roseburg-va-medical-center/
 vha_653BY,https://www.va.gov/roseburg-health-care/locations/eugene-va-clinic/
@@ -1608,7 +1610,7 @@ vha_654QB,https://www.va.gov/sierra-nevada-health-care/locations/capitol-hill-va
 vha_654QC,https://www.va.gov/sierra-nevada-health-care/locations/winnemucca-va-clinic/
 vha_654QD,https://www.va.gov/sierra-nevada-health-care/locations/virginia-street-va-clinic/
 vha_655,https://www.va.gov/saginaw-health-care/locations/aleda-e-lutz-department-of-veterans-affairs-medical-center/
-vha_655GA,https://www.va.gov/saginaw-health-care/locations/gaylord-va-clinic/
+vha_655GA,https://www.va.gov/saginaw-health-care/locations/navy-corpsman-steve-andrews-department-of-veterans-affairs-health-care-clinic
 vha_655GB,https://www.va.gov/saginaw-health-care/locations/colonel-demas-t-craw-va-clinic/
 vha_655GC,https://www.va.gov/saginaw-health-care/locations/oscoda-va-clinic/
 vha_655GD,https://www.va.gov/saginaw-health-care/locations/lieutenant-colonel-clement-c-van-wagoner-department-of-veterans-affairs-clinic/
@@ -1722,7 +1724,7 @@ vha_668GA,https://www.va.gov/spokane-health-care/locations/wenatchee-va-clinic/
 vha_668GB,https://www.va.gov/spokane-health-care/locations/coeur-d-alene-va-clinic/
 vha_668GC,https://www.va.gov/spokane-health-care/locations/east-front-avenue-va-clinic/
 vha_668QB,https://www.va.gov/spokane-health-care/locations/libby-va-clinic/
-vha_668QD,https://www.va.gov/spokane-health-care/locations/sandpoint-va-clinic/
+vha_668QD,https://www.va.gov/spokane-health-care/locations/bonner-county-va-clinic
 vha_668QE,https://www.va.gov/spokane-health-care/locations/spokane-va-clinic/
 vha_671,https://www.va.gov/south-texas-health-care/locations/audie-l-murphy-memorial-veterans-hospital/
 vha_671A4,https://www.va.gov/south-texas-health-care/locations/kerrville-va-medical-center/
@@ -1870,6 +1872,7 @@ vha_740GD,https://www.va.gov/texas-valley-health-care/locations/laredo-va-clinic
 vha_740GH,https://www.va.gov/texas-valley-health-care/locations/south-enterprize-va-clinic/
 vha_740GI,https://www.va.gov/texas-valley-health-care/locations/old-brownsville-va-clinic/
 vha_740GJ,https://www.va.gov/texas-valley-health-care/locations/north-tenth-street-va-clinic/
+vha_740QA,https://www.va.gov/texas-valley-health-care/locations/mcallen-va-mobile-clinic/
 vha_756,https://www.va.gov/el-paso-health-care/locations/el-paso-va-clinic/
 vha_756GA,https://www.va.gov/el-paso-health-care/locations/las-cruces-va-clinic/
 vha_756GB,https://www.va.gov/el-paso-health-care/locations/el-paso-eastside-va-clinic/

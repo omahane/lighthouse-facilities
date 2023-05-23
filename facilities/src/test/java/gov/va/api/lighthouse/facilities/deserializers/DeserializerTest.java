@@ -5,21 +5,24 @@ import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinke
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildServicesLink;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildTypedServiceLink;
 import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.CmsOverlayHelper;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay;
 import gov.va.api.lighthouse.facilities.DatamartDetailedService;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
+import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.StreamUtils;
 
 public class DeserializerTest {
   @SneakyThrows
@@ -2435,27 +2438,6 @@ public class DeserializerTest {
             + "]}",
         DatamartFacility.FacilityAttributes.class,
         attributes);
-    // At least one service containing invalid service name and valid service type
-    assertExceptionThrown(
-        "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"name\":\"OnlineScheduling\",\"serviceType\":\"other\"}},"
-            + "{\"serviceInfo\":{\"name\":\"foo\",\"serviceType\":\"other\"}}"
-            + "]}",
-        DatamartFacility.class,
-        JsonMappingException.class,
-        "Unrecognized field \"detailed_services\" (class gov.va.api.lighthouse.facilities.DatamartFacility), not marked as ignorable (3 known properties: \"type\", \"id\", \"attributes\"])\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"name\":\"OnlineScheduling\",\"serviceType\":\"other\"}},{\"serviceInfo\":{\"name\":\"foo\",\"serviceType\":\"other\"}}]}\"; line: 1, column: 23] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"detailed_services\"])");
-    // At least one service containing invalid service id and valid service type
-    assertExceptionThrown(
-        "{\"detailed_services\":["
-            + "{\"serviceInfo\":{\"serviceId\":\"onlineScheduling\",\"name\":\"OnlineScheduling\",\"serviceType\":\"other\"}},"
-            + "{\"serviceInfo\":{\"serviceId\":\"foo\",\"serviceType\":\"other\"}}"
-            + "]}",
-        DatamartFacility.class,
-        JsonMappingException.class,
-        "Unrecognized field \"detailed_services\" (class gov.va.api.lighthouse.facilities.DatamartFacility), not marked as ignorable (3 known properties: \"type\", \"id\", \"attributes\"])\n"
-            + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"onlineScheduling\",\"name\":\"OnlineScheduling\",\"serviceType\":\"other\"}},{\"serviceInfo\":{\"serviceId\":\"foo\",\"serviceType\":\"other\"}}]}\"; line: 1, column: 23] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility[\"detailed_services\"])");
-
     attributes =
         DatamartFacility.FacilityAttributes.builder()
             .detailedServices(
@@ -2544,5 +2526,114 @@ public class DeserializerTest {
         JsonMappingException.class,
         "Cannot construct instance of `gov.va.api.lighthouse.facilities.api.TypeOfService`, problem: Unrecognized service type: bar\n"
             + " at [Source: (String)\"{\"detailed_services\":[{\"serviceInfo\":{\"serviceId\":\"onlineScheduling\",\"name\":\"OnlineScheduling\",\"serviceType\":\"other\"},\"appointment_phones\":[],\"service_locations\":[]},{\"serviceInfo\":{\"serviceId\":\"foo\",\"name\":\"NoSuchService\",\"serviceType\":\"bar\"},\"appointment_phones\":[],\"service_locations\":[]}]}\"; line: 1, column: 238] (through reference chain: gov.va.api.lighthouse.facilities.DatamartFacility$FacilityAttributes$FacilityAttributesBuilder[\"detailed_services\"]->java.util.ArrayList[1]->gov.va.api.lighthouse.facilities.DatamartDetailedService[\"serviceInfo\"]->gov.va.api.lighthouse.facilities.DatamartDetailedService$ServiceInfo$ServiceInfoBuilder[\"serviceType\"])");
+  }
+
+  @Test
+  @SneakyThrows
+  void testIgnoreUnknownPropertiesCmsOverlay() {
+    final String detailedServicesKnownPath =
+        "/unknown-property-tests/detailed-services-known-properties.json";
+    final String detailedServicesUnknownPath =
+        "/unknown-property-tests/detailed-services-unknown-properties.json";
+    final String operatingStatusKnownJson =
+        """
+                    {
+                      "code" : "CLOSED",
+                      "additional_info": "This is additional info"
+                    }
+                    """;
+
+    final String operatingStatusUnknownJson =
+        """
+                    {
+                      "code" : "CLOSED",
+                      "additional_info": "This is additional info",
+                      "unknown_property" : "This property is unknown"
+                    }
+                    """;
+    final String systemKnownJson =
+        """
+                    {
+                      "name": "VA Pittsburgh health care",
+                      "url": "https://www.va.gov/pittsburgh-health-care/",
+                      "covid_url": "https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/",
+                      "va_health_connect_phone": "123-456-7890 ext. 123"
+                    }
+                    """;
+    final String systemUnknownJson =
+        """
+                    {
+                      "name": "VA Pittsburgh health care",
+                      "url": "https://www.va.gov/pittsburgh-health-care/",
+                      "covid_url": "https://www.va.gov/pittsburgh-health-care/programs/covid-19-vaccines/",
+                      "va_health_connect_phone": "123-456-7890 ext. 123",
+                      "star_wars_holiday_special" : "Please ignore me"
+                    }
+                    """;
+    final String coreKnownJson =
+        """
+                    {
+                      "facility_url" : "www.va.gov"
+                    }
+                    """;
+
+    final String coreUnknownJson =
+        """
+                    {
+                      "facility_url" : "www.va.gov",
+                      "unknown_property" : "you know the drill"
+                    }
+                    """;
+
+    String detailedServicesKnownJson =
+        StreamUtils.copyToString(
+            getClass().getResourceAsStream(detailedServicesKnownPath), Charset.defaultCharset());
+    String detailedServicesUnknownJson =
+        StreamUtils.copyToString(
+            getClass().getResourceAsStream(detailedServicesUnknownPath), Charset.defaultCharset());
+
+    DatamartCmsOverlay knownPropertiesOverlay =
+        DatamartCmsOverlay.builder()
+            .detailedServices(CmsOverlayHelper.getDetailedServices(detailedServicesKnownJson))
+            .operatingStatus(CmsOverlayHelper.getOperatingStatus(operatingStatusKnownJson))
+            .core(CmsOverlayHelper.getCore(coreKnownJson))
+            .healthCareSystem(CmsOverlayHelper.getHealthCareSystem(systemKnownJson))
+            .build();
+
+    DatamartCmsOverlay unknownPropertiesOverlay =
+        DatamartCmsOverlay.builder()
+            .detailedServices(CmsOverlayHelper.getDetailedServices(detailedServicesUnknownJson))
+            .operatingStatus(CmsOverlayHelper.getOperatingStatus(operatingStatusUnknownJson))
+            .core(CmsOverlayHelper.getCore(coreUnknownJson))
+            .healthCareSystem(CmsOverlayHelper.getHealthCareSystem(systemUnknownJson))
+            .build();
+
+    assertThat(unknownPropertiesOverlay)
+        .usingRecursiveComparison()
+        .isEqualTo(knownPropertiesOverlay);
+  }
+
+  @Test
+  @SneakyThrows
+  void testIgnoreUnknownPropertiesFacilities() {
+    final ObjectMapper facilities_mapper = createMapper();
+    final String facilitiesKnownPath = "/unknown-property-tests/facility-known-properties.json";
+    final String facilitiesUnknownPath = "/unknown-property-tests/facility-unknown-properties.json";
+
+    String facilityKnownServices =
+        StreamUtils.copyToString(
+            getClass().getResourceAsStream(facilitiesKnownPath), Charset.defaultCharset());
+
+    String facilityUnknownServices =
+        StreamUtils.copyToString(
+            getClass().getResourceAsStream(facilitiesUnknownPath), Charset.defaultCharset());
+
+    DatamartFacility knownDatamartFacility =
+        facilities_mapper.readValue(facilityKnownServices, DatamartFacility.class);
+
+    DatamartFacility unknownDatamartFacility =
+        facilities_mapper.readValue(facilityUnknownServices, DatamartFacility.class);
+
+    assertThat(unknownDatamartFacility).usingRecursiveComparison().isEqualTo(knownDatamartFacility);
   }
 }

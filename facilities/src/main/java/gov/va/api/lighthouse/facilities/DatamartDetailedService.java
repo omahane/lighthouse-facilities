@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
@@ -122,6 +123,7 @@ public class DatamartDetailedService {
   @JsonInclude(value = JsonInclude.Include.NON_EMPTY, content = JsonInclude.Include.NON_EMPTY)
   @JsonPropertyOrder({"name", "serviceId", "serviceType"})
   @Schema(description = "Service information.")
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class ServiceInfo {
     @Schema(description = "Service id.", example = "covid19Vaccine")
     @JsonAlias({"service_id", "service_api_id"})
@@ -134,6 +136,7 @@ public class DatamartDetailedService {
     @Schema(description = "Service type.", example = "Health")
     TypeOfService serviceType;
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ServiceInfoBuilder {
       private String serviceId;
 
@@ -215,9 +218,11 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonPropertyOrder({
     "building_name_number",
     "wing_floor_or_room_number",
@@ -253,9 +258,11 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class AppointmentPhoneNumber {
     String extension;
 
@@ -267,9 +274,11 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonPropertyOrder({
     "office_name",
     "service_address",
@@ -312,9 +321,11 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class DetailedServiceEmailContact {
     @JsonProperty("email_address")
     String emailAddress;
@@ -324,9 +335,11 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonPropertyOrder({"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"})
   public static final class DetailedServiceHours {
     @JsonProperty("monday")
@@ -359,8 +372,10 @@ public class DatamartDetailedService {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class PatientWaitTime {
     @JsonProperty("new")
     BigDecimal newPatientWaitTime;

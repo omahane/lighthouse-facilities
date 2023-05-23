@@ -7,6 +7,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,10 +30,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -458,9 +461,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Address {
     @JsonProperty("address_1")
     String address1;
@@ -479,9 +484,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Addresses {
     @Valid Address mailing;
 
@@ -492,6 +499,7 @@ public class DatamartFacility {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonPropertyOrder({
     "name",
     "facility_type",
@@ -571,6 +579,7 @@ public class DatamartFacility {
 
     String visn;
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class FacilityAttributesBuilder {
       @JsonProperty("operationalHoursSpecialInstructions")
       public FacilityAttributes.FacilityAttributesBuilder instructions(String val) {
@@ -583,6 +592,7 @@ public class DatamartFacility {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Hours {
     String sunday;
 
@@ -598,6 +608,7 @@ public class DatamartFacility {
 
     String saturday;
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class HoursBuilder {
       @JsonProperty("Friday")
       public Hours.HoursBuilder fri(String val) {
@@ -637,9 +648,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class OperatingStatus {
     @NotNull
     @JsonProperty(required = true)
@@ -654,9 +667,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class SupplementalStatus {
     @Valid
     @NotNull
@@ -670,9 +685,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class PatientSatisfaction {
     @JsonProperty("primary_care_urgent")
     BigDecimal primaryCareUrgent;
@@ -688,9 +705,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class PatientWaitTime {
     @NotNull HealthService service;
 
@@ -702,9 +721,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Phone {
     String fax;
 
@@ -729,9 +750,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Satisfaction {
     @Valid PatientSatisfaction health;
 
@@ -744,6 +767,7 @@ public class DatamartFacility {
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
   @JsonDeserialize(using = DatamartServicesDeserializer.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class Services {
     List<Service<OtherService>> other;
 
@@ -759,6 +783,7 @@ public class DatamartFacility {
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonPropertyOrder({"name", "serviceId"})
   @AllArgsConstructor
   public static final class Service<T extends TypedService> implements Comparable<Service<T>> {
@@ -784,6 +809,7 @@ public class DatamartFacility {
     }
 
     /** Custom builder for setting ServiceType and serviceId attributes for Service. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ServiceBuilder<T extends TypedService> {
       @NonNull private T serviceType;
 
@@ -830,9 +856,11 @@ public class DatamartFacility {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static final class WaitTimes {
     @Valid List<PatientWaitTime> health;
 

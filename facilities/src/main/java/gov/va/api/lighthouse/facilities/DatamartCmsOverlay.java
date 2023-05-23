@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,13 +11,16 @@ import java.util.List;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
+@Jacksonized
 @Builder
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DatamartCmsOverlay {
   @Valid Core core;
 
@@ -36,9 +40,11 @@ public class DatamartCmsOverlay {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
   @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class HealthCareSystem {
     String name;
 
@@ -52,8 +58,10 @@ public class DatamartCmsOverlay {
   }
 
   @Data
+  @Jacksonized
   @Builder
   @JsonAutoDetect(fieldVisibility = Visibility.ANY)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Core {
     @JsonProperty("facility_url")
     String facilityUrl;

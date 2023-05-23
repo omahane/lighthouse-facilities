@@ -1,0 +1,99 @@
+{
+  "id" : "vha_9999",
+  "attributes" : {
+    "unknown_property_1" : "First of many",
+    "name" : "Example Facility",
+    "facility_type" : "vet_center",
+    "classification" : "I dunno",
+    "parent_id" : "vha_9998",
+    "website" : "va.gov",
+    "lat" : 59.59652,
+    "long" : 59.45612,
+    "time_zone" : "America/New_York",
+    "address" : {
+      "not_a_real_property" : "what's this?",
+      "mailing" : {
+        "another_unknown_property" : "By rights, we shouldn't even be here",
+        "zip" : "10001-1000",
+        "city" : "Ney York",
+        "state" : "NY",
+        "address_1" : "123 1st St",
+        "address_2" : null,
+        "address_3" : null
+      },
+      "physical" : {
+        "what" : "is this",
+        "zip" : "10001",
+        "city" : "New York",
+        "state" : "NY",
+        "address_1" : "321 1st St",
+        "address_2" : null,
+        "address_3" : null
+      }
+    },
+    "phone" : {
+      "fake_property" : "just ignore this",
+      "main" : "1-800-867-5309"
+    },
+    "hours" : {
+      "Yesterday" : "All my troubles seemed so far away",
+      "Friday" : "Sunrise - Sundown",
+      "Monday" : "Sunrise - Sundown",
+      "Sunday" : "Sunrise - Sundown",
+      "Tuesday" : "Sunrise - Sundown",
+      "Saturday" : "Sunrise - Sundown",
+      "Thursday" : "Sunrise - Sundown",
+      "Wednesday" : "Sunrise - Sundown"
+    },
+    "operational_hours_special_instructions" : "don't come in",
+    "services" : {
+      "unknown" : "ignore this",
+      "other" : [
+        "onlineScheduling"
+      ],
+      "health" : [
+        "allergy"
+      ],
+      "benefits" : [
+        "educationClaimAssistance"
+      ],
+      "last_updated" : "2020-03-02"
+    },
+    "satisfaction" : {
+      "another_unknown" : "hallo",
+      "health" : {
+        "blahblah" : "blahblah",
+        "primary_care_urgent" : 89.56,
+        "primary_care_routine" : 90.65,
+        "specialty_care_urgent" : 76.19,
+        "specialty_care_routine" : 63.79
+      },
+      "effective_date" : "2019-06-20"
+    },
+    "wait_times" : {
+      "roller_coaster" : "very long wait",
+      "health" : [
+        {
+          "oops" : "oops",
+          "service" : "allergy",
+          "new" : 21.22,
+          "established" : 78.12
+        }
+      ],
+      "effective_date" : "2019-06-20"
+    },
+    "mobile" : true,
+    "active_status" : "A",
+    "operating_status" : {
+      "unknown" : "example",
+      "code" : "NORMAL"
+    },
+    "detailed_services" : [
+      {
+        "unknown" : "whats this",
+        "name" : "COVID-19 vaccines"
+      }
+    ],
+    "visn" : "12"
+  }
+}

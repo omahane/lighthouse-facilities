@@ -341,8 +341,8 @@ public class FacilitiesControllerV1 {
   }
 
   /** Read facility. */
-  @GetMapping(value = "/facilities/{id}", produces = "application/json")
-  FacilityReadResponse readJson(@PathVariable("id") String id) {
+  @GetMapping(value = "/facilities/{facilityId}", produces = "application/json")
+  FacilityReadResponse readJson(@PathVariable("facilityId") String id) {
     return FacilityReadResponse.builder()
         .facility(facility(entityById(id), linkerUrl, serviceSources))
         .build();

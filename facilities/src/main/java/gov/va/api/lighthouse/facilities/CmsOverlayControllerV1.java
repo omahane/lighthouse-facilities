@@ -106,11 +106,11 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/facilities/{id}/services/{service}"},
+      value = {"/facilities/{facilityId}/services/{serviceId}"},
       produces = "application/json")
   @SneakyThrows
   ResponseEntity<DetailedServiceResponse> getDetailedService(
-      @PathVariable("id") String facilityId, @PathVariable("service") String serviceId) {
+      @PathVariable("facilityId") String facilityId, @PathVariable("serviceId") String serviceId) {
     return ResponseEntity.ok(
         DetailedServiceResponse.builder()
             .data(
@@ -155,10 +155,10 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
   }
 
   @GetMapping(
-      value = {"/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{facilityId}/cms-overlay"},
       produces = "application/json")
   @SneakyThrows
-  ResponseEntity<CmsOverlayResponse> getOverlay(@PathVariable("id") String id) {
+  ResponseEntity<CmsOverlayResponse> getOverlay(@PathVariable("facilityId") String id) {
     FacilityEntity.Pk pk = FacilityEntity.Pk.fromIdString(id);
     Optional<CmsOverlayEntity> existingOverlayEntity = getExistingOverlayEntity(pk);
     if (!existingOverlayEntity.isPresent()) {
@@ -224,12 +224,12 @@ public class CmsOverlayControllerV1 extends BaseCmsOverlayController {
 
   /** Upload CMS overlay associated with specified facility. */
   @PostMapping(
-      value = {"/facilities/{id}/cms-overlay"},
+      value = {"/facilities/{facilityId}/cms-overlay"},
       produces = "application/json",
       consumes = "application/json")
   @SneakyThrows
   ResponseEntity<Void> saveOverlay(
-      @PathVariable("id") String id, @Valid @RequestBody CmsOverlay overlay) {
+      @PathVariable("facilityId") String id, @Valid @RequestBody CmsOverlay overlay) {
     populateServiceInfoAndFilterOutInvalid(overlay);
     DatamartCmsOverlay datamartCmsOverlay =
         filterOutUnrecognizedServicesFromOverlay(

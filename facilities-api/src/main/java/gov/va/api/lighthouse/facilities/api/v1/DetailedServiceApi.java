@@ -25,7 +25,7 @@ public interface DetailedServiceApi {
       operationId = "getServicesById",
       tags = {"facilities"})
   @GET
-  @Path("/facilities/{id}/services/{service}")
+  @Path("/facilities/{facilityId}/services/{serviceId}")
   @ApiResponse(
       responseCode = "200",
       description = "Success",
@@ -79,7 +79,7 @@ public interface DetailedServiceApi {
   DetailedServiceResponse getServiceById(
       @Parameter(
               in = ParameterIn.PATH,
-              name = "id",
+              name = "facilityId",
               description =
                   "Facility ID, in the form `<prefix>_<station>`, where prefix is one of "
                       + "\"vha\", \"vba\", \"nca\", or \"vc\", "
@@ -90,7 +90,7 @@ public interface DetailedServiceApi {
           String id,
       @Parameter(
               in = ParameterIn.PATH,
-              name = "service",
+              name = "serviceId",
               description = "Service ID, unique identifier for service",
               required = false,
               example = "covid19Vaccine")

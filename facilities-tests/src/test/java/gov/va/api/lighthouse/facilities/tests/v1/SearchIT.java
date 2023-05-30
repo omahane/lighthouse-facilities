@@ -4,7 +4,7 @@ import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitie
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
 
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
-import gov.va.api.lighthouse.facilities.tests.RequiresFacilitiesExtension;
+import gov.va.api.lighthouse.facilities.tests.v0.RequiresFacilitiesExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

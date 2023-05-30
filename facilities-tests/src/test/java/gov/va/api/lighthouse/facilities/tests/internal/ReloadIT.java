@@ -1,4 +1,4 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.internal;
 
 import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
@@ -6,6 +6,7 @@ import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDef
 
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
+import gov.va.api.lighthouse.facilities.tests.SystemDefinitions;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import io.restassured.specification.RequestSpecification;

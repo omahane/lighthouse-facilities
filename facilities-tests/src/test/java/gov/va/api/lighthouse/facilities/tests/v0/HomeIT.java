@@ -1,4 +1,4 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.v0;
 
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
 

@@ -1,9 +1,9 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.v1;
 
 import static gov.va.api.lighthouse.facilities.tests.FacilitiesRequest.facilitiesRequest;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
 
-import gov.va.api.lighthouse.facilities.api.v0.FacilitiesIdsResponse;
+import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class IdsIT {
   @Test
   void idsByType() {
-    final String emptyRequest = "v0/ids";
+    final String emptyRequest = "v1/ids";
     facilitiesRequest("application/json", emptyRequest, 200)
         .expectValid(FacilitiesIdsResponse.class);
     facilitiesRequest(null, emptyRequest, 200).expectValid(FacilitiesIdsResponse.class);

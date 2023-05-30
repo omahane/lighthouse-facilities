@@ -17,7 +17,6 @@ import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatus;
 import gov.va.api.lighthouse.facilities.api.v1.Facility.OperatingStatusCode;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
-import gov.va.api.lighthouse.facilities.tests.RequiresFacilitiesExtension;
 import gov.va.api.lighthouse.facilities.tests.SystemDefinitions;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;

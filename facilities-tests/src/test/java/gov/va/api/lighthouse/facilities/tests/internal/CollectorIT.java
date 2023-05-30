@@ -1,4 +1,4 @@
-package gov.va.api.lighthouse.facilities.tests;
+package gov.va.api.lighthouse.facilities.tests.internal;
 
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.CLIENT_KEY_DEFAULT;
 import static gov.va.api.lighthouse.facilities.tests.SystemDefinitions.systemDefinition;
@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.lighthouse.facilities.DatamartFacility;
+import gov.va.api.lighthouse.facilities.tests.SystemDefinitions;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import java.util.Map;

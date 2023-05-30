@@ -48,7 +48,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readBenefitsGeoJson() {
-    String path = "/read-benefits-geojson.json";
+    String path = "/v0/read-benefits-geojson.json";
     assertValid(path, GeoFacilityReadResponse.class);
   }
 
@@ -62,7 +62,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readCemeteryGeoJson() {
-    String path = "/read-cemetery-geojson.json";
+    String path = "/v0/read-cemetery-geojson.json";
     assertValid(path, GeoFacilityReadResponse.class);
   }
 
@@ -74,7 +74,7 @@ public class ValidationV0Test {
 
   @Test
   void readHealthGeoJson() {
-    String path = "/read-health-geojson.json";
+    String path = "/v0/read-health-geojson.json";
     assertValid(path, GeoFacilityReadResponse.class);
   }
 
@@ -88,7 +88,7 @@ public class ValidationV0Test {
   @Test
   @SneakyThrows
   void readStateCemeteryGeoJson() {
-    String path = "/read-state-cemetery-geojson.json";
+    String path = "/v0/read-state-cemetery-geojson.json";
     assertValid(path, GeoFacilityReadResponse.class);
   }
 
@@ -160,7 +160,7 @@ public class ValidationV0Test {
 
   @Test
   void searchByZipGeoJson() {
-    String path = "/search-zip-geojson.json";
+    String path = "/v0/search-zip-geojson.json";
     assertValid(path, GeoFacilitiesResponse.class);
   }
 }

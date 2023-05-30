@@ -61,7 +61,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readBenefitsGeoJson() {
-    String path = "/read-benefits-geojson.json";
+    String path = "/v0/read-benefits-geojson.json";
     roundTrip(path, GeoFacilityReadResponse.class);
   }
 
@@ -75,7 +75,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readCemeteryGeoJson() {
-    String path = "/read-cemetery-geojson.json";
+    String path = "/v0/read-cemetery-geojson.json";
     roundTrip(path, GeoFacilityReadResponse.class);
   }
 
@@ -89,7 +89,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readHealthGeoJson() {
-    String path = "/read-health-geojson.json";
+    String path = "/v0/read-health-geojson.json";
     roundTrip(path, GeoFacilityReadResponse.class);
   }
 
@@ -103,7 +103,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void readStateCemeteryGeoJson() {
-    String path = "/read-state-cemetery-geojson.json";
+    String path = "/v0/read-state-cemetery-geojson.json";
     roundTrip(path, GeoFacilityReadResponse.class);
   }
 
@@ -199,7 +199,7 @@ public class SerializationV0Test {
   @Test
   @SneakyThrows
   void searchByZipGeoJson() {
-    String path = "/search-zip-geojson.json";
+    String path = "/v0/search-zip-geojson.json";
     roundTrip(path, GeoFacilitiesResponse.class);
   }
 }

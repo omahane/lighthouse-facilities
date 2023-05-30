@@ -1419,9 +1419,11 @@ public class InternalFacilitiesControllerTest {
     DatamartCmsOverlay datamartCmsOverlay = _overlay();
     FacilityEntity facilityEntity = _facilityEntity(datamartFacility, datamartCmsOverlay);
     facilityRepository.save(facilityEntity);
-    _controller().populateCmsOverlayTable();
-    assertThat(overlayRepository.findAll())
-        .containsOnly(_overlayEntity(datamartCmsOverlay, "vha_f1"));
+    assertThat(facilityRepository.findAll())
+        .usingRecursiveComparison()
+        .isEqualTo(List.of(facilityEntity));
+    // Populate overlay using CMS services
+    assertThat(overlayRepository.findAll()).isEmpty();
   }
 
   @Test
@@ -1436,11 +1438,7 @@ public class InternalFacilitiesControllerTest {
     FacilityRepository mockRepo = mock(FacilityRepository.class);
     when(mockRepo.findAll()).thenThrow(new NullPointerException("oh noes"));
     assertDoesNotThrow(
-        () ->
-            InternalFacilitiesController.builder()
-                .facilityRepository(mockRepo)
-                .build()
-                .populateCmsOverlayTable());
+        () -> InternalFacilitiesController.builder().facilityRepository(mockRepo).build());
   }
 
   @Test

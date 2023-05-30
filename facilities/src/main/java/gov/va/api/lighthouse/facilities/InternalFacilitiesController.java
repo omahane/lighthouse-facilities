@@ -18,7 +18,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
 import gov.va.api.health.autoconfig.logging.Loggable;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay.HealthCareSystem;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Address;
@@ -398,37 +397,6 @@ public class InternalFacilitiesController {
             .collect(toCollection(LinkedHashSet::new));
     Set<FacilityEntity.Pk> oldIds = new LinkedHashSet<>(facilityRepository.findAllIds());
     return ImmutableSet.copyOf(Sets.difference(oldIds, newIds));
-  }
-
-  @GetMapping(value = "/populate-cms-overlay-table")
-  void populateCmsOverlayTable() {
-    // parallel stream all facilities response
-    // build entity for cms_overlay table
-    // operating status AND/OR detailed services exist add to entity otherwise it will just be null
-    // save entity
-    // done after all processing completes
-    boolean noErrors = true;
-    try {
-      log.warn("Attempting to save all facility overlay info to cms_overlay table.");
-      Streams.stream(facilityRepository.findAll())
-          .parallel()
-          .filter(f -> f.cmsOperatingStatus() != null || f.cmsServices() != null)
-          .forEach(
-              f ->
-                  cmsOverlayRepository.save(
-                      CmsOverlayEntity.builder()
-                          .id(f.id())
-                          .cmsOperatingStatus(f.cmsOperatingStatus())
-                          .cmsServices(f.cmsServices())
-                          .build()));
-    } catch (Exception e) {
-      noErrors = false;
-      log.error(
-          "Failed to save all facility overlay info to cms_overlay table. {}", e.getMessage());
-    }
-    if (noErrors) {
-      log.warn("Completed saving all facility overlay info to cms_overlay table!");
-    }
   }
 
   private ResponseEntity<ReloadResponse> process(

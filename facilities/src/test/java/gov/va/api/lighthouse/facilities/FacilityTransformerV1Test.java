@@ -196,7 +196,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .parent(
             FacilityTransformerV1.toFacilityParent(
                 datamartFacility.attributes().parentId(),
-                "https:foo/bar/v1/facilities/" + datamartFacility().attributes.parentId));
+                "https://foo/bar/v1/facilities/" + datamartFacility().attributes.parentId));
     assertThat(datamartFacility).hasFieldOrProperty("attributes.detailedServices");
     assertThatThrownBy(() -> assertThat(facility).hasFieldOrProperty("attributes.detailedServices"))
         .isInstanceOf(AssertionError.class);
@@ -348,7 +348,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                 .parent(
                     Facility.Parent.builder()
                         .id("vha_123")
-                        .link("https:foo/bar/v1/facilities/vha_123")
+                        .link("https://foo/bar/v1/facilities/vha_123")
                         .build())
                 .operatingStatus(
                     Facility.OperatingStatus.builder()
@@ -390,7 +390,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .parent(
             Facility.Parent.builder()
                 .id("vha_123")
-                .link("https:foo/bar/v1/facilities/vha_123")
+                .link("https://foo/bar/v1/facilities/vha_123")
                 .build());
     assertThat(actual)
         .usingRecursiveComparison()
@@ -486,7 +486,6 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
                             .wingFloorOrRoomNumber("Wing East")
                             .build())
                     .build()))
-        .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
 
@@ -717,6 +716,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
             emptyList(),
             linkerUrl,
             facilityId);
+
     assertThat(
         FacilityTransformerV1.toFacility(
             FacilityTransformerV0.toVersionAgnostic(
@@ -1053,7 +1053,7 @@ public class FacilityTransformerV1Test extends BaseFacilityTransformerTest {
         .attributes()
         .parent(
             FacilityTransformerV1.toFacilityParent(
-                datamartFacility.attributes().parentId(), "https:foo/bar/v1/"));
+                datamartFacility.attributes().parentId(), "https://foo/bar/v1/"));
     assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
   }
 

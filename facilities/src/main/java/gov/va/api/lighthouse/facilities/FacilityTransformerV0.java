@@ -208,7 +208,7 @@ public final class FacilityTransformerV0 {
                     ? datamartFacilityServices.health().parallelStream()
                         .filter(
                             hs ->
-                                !(hs.source != null && hs.source.equals(Source.CMS))
+                                !(hs.source() != null && hs.source().equals(Source.CMS))
                                     || hs.serviceId()
                                         .equals(HealthService.Covid19Vaccine.serviceId()))
                         .map(FacilityTransformerV0::toFacilityHealthService)
@@ -218,7 +218,7 @@ public final class FacilityTransformerV0 {
             .benefits(
                 (datamartFacilityServices.benefits() != null)
                     ? datamartFacilityServices.benefits().parallelStream()
-                        .filter(hs -> !(hs.source != null && hs.source.equals(Source.CMS)))
+                        .filter(hs -> !(hs.source() != null && hs.source().equals(Source.CMS)))
                         .map(FacilityTransformerV0::toFacilityBenefitsService)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())
@@ -226,7 +226,7 @@ public final class FacilityTransformerV0 {
             .other(
                 (datamartFacilityServices.other() != null)
                     ? datamartFacilityServices.other().parallelStream()
-                        .filter(hs -> !(hs.source != null && hs.source.equals(Source.CMS)))
+                        .filter(hs -> !(hs.source() != null && hs.source().equals(Source.CMS)))
                         .map(FacilityTransformerV0::toFacilityOtherService)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList())

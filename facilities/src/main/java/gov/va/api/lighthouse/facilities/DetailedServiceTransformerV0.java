@@ -20,7 +20,7 @@ public class DetailedServiceTransformerV0 {
         .serviceId(dds.serviceInfo().serviceId())
         .name(toDetailedServiceName(dds.serviceInfo().name()))
         .active(dds.active())
-        .changed(dds.changed())
+        .lastUpdated(dds.lastUpdated())
         .appointmentLeadIn(dds.appointmentLeadIn())
         .onlineSchedulingAvailable(dds.onlineSchedulingAvailable())
         .path(dds.path())
@@ -188,7 +188,7 @@ public class DetailedServiceTransformerV0 {
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(DetailedServiceTransformerV0::toDetailedService)
+                .map(dds -> toDetailedService(dds))
                 .collect(Collectors.toList())
             : emptyList();
   }
@@ -201,7 +201,7 @@ public class DetailedServiceTransformerV0 {
             toVersionAgnosticServiceInfo(
                 ds.serviceId(), toVersionAgnosticDetailedServiceName(ds.name())))
         .active(ds.active())
-        .changed(ds.changed())
+        .lastUpdated(ds.lastUpdated())
         .appointmentLeadIn(ds.appointmentLeadIn())
         .onlineSchedulingAvailable(ds.onlineSchedulingAvailable())
         .path(ds.path())

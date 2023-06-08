@@ -43,7 +43,6 @@ public class FacilityOverlayV0Test {
         .serviceId(Facility.HealthService.Covid19Vaccine.serviceId())
         .name("Covid19Vaccine")
         .active(cmsServiceActiveValue)
-        .changed("2021-02-04T22:36:49+00:00")
         .descriptionFacility("Facility description for vaccine availability for COVID-19")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .onlineSchedulingAvailable("True")

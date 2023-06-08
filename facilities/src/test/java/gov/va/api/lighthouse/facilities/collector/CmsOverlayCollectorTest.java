@@ -2,6 +2,7 @@ package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
@@ -39,14 +41,134 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class CmsOverlayCollectorTest {
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
+  @Mock CmsOverlayMapper mockCmsOverlayMapper;
+
+  @Test
+  void collectServices() {
+    // Benefits services
+    when(mockCmsOverlayMapper.serviceNameForServiceId(BenefitsService.Pensions.serviceId()))
+        .thenReturn(Optional.of(BenefitsService.Pensions.name()));
+    final List<Service<BenefitsService>> benefitsServices =
+        List.of(
+            Service.<BenefitsService>builder()
+                .serviceId(BenefitsService.Pensions.serviceId())
+                .serviceType(BenefitsService.Pensions)
+                .source(Source.CMS)
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceId(BenefitsService.Pensions.serviceId())
+                .serviceType(BenefitsService.Pensions)
+                .source(Source.CMS)
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceId(BenefitsService.Pensions.serviceId())
+                .serviceType(BenefitsService.Pensions)
+                .source(Source.DST)
+                .build(),
+            Service.<BenefitsService>builder()
+                .serviceId(BenefitsService.Pensions.serviceId())
+                .serviceType(BenefitsService.Pensions)
+                .source(Source.ATC)
+                .build());
+    assertThat(collector().getCmsSourcedBenefitsServices(benefitsServices))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            Set.of(
+                Service.builder()
+                    .serviceId(BenefitsService.Pensions.serviceId())
+                    .serviceType(BenefitsService.Pensions)
+                    .source(Source.CMS)
+                    .build()));
+    // Health services
+    when(mockCmsOverlayMapper.serviceNameForServiceId(HealthService.Cardiology.serviceId()))
+        .thenReturn(Optional.of(HealthService.Cardiology.name()));
+    final List<Service<HealthService>> healthServices =
+        List.of(
+            Service.<HealthService>builder()
+                .serviceId(HealthService.Cardiology.serviceId())
+                .serviceType(HealthService.Cardiology)
+                .source(Source.CMS)
+                .build(),
+            Service.<HealthService>builder()
+                .serviceId(HealthService.Cardiology.serviceId())
+                .serviceType(HealthService.Cardiology)
+                .source(Source.CMS)
+                .build(),
+            Service.<HealthService>builder()
+                .serviceId(HealthService.Cardiology.serviceId())
+                .serviceType(HealthService.Cardiology)
+                .source(Source.DST)
+                .build(),
+            Service.<HealthService>builder()
+                .serviceId(HealthService.Cardiology.serviceId())
+                .serviceType(HealthService.Cardiology)
+                .source(Source.ATC)
+                .build());
+    assertThat(collector().getCmsSourcedHealthServices(healthServices))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            Set.of(
+                Service.builder()
+                    .serviceId(HealthService.Cardiology.serviceId())
+                    .serviceType(HealthService.Cardiology)
+                    .source(Source.CMS)
+                    .build()));
+    // Other services
+    when(mockCmsOverlayMapper.serviceNameForServiceId(OtherService.OnlineScheduling.serviceId()))
+        .thenReturn(Optional.of(OtherService.OnlineScheduling.name()));
+    final List<Service<OtherService>> otherServices =
+        List.of(
+            Service.<OtherService>builder()
+                .serviceId(OtherService.OnlineScheduling.serviceId())
+                .serviceType(OtherService.OnlineScheduling)
+                .source(Source.CMS)
+                .build(),
+            Service.<OtherService>builder()
+                .serviceId(OtherService.OnlineScheduling.serviceId())
+                .serviceType(OtherService.OnlineScheduling)
+                .source(Source.CMS)
+                .build(),
+            Service.<OtherService>builder()
+                .serviceId(OtherService.OnlineScheduling.serviceId())
+                .serviceType(OtherService.OnlineScheduling)
+                .source(Source.DST)
+                .build(),
+            Service.<OtherService>builder()
+                .serviceId(OtherService.OnlineScheduling.serviceId())
+                .serviceType(OtherService.OnlineScheduling)
+                .source(Source.ATC)
+                .build());
+    assertThat(collector().getCmsSourcedOtherServices(otherServices))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            Set.of(
+                Service.builder()
+                    .serviceId(OtherService.OnlineScheduling.serviceId())
+                    .serviceType(OtherService.OnlineScheduling)
+                    .source(Source.CMS)
+                    .build()));
+  }
+
+  private CmsOverlayCollector collector() {
+    return new CmsOverlayCollector(mockCmsOverlayRepository, mockCmsOverlayMapper);
+  }
+
   @Test
   public void exceptions() {
     CmsOverlayEntity mockEntity = mock(CmsOverlayEntity.class);
     when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString("vha_123"));
     when(mockEntity.cmsServices()).thenThrow(new NullPointerException("oh noes"));
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    assertThat(collector.loadAndUpdateCmsOverlays()).isEqualTo(Collections.emptyMap());
+    assertThat(collector().loadAndUpdateCmsOverlays()).isEqualTo(Collections.emptyMap());
+    assertThatThrownBy(() -> collector().getCmsSourcedBenefitsServices(null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("benefitsServices is marked non-null but is null");
+    assertThatThrownBy(() -> collector().getCmsSourcedHealthServices(null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("healthServices is marked non-null but is null");
+    assertThatThrownBy(() -> collector().getCmsSourcedOtherServices(null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("otherServices is marked non-null but is null");
   }
 
   @Test
@@ -98,10 +220,9 @@ public class CmsOverlayCollectorTest {
     InsecureRestTemplateProvider mockInsecureRestTemplateProvider =
         mock(InsecureRestTemplateProvider.class);
     JdbcTemplate mockTemplate = mock(JdbcTemplate.class);
-    when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays); // List.of(overlayEntity));
-    CmsOverlayCollector cmsOverlayCollector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    HashMap<String, DatamartCmsOverlay> cmsOverlays =
-        cmsOverlayCollector.loadAndUpdateCmsOverlays();
+    // List.of(overlayEntity));
+    when(mockCmsOverlayRepository.findAll()).thenReturn(mockOverlays);
+    HashMap<String, DatamartCmsOverlay> cmsOverlays = collector().loadAndUpdateCmsOverlays();
     // Verify loaded CMS overlay
     assertThat(cmsOverlays.isEmpty()).isFalse();
     DatamartDetailedService updatedCovidService =
@@ -112,8 +233,8 @@ public class CmsOverlayCollectorTest {
                     .name(CMS_OVERLAY_SERVICE_NAME_COVID_19)
                     .serviceType(DatamartFacility.HealthService.Covid19Vaccine.serviceType())
                     .build())
-            // .path("https://www.va.gov/durham-health-care/programs/covid-19-vaccines/")
-            .path("replace_this_path")
+            . // .path("https://www.va.gov/durham-health-care/programs/covid-19-vaccines/")
+            path("replace_this_path")
             .build();
     DatamartCmsOverlay updatedOverlay =
         DatamartCmsOverlay.builder()
@@ -161,8 +282,7 @@ public class CmsOverlayCollectorTest {
                         .source(Source.CMS)
                         .build()))
             .build());
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    HashMap<String, Services> actualCmsServicesMap = collector.getCmsServices();
+    HashMap<String, Services> actualCmsServicesMap = collector().getCmsServices();
     assertThat(actualCmsServicesMap.get(id)).isEqualTo(expectedCmsServicesMap.get(id));
   }
 
@@ -174,8 +294,7 @@ public class CmsOverlayCollectorTest {
     when(mockEntity.id()).thenReturn(FacilityEntity.Pk.fromIdString(id));
     when(mockEntity.overlayServices()).thenReturn(Set.of());
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(mockEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    assertThat(collector.getCmsServices()).isEmpty();
+    assertThat(collector().getCmsServices()).isEmpty();
   }
 
   @Test
@@ -202,8 +321,7 @@ public class CmsOverlayCollectorTest {
                     .code(DatamartFacility.OperatingStatusCode.NORMAL)
                     .build())
             .build());
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    assertThat(collector.loadAndUpdateCmsOverlays())
+    assertThat(collector().loadAndUpdateCmsOverlays())
         .usingRecursiveComparison()
         .isEqualTo(expectedOverlays);
   }
@@ -266,8 +384,7 @@ public class CmsOverlayCollectorTest {
                     + "  ]")
             .build();
     when(mockCmsOverlayRepository.findAll()).thenReturn(List.of(cmsOverlayEntity));
-    CmsOverlayCollector collector = new CmsOverlayCollector(mockCmsOverlayRepository);
-    collector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
+    collector().updateCmsServicesWithAtcWaitTimes(datamartFacilities);
     List<CmsOverlayEntity> cmsOverlayEntities =
         (List<CmsOverlayEntity>) mockCmsOverlayRepository.findAll();
     // assert that cms Cardiology has wait times from atc applied
@@ -296,7 +413,7 @@ public class CmsOverlayCollectorTest {
   @SneakyThrows
   void verifyContainsCovidService() {
     assertThat(
-            new CmsOverlayCollector(mockCmsOverlayRepository)
+            collector()
                 .containsCovidService(
                     List.of(
                         DatamartDetailedService.builder()
@@ -335,7 +452,7 @@ public class CmsOverlayCollectorTest {
   @Test
   void verifyDoesNotContainCovidService() {
     assertThat(
-            new CmsOverlayCollector(mockCmsOverlayRepository)
+            collector()
                 .containsCovidService(
                     List.of(
                         DatamartDetailedService.builder()
@@ -368,7 +485,6 @@ public class CmsOverlayCollectorTest {
                                     .build())
                             .build())))
         .isFalse();
-    assertThat(new CmsOverlayCollector(mockCmsOverlayRepository).containsCovidService(null))
-        .isFalse();
+    assertThat(collector().containsCovidService(null)).isFalse();
   }
 }

@@ -15,7 +15,6 @@ public class DetailedServiceUtils {
                 .serviceType(serviceType.serviceType())
                 .build())
         .active(true)
-        .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .path("replaceable path here")
         .phoneNumbers(

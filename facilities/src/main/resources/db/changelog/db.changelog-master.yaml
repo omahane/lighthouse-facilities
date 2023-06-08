@@ -564,6 +564,7 @@ databaseChangeLog:
                   name: type
               - column:
                   name: services
+
   # As a result of the latency event experienced in production August 2022, additional indexes
   # have been added to drive_time_band, facility, and facility_services tables.
   # Note: h2 db does not support creating nonclustered indexes or sp_rename
@@ -1235,16 +1236,54 @@ databaseChangeLog:
                   name: type
               - column:
                   name: services
+
+  # Add core column to cms overlay
   - changeSet:
       id: 51
       author: axolotl
       changes:
         addColumn:
-          tableName: cms_overlay
           schemaName: app
+          tableName: cms_overlay
           columns:
             - column:
                 name: core
                 type: clob
                 constraints:
                   nullable: true
+
+  # Extract service_id and source from facility_services services column into their own respective columns
+  - changeSet:
+      id: 52
+      author: axolotl
+      changes:
+        - addColumn:
+            tableName: facility_services
+            schemaName: app
+            columns:
+              - column:
+                  name: service_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: source
+                  type: varchar(15)
+                  constraints:
+                    nullable: true
+        - createIndex:
+            schemaName: app
+            tableName: facility_services
+            clustered: false
+            indexName: facility_services_service_id_idx
+            columns:
+              - column:
+                  name: service_id
+        - createIndex:
+            schemaName: app
+            tableName: facility_services
+            clustered: false
+            indexName: facility_services_source_idx
+            columns:
+              - column:
+                  name: source

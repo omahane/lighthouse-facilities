@@ -350,7 +350,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
         .onlineSchedulingAvailable("true")
-        .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
 
@@ -395,7 +394,6 @@ public class FacilityTransformerV0Test extends BaseFacilityTransformerTest {
                 + "during this time. As the supply of vaccine increases, we'll work with our care "
                 + "teams to let Veterans know their options.")
         .onlineSchedulingAvailable("true")
-        .changed("2021-02-04T22:36:49+00:00")
         .build();
   }
 

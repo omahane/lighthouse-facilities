@@ -1,8 +1,17 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
+import static gov.va.api.lighthouse.facilities.FacilityServicesUtils.populate;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityBenefitsService;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityHealthService;
+import static gov.va.api.lighthouse.facilities.FacilityTransformerV0.toVersionAgnosticFacilityOtherService;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.api.ServiceType;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +22,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 
 public class FacilitySamples {
+
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
   private final Map<String, gov.va.api.lighthouse.facilities.api.v0.Facility> facilities;
 
   private final Map<String, gov.va.api.lighthouse.facilities.api.v1.Facility> facilitiesV1;
@@ -22,18 +34,17 @@ public class FacilitySamples {
   @SneakyThrows
   @Builder
   FacilitySamples(@NonNull List<String> resources, @NonNull String linkerUrl) {
-    var datamartFacilitiesMapper = DatamartFacilitiesJacksonConfig.createMapper();
     datamartFacilities =
         resources.stream()
             .map(r -> getClass().getResourceAsStream(r))
             .map(
                 in ->
                     DatamartFacilitiesJacksonConfig.quietlyMap(
-                        datamartFacilitiesMapper, in, DatamartFacility.class))
+                        DATAMART_MAPPER, in, DatamartFacility.class))
             .collect(Collectors.toList());
     facilities =
         datamartFacilities.stream()
-            .map(FacilityTransformerV0::toFacility)
+            .map(df -> FacilityTransformerV0.toFacility(df))
             .collect(
                 Collectors.toMap(
                     gov.va.api.lighthouse.facilities.api.v0.Facility::id, Function.identity()));
@@ -61,7 +72,8 @@ public class FacilitySamples {
     return f;
   }
 
-  FacilityEntity facilityEntity(String id) {
+  /** Obtain entity using V0 facility transformer. Parent id not populated. */
+  FacilityEntity facilityEntity(@NonNull String id) {
     DatamartFacility df = FacilityTransformerV0.toVersionAgnostic(facility(id));
     df.attributes().services().health().stream().forEach(hs -> hs.source(Source.ATC));
     return InternalFacilitiesController.populate(
@@ -72,6 +84,7 @@ public class FacilitySamples {
         df);
   }
 
+  /** Obtain entity using V1 facility transformer, which will populate parent id. */
   FacilityEntity facilityEntityV1(String id) {
     DatamartFacility df = FacilityTransformerV1.toVersionAgnostic(facilityV1(id));
     df.attributes().services().health().stream().forEach(hs -> hs.source(Source.ATC));
@@ -81,6 +94,82 @@ public class FacilitySamples {
             .lastUpdated(Instant.now())
             .build(),
         df);
+  }
+
+  @SneakyThrows
+  <U extends ServiceType, V extends TypedService> FacilityServicesEntity facilityServicesEntity(
+      @NonNull String facilityId, @NonNull U facilityService) {
+    return facilityServicesEntity(facilityId, facilityService, Source.ATC);
+  }
+
+  @SneakyThrows
+  <U extends ServiceType, V extends TypedService> FacilityServicesEntity facilityServicesEntity(
+      @NonNull String facilityId, @NonNull U facilityService, @NonNull Source source) {
+    DatamartFacility.Service<? extends TypedService> datamartFacilityService =
+        facilityService instanceof gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService
+            ? DatamartFacility.Service.<DatamartFacility.HealthService>builder()
+                .serviceType(
+                    toVersionAgnosticFacilityHealthService(
+                            (gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService)
+                                facilityService)
+                        .serviceType())
+                .build()
+            : facilityService
+                    instanceof gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService
+                ? DatamartFacility.Service.<DatamartFacility.BenefitsService>builder()
+                    .serviceType(
+                        toVersionAgnosticFacilityBenefitsService(
+                                (gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService)
+                                    facilityService)
+                            .serviceType())
+                    .build()
+                : facilityService
+                        instanceof gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService
+                    ? DatamartFacility.Service.<DatamartFacility.OtherService>builder()
+                        .serviceType(
+                            toVersionAgnosticFacilityOtherService(
+                                    (gov.va.api.lighthouse.facilities.api.v0.Facility.OtherService)
+                                        facilityService)
+                                .serviceType())
+                        .build()
+                    : null;
+    if (datamartFacilityService != null) {
+      datamartFacilityService.serviceId(facilityService.serviceId());
+      datamartFacilityService.source(source);
+    }
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(FacilityEntity.Pk.fromIdString(facilityId))
+            .lastUpdated(Instant.now())
+            .build();
+    return populate(
+        FacilityServicesEntity.builder()
+            .id(
+                FacilityServicesEntity.Pk.of(
+                    facilityEntity.id().type(),
+                    facilityId,
+                    DATAMART_MAPPER.writeValueAsString(datamartFacilityService)))
+            .build(),
+        datamartFacilityService);
+  }
+
+  @SneakyThrows
+  <V extends TypedService> FacilityServicesEntity facilityServicesEntity(
+      @NonNull String facilityId, @NonNull Service<V> datamartHealthService) {
+    FacilityEntity facilityEntity =
+        FacilityEntity.builder()
+            .id(FacilityEntity.Pk.fromIdString(facilityId))
+            .lastUpdated(Instant.now())
+            .build();
+    return populate(
+        FacilityServicesEntity.builder()
+            .id(
+                FacilityServicesEntity.Pk.of(
+                    facilityEntity.id().type(),
+                    facilityId,
+                    DATAMART_MAPPER.writeValueAsString(datamartHealthService)))
+            .build(),
+        datamartHealthService);
   }
 
   gov.va.api.lighthouse.facilities.api.v1.Facility facilityV1(String id) {

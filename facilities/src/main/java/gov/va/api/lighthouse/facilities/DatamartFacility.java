@@ -1,5 +1,6 @@
 package gov.va.api.lighthouse.facilities;
 
+import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.createMapper;
 import static gov.va.api.lighthouse.facilities.collector.CovidServiceUpdater.CMS_OVERLAY_SERVICE_NAME_COVID_19;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -12,9 +13,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import gov.va.api.lighthouse.facilities.api.TypeOfService;
 import gov.va.api.lighthouse.facilities.api.TypedService;
+import gov.va.api.lighthouse.facilities.collector.IsAtcAware;
 import gov.va.api.lighthouse.facilities.deserializers.DatamartServicesDeserializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,6 +33,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.jackson.Jacksonized;
 
 @Data
@@ -39,7 +43,9 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(value = Include.NON_EMPTY, content = Include.NON_EMPTY)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DatamartFacility {
+public class DatamartFacility implements IsAtcAware {
+  private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
   @NotNull String id;
 
   @NotNull Type type;
@@ -78,6 +84,11 @@ public class DatamartFacility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain benefits service for given ATC service name. */
+    public static Optional<BenefitsService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(BENEFITS_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<BenefitsService> fromServiceId(String serviceId) {
       return Arrays.stream(values())
@@ -91,7 +102,14 @@ public class DatamartFacility {
     public static BenefitsService fromString(String name) {
       return eBenefitsRegistrationAssistance.name().equalsIgnoreCase(name)
           ? eBenefitsRegistrationAssistance
-          : valueOf(capitalize(name));
+          : isRecognizedAtcServiceName(name)
+              ? fromAtcServiceName(name).get()
+              : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents benefits service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return BENEFITS_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents benefits service. */
@@ -332,6 +350,11 @@ public class DatamartFacility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain health service for given ATC service name. */
+    public static Optional<HealthService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(HEALTH_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<HealthService> fromServiceId(String serviceId) {
       return "dentalServices".equals(serviceId)
@@ -351,7 +374,16 @@ public class DatamartFacility {
           ? Covid19Vaccine
           : "MentalHealthCare".equalsIgnoreCase(name)
               ? MentalHealth
-              : "DentalServices".equalsIgnoreCase(name) ? Dental : valueOf(capitalize(name));
+              : "DentalServices".equalsIgnoreCase(name)
+                  ? Dental
+                  : isRecognizedAtcServiceName(name)
+                      ? fromAtcServiceName(name).get()
+                      : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents health service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return HEALTH_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents Covid-19 health service. */
@@ -412,6 +444,11 @@ public class DatamartFacility {
       this.serviceId = serviceId;
     }
 
+    /** Obtain other service for given ATC service name. */
+    public static Optional<OtherService> fromAtcServiceName(String serviceName) {
+      return Optional.ofNullable(OTHER_SERVICES.get(serviceName));
+    }
+
     /** Obtain service for unique service id. */
     public static Optional<OtherService> fromServiceId(String serviceId) {
       return Arrays.stream(values())
@@ -423,7 +460,14 @@ public class DatamartFacility {
     /** Ensure that Jackson can create OtherService enum regardless of capitalization. */
     @JsonCreator
     public static OtherService fromString(String name) {
-      return valueOf(capitalize(name));
+      return isRecognizedAtcServiceName(name)
+          ? fromAtcServiceName(name).get()
+          : valueOf(capitalize(name));
+    }
+
+    /** Determine whether specified ATC service name represents other service. */
+    public static boolean isRecognizedAtcServiceName(String serviceName) {
+      return OTHER_SERVICES.containsKey(serviceName);
     }
 
     /** Determine whether specified service name represents other service. */
@@ -798,6 +842,11 @@ public class DatamartFacility {
     @Override
     public int compareTo(@NotNull Service<T> service) {
       return serviceId().compareTo(service.serviceId());
+    }
+
+    @SneakyThrows
+    public String toJson() {
+      return DATAMART_MAPPER.writeValueAsString(Service.this);
     }
 
     public enum Source {

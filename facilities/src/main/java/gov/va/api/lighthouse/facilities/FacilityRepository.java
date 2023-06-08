@@ -4,16 +4,20 @@ import static java.util.Collections.emptySet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import gov.va.api.health.autoconfig.logging.Loggable;
+import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -50,13 +54,38 @@ public interface FacilityRepository
 
     @SneakyThrows
     protected Predicate buildServicesPredicate(
-        Root<FacilityEntity> root, CriteriaBuilder criteriaBuilder, Set<String> services) {
-      Predicate[] servicePredicates =
-          services.stream()
-              .map(s -> criteriaBuilder.isMember(s, root.get("services")))
-              .toArray(Predicate[]::new);
-      return criteriaBuilder.or(servicePredicates);
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder,
+        Set<FacilityServiceSearchCriteria> svcSearchCriteria) {
+      Subquery<FacilityServicesEntity> subquery =
+          criteriaQuery.distinct(true).subquery(FacilityServicesEntity.class);
+      Root<FacilityServicesEntity> subqueryRoot = subquery.from(FacilityServicesEntity.class);
+      subquery
+          .select(subqueryRoot.get("id").get("services"))
+          .where(
+              criteriaBuilder.or(
+                  svcSearchCriteria.stream()
+                      .map(
+                          criteria ->
+                              criteriaBuilder.and(
+                                  criteriaBuilder.equal(
+                                      subqueryRoot.get("serviceId"), criteria.serviceId()),
+                                  criteriaBuilder.equal(
+                                      subqueryRoot.get("source"), criteria.source())))
+                      .collect(Collectors.toList())
+                      .toArray(new Predicate[0])));
+      return criteriaBuilder.or(root.join("services").in(subquery));
     }
+  }
+
+  @Value
+  @Builder
+  @EqualsAndHashCode
+  class FacilityServiceSearchCriteria implements Serializable {
+    private @NonNull String serviceId;
+
+    private @NonNull Source source;
   }
 
   @Value
@@ -77,7 +106,7 @@ public interface FacilityRepository
 
     ZipSpecification zip;
 
-    @Builder.Default Set<String> services = emptySet();
+    @Builder.Default Set<FacilityServiceSearchCriteria> services = emptySet();
 
     private static void addToPredicates(
         Specification<FacilityEntity> spec,
@@ -104,9 +133,44 @@ public interface FacilityRepository
       addToPredicates(ids(), root, criteriaQuery, criteriaBuilder, predicates);
       addToPredicates(zip(), root, criteriaQuery, criteriaBuilder, predicates);
       if (!services().isEmpty()) {
-        predicates.add(buildServicesPredicate(root, criteriaBuilder, services()));
+        predicates.add(buildServicesPredicate(root, criteriaQuery, criteriaBuilder, services()));
       }
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    }
+  }
+
+  @Data
+  @SuperBuilder
+  @EqualsAndHashCode(callSuper = false)
+  abstract class BaseFacilitySpecification extends ServicesSpecificationHelper {
+    FacilityEntity.Type facilityType;
+
+    @Builder.Default Set<FacilityServiceSearchCriteria> services = emptySet();
+
+    Boolean mobile;
+
+    protected boolean containsValuesForPredicate() {
+      return facilityType() != null || !isEmpty(services()) || mobile() != null;
+    }
+
+    @Override
+    public Predicate toPredicate(
+        Root<FacilityEntity> root,
+        CriteriaQuery<?> criteriaQuery,
+        CriteriaBuilder criteriaBuilder) {
+      List<Predicate> basePredicates = new ArrayList<>(2);
+      if (facilityType() != null) {
+        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType()));
+      }
+      if (mobile() != null) {
+        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile()));
+      }
+      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
+      if (isEmpty(services())) {
+        return combinedBase;
+      }
+      return criteriaBuilder.and(
+          combinedBase, buildServicesPredicate(root, criteriaQuery, criteriaBuilder, services()));
     }
   }
 
@@ -154,41 +218,6 @@ public interface FacilityRepository
         CriteriaQuery<?> criteriaQuery,
         CriteriaBuilder criteriaBuilder) {
       return super.toPredicate(root, criteriaQuery, criteriaBuilder);
-    }
-  }
-
-  @Data
-  @SuperBuilder
-  @EqualsAndHashCode(callSuper = false)
-  abstract class BaseFacilitySpecification extends ServicesSpecificationHelper {
-    FacilityEntity.Type facilityType;
-
-    @Builder.Default Set<String> services = emptySet();
-
-    Boolean mobile;
-
-    protected boolean containsValuesForPredicate() {
-      return facilityType() != null || !isEmpty(services()) || mobile() != null;
-    }
-
-    @Override
-    public Predicate toPredicate(
-        Root<FacilityEntity> root,
-        CriteriaQuery<?> criteriaQuery,
-        CriteriaBuilder criteriaBuilder) {
-      List<Predicate> basePredicates = new ArrayList<>(2);
-      if (facilityType() != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("id").get("type"), facilityType()));
-      }
-      if (mobile() != null) {
-        basePredicates.add(criteriaBuilder.equal(root.get("mobile"), mobile()));
-      }
-      Predicate combinedBase = criteriaBuilder.and(basePredicates.toArray(new Predicate[0]));
-      if (isEmpty(services())) {
-        return combinedBase;
-      }
-      return criteriaBuilder.and(
-          combinedBase, buildServicesPredicate(root, criteriaBuilder, services()));
     }
   }
 

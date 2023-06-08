@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import java.util.function.Function;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
 
@@ -17,7 +18,7 @@ public class FacilityOverlayV0 implements Function<HasFacilityPayload, Facility>
 
   @Override
   @SneakyThrows
-  public Facility apply(HasFacilityPayload entity) {
+  public Facility apply(@NonNull HasFacilityPayload entity) {
     Facility facility =
         FacilityTransformerV0.toFacility(
             filterOutInvalidDetailedServices(

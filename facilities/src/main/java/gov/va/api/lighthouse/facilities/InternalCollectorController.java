@@ -51,7 +51,7 @@ public class InternalCollectorController {
 
   @GetMapping(value = "/facilities")
   List<DatamartFacility> collectFacilities() {
-    return collector.collectFacilities();
+    return collector.collectFacilities(true);
   }
 
   @GetMapping(value = "/mental-health-contact")

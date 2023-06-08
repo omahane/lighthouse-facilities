@@ -18,6 +18,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 class DetailedServiceTransformerV1Test {
+
   @Test
   void datamartDetailedServiceWithEmptyAttributesRoundTrip() {
     assertThat(
@@ -34,7 +35,6 @@ class DetailedServiceTransformerV1Test {
                 .phoneNumbers(emptyList())
                 .serviceLocations(emptyList())
                 .build());
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithEmptyAttributes();
     assertThat(
@@ -58,7 +58,6 @@ class DetailedServiceTransformerV1Test {
                         .serviceType(TypeOfService.Health)
                         .build())
                 .build());
-
     DatamartDetailedService datamartDetailedService =
         DatamartDetailedServicesTestUtils.datamartDetailedServiceWithNullAttributes();
     assertThat(
@@ -91,14 +90,6 @@ class DetailedServiceTransformerV1Test {
     assertThat(DetailedServiceTransformerV1.toDetailedServiceEmailContacts(null)).isNull();
     assertThat(DetailedServiceTransformerV1.toDetailedServiceEmailContacts(new ArrayList<>()))
         .isEmpty();
-  }
-
-  @Test
-  void toDetailedServiceName() {
-    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("ApplyingForBenefits"))
-        .isEqualTo("ApplyingForBenefits");
-    assertThat(DetailedServiceTransformerV1.toDetailedServiceName("OnlineScheduling"))
-        .isEqualTo("OnlineScheduling");
   }
 
   @Test

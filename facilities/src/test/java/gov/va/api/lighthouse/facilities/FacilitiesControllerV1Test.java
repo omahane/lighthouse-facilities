@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,12 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceSearchCriteria;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.FacilityReadResponse;
@@ -35,7 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class FacilitiesControllerV1Test {
-  private static final ObjectMapper MAPPER_V1 = createMapper();
 
   private FacilityRepository fr;
 
@@ -200,44 +197,33 @@ public class FacilitiesControllerV1Test {
         .isEqualTo(List.of("vha_691GB", "vha_740GA", "vha_757"));
   }
 
-  private Set<String> facilityServices() {
+  private Set<FacilityServiceSearchCriteria> facilityServices() {
     List<String> serviceSources = new ArrayList<>();
     serviceSources.add("ATC");
     serviceSources.add("CMS");
     serviceSources.add("DST");
     serviceSources.add("internal");
     serviceSources.add("BISL");
-    Set<String> services = new HashSet<>();
+    Set<FacilityServiceSearchCriteria> services = new HashSet<>();
     serviceSources.stream()
         .forEach(
             ss -> {
-              try {
-                services.add(
-                    MAPPER_V1.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Audiology.serviceId())
-                            .name(HealthService.Audiology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-                services.add(
-                    MAPPER_V1.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Cardiology.serviceId())
-                            .name(HealthService.Cardiology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-                services.add(
-                    MAPPER_V1.writeValueAsString(
-                        DatamartFacility.Service.builder()
-                            .serviceId(HealthService.Urology.serviceId())
-                            .name(HealthService.Urology.name())
-                            .source(Source.valueOf(ss))
-                            .build()));
-              } catch (final JsonProcessingException ex) {
-                throw new RuntimeException(ex);
-              }
+              services.add(
+                  FacilityServiceSearchCriteria.builder()
+                      .serviceId(HealthService.Audiology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
+              services.add(
+                  FacilityServiceSearchCriteria.builder()
+                      .serviceId(HealthService.Cardiology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
+              services.add(
+                  FacilityServiceSearchCriteria.builder()
+                      .serviceId(HealthService.Urology.serviceId())
+                      .source(Source.valueOf(ss))
+                      .build());
             });
-
     return services;
   }
 
@@ -523,8 +509,8 @@ public class FacilitiesControllerV1Test {
         .thenReturn(
             new ArrayList<>(
                 List.of(
-                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB"),
                     FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_740GA"),
+                    FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_691GB"),
                     FacilitySamples.defaultSamples(linkerUrl).facilityEntityV1("vha_757"))));
     assertThat(
             controller(baseUrl, basePath)
@@ -722,7 +708,7 @@ public class FacilitiesControllerV1Test {
                                 .currentPage(1)
                                 .entriesPerPage(1)
                                 .totalPages(1)
-                                .totalEntries(1)
+                                .totalEntries(0)
                                 .build())
                         .distances(emptyList())
                         .build())

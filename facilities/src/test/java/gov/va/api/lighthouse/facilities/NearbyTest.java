@@ -1,17 +1,22 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV0;
+import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.BenefitsService.ApplyingForBenefits;
 import static gov.va.api.lighthouse.facilities.api.v0.Facility.HealthService.PrimaryCare;
 import static gov.va.api.lighthouse.facilities.api.v0.NearbyResponse.Type.NearbyFacility;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v0.Facility;
@@ -20,12 +25,19 @@ import gov.va.api.lighthouse.facilities.collector.InsecureRestTemplateProvider;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ObjectUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,13 +46,15 @@ import org.springframework.web.client.RestTemplate;
 public class NearbyTest {
   @Autowired FacilityRepository facilityRepository;
 
+  @Autowired FacilityServicesRepository facilityServicesRepository;
+
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
-  @Mock RestTemplate restTemplate = mock(RestTemplate.class);
+  private RestTemplate mockRestTemplate;
 
   private NearbyControllerV0 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
-    when(restTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplateProvider.restTemplate()).thenReturn(mockRestTemplate);
     return NearbyControllerV0.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
@@ -140,8 +154,143 @@ public class NearbyTest {
                         .build())
                 .build());
     facility.attributes.services().health().stream().forEach(hs -> hs.source(Source.ATC));
-
     return facility;
+  }
+
+  @Test
+  @SneakyThrows
+  void addressNotSupported() {
+    when(mockRestTemplate.exchange(
+            startsWith("http://bing"),
+            eq(HttpMethod.GET),
+            Mockito.any(HttpEntity.class),
+            eq(String.class)))
+        .thenReturn(
+            ResponseEntity.of(
+                Optional.of(
+                    JacksonConfig.createMapper()
+                        .writeValueAsString(
+                            BingResponse.builder()
+                                .resourceSets(
+                                    List.of(
+                                        BingResponse.ResourceSet.builder().build(),
+                                        BingResponse.ResourceSet.builder()
+                                            .resources(
+                                                List.of(
+                                                    BingResponse.Resource.builder().build(),
+                                                    BingResponse.Resource.builder()
+                                                        .resourcePoint(
+                                                            BingResponse.Point.builder().build())
+                                                        .build(),
+                                                    BingResponse.Resource.builder()
+                                                        .resourcePoint(
+                                                            BingResponse.Point.builder()
+                                                                .coordinates(
+                                                                    List.of(BigDecimal.ZERO))
+                                                                .build())
+                                                        .build(),
+                                                    BingResponse.Resource.builder()
+                                                        .resourcePoint(
+                                                            BingResponse.Point.builder()
+                                                                .coordinates(
+                                                                    List.of(
+                                                                        new BigDecimal("-0.1"),
+                                                                        new BigDecimal("0.1")))
+                                                                .build())
+                                                        .build()))
+                                            .build()))
+                                .build()))));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
+    driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
+    driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
+    assertThatThrownBy(
+            () ->
+                _controller()
+                    .nearbyAddressNotSupported(
+                        "505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null))
+        .isInstanceOf(ExceptionsUtilsV0.BingException.class)
+        .hasMessage("Bing error: Search by address is not supported, please use [lat,lng]");
+  }
+
+  @Test
+  void addressNotSupported_bingException() {
+    when(mockRestTemplate.exchange(
+            startsWith("http://bing"),
+            eq(HttpMethod.GET),
+            Mockito.any(HttpEntity.class),
+            eq(String.class)))
+        .thenThrow(new IllegalStateException("Google instead?"));
+    assertThatThrownBy(
+            () ->
+                _controller()
+                    .nearbyAddressNotSupported(
+                        "505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null))
+        .isInstanceOf(ExceptionsUtilsV0.BingException.class)
+        .hasMessage("Bing error: Search by address is not supported, please use [lat,lng]");
+  }
+
+  @Test
+  @SneakyThrows
+  void addressNotSupported_bingNoResults() {
+    when(mockRestTemplate.exchange(
+            startsWith("http://bing"),
+            eq(HttpMethod.GET),
+            Mockito.any(HttpEntity.class),
+            eq(String.class)))
+        .thenReturn(
+            ResponseEntity.of(
+                Optional.of(
+                    JacksonConfig.createMapper()
+                        .writeValueAsString(
+                            BingResponse.builder()
+                                .resourceSets(
+                                    List.of(
+                                        BingResponse.ResourceSet.builder().build(),
+                                        BingResponse.ResourceSet.builder()
+                                            .resources(
+                                                List.of(
+                                                    BingResponse.Resource.builder().build(),
+                                                    BingResponse.Resource.builder()
+                                                        .resourcePoint(
+                                                            BingResponse.Point.builder().build())
+                                                        .build(),
+                                                    BingResponse.Resource.builder()
+                                                        .resourcePoint(
+                                                            BingResponse.Point.builder()
+                                                                .coordinates(
+                                                                    List.of(BigDecimal.ZERO))
+                                                                .build())
+                                                        .build()))
+                                            .build()))
+                                .build()))));
+    assertThatThrownBy(
+            () ->
+                _controller()
+                    .nearbyAddressNotSupported(
+                        "505 N John Rodes Blvd", "Melbourne", "FL", "32934", null, null))
+        .isInstanceOf(ExceptionsUtilsV0.BingException.class)
+        .hasMessage("Bing error: Search by address is not supported, please use [lat,lng]");
   }
 
   @Test
@@ -149,7 +298,14 @@ public class NearbyTest {
     final var baseUrl = "http://foo/";
     final var basePath = "bp";
     final var linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
-    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var facilityId = "vha_757";
+    final DatamartFacility facility = _facilityHealth(facilityId);
+    // Setup facility
+    facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId));
+    // Setup facility services
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().health());
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().other());
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -162,8 +318,28 @@ public class NearbyTest {
 
   @Test
   void filterMaxDriveTime() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 50, 60, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -178,8 +354,28 @@ public class NearbyTest {
 
   @Test
   void filterServices() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -190,7 +386,7 @@ public class NearbyTest {
                 .data(
                     List.of(
                         NearbyResponse.Nearby.builder()
-                            .id("vha_666")
+                            .id(vha666FacilityId)
                             .type(NearbyResponse.Type.NearbyFacility)
                             .attributes(
                                 NearbyResponse.NearbyAttributes.builder()
@@ -204,8 +400,28 @@ public class NearbyTest {
 
   @Test
   void hit() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -229,13 +445,52 @@ public class NearbyTest {
 
   @Test
   void hitWithDeprecatedPssgDriveBands() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_deprecatedPssgDriveTimeBandEntity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(
         _deprecatedPssgDriveTimeBandEntity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response).isEqualTo(hitVha666());
+  }
+
+  @BeforeEach
+  void setup() {
+    mockRestTemplate = mock(RestTemplate.class);
+  }
+
+  private <T extends TypedService> void setupFacilityServices(
+      @NonNull String facilityId,
+      @NonNull String linkerUrl,
+      List<DatamartFacility.Service<T>> facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      facilityServices.stream()
+          .forEach(
+              fs ->
+                  facilityServicesRepository.save(
+                      FacilitySamples.defaultSamples(linkerUrl)
+                          .facilityServicesEntity(facilityId, fs)));
+    }
   }
 }

@@ -63,9 +63,8 @@ public class DatamartServicesDeserializer extends StdDeserializer<Services> {
         TypeReference<List<BenefitsService>> serviceEnumList = new TypeReference<>() {};
         benefitsServices =
             MAPPER.convertValue(benefitsNode, serviceEnumList).stream()
-                .map(
-                    bs ->
-                        Service.<BenefitsService>builder().serviceType(bs).name(bs.name()).build())
+                // Default service name to benefits service enum name
+                .map(bs -> Service.<BenefitsService>builder().serviceType(bs).build())
                 .collect(Collectors.toList());
       }
     }
@@ -86,7 +85,8 @@ public class DatamartServicesDeserializer extends StdDeserializer<Services> {
         TypeReference<List<HealthService>> serviceEnumList = new TypeReference<>() {};
         healthServices =
             MAPPER.convertValue(healthNode, serviceEnumList).stream()
-                .map(hs -> Service.<HealthService>builder().serviceType(hs).name(hs.name()).build())
+                // Default service name to health service enum name
+                .map(hs -> Service.<HealthService>builder().serviceType(hs).build())
                 .collect(Collectors.toList());
       }
     }
@@ -107,7 +107,8 @@ public class DatamartServicesDeserializer extends StdDeserializer<Services> {
         TypeReference<List<OtherService>> serviceEnumList = new TypeReference<>() {};
         otherServices =
             MAPPER.convertValue(otherNode, serviceEnumList).stream()
-                .map(os -> Service.<OtherService>builder().serviceType(os).name(os.name()).build())
+                // Default service name to other service enum name
+                .map(os -> Service.<OtherService>builder().serviceType(os).build())
                 .collect(Collectors.toList());
       }
     }

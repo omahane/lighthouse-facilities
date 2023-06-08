@@ -4,7 +4,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -18,6 +17,7 @@ import gov.va.api.lighthouse.facilities.api.TypedService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -47,7 +47,8 @@ import org.apache.commons.lang3.StringUtils;
   "online_scheduling_available",
   "referral_required",
   "walk_ins_accepted",
-  "service_locations"
+  "service_locations",
+  "last_updated"
 })
 public class DatamartDetailedService {
   @NonNull ServiceInfo serviceInfo;
@@ -57,7 +58,8 @@ public class DatamartDetailedService {
 
   boolean active;
 
-  @JsonIgnore String changed;
+  @JsonProperty("last_updated")
+  LocalDateTime lastUpdated;
 
   @JsonProperty("appointment_leadin")
   String appointmentLeadIn;

@@ -85,7 +85,6 @@ public class FacilityOverlayV1Test {
                 .serviceType(HealthService.Covid19Vaccine.serviceType())
                 .build())
         .active(cmsServiceActiveValue)
-        .changed("2021-02-04T22:36:49+00:00")
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .path("\\/erie-health-care\\/locations\\/erie-va-medical-center\\/covid-19-vaccines")
         .phoneNumbers(

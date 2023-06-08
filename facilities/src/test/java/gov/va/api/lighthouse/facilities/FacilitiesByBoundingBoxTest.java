@@ -5,13 +5,17 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
+import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
+import gov.va.api.lighthouse.facilities.api.v0.GeoFacility;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v0.Pagination;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
+import org.apache.commons.lang3.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +27,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 public class FacilitiesByBoundingBoxTest {
   @Autowired private FacilityRepository repo;
+
+  @Autowired private FacilityServicesRepository facilityServicesRepository;
 
   private String baseUrl;
 
@@ -40,7 +46,15 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var facilityId = "vha_757";
+    final GeoFacility geoFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(facilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId));
+    // Setup facility services
+    setupFacilityServices(facilityId, geoFacility.properties().services().benefits());
+    setupFacilityServices(facilityId, geoFacility.properties().services().health());
+    setupFacilityServices(facilityId, geoFacility.properties().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .geoFacilitiesByBoundingBox(
@@ -57,7 +71,7 @@ public class FacilitiesByBoundingBoxTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
+                .features(List.of(geoFacility))
                 .build());
   }
 
@@ -121,7 +135,14 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_noFilter() {
+    final var facilityId = "vha_757";
+    final Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility(facilityId);
+    // Setup facility
     repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    // Setup facility services
+    setupFacilityServices(facilityId, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, facility.attributes().services().health());
+    setupFacilityServices(facilityId, facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
@@ -136,12 +157,19 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(List.of(facility));
   }
 
   @Test
   void json_perPageZero() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var facilityId = "vha_757";
+    final Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility(facilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId));
+    // Setup facility services
+    setupFacilityServices(facilityId, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, facility.attributes().services().health());
+    setupFacilityServices(facilityId, facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
@@ -178,7 +206,14 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var facilityId = "vha_757";
+    final Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility(facilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId));
+    // Setup facility services
+    setupFacilityServices(facilityId, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, facility.attributes().services().health());
+    setupFacilityServices(facilityId, facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
@@ -193,13 +228,27 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(List.of(facility));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
+    final var vha757FacilityId = "vha_757";
+    final var vha691GbFacilityId = "vha_691GB";
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    // Setup facility services
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
     String linkBase =
         "http://foo/bp/v0/facilities?bbox%5B%5D=-80&bbox%5B%5D=20&bbox%5B%5D=-120&bbox%5B%5D=40&services%5B%5D=primarycare&type=HEALTH";
     assertThat(
@@ -217,7 +266,7 @@ public class FacilitiesByBoundingBoxTest {
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")))
+                .data(List.of(vha691GbFacility))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=2&per_page=1")
@@ -240,7 +289,14 @@ public class FacilitiesByBoundingBoxTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var facilityId = "vha_757";
+    final Facility facility = FacilitySamples.defaultSamples(linkerUrl).facility(facilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(facilityId));
+    // Setup facility services
+    setupFacilityServices(facilityId, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, facility.attributes().services().health());
+    setupFacilityServices(facilityId, facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByBoundingBox(
@@ -255,7 +311,7 @@ public class FacilitiesByBoundingBoxTest {
                     1,
                     1)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(List.of(facility));
   }
 
   @BeforeEach
@@ -263,5 +319,17 @@ public class FacilitiesByBoundingBoxTest {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+  }
+
+  private <T extends ServiceType> void setupFacilityServices(
+      @NonNull String facilityId, List<T> facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      facilityServices.stream()
+          .forEach(
+              fs ->
+                  facilityServicesRepository.save(
+                      FacilitySamples.defaultSamples(linkerUrl)
+                          .facilityServicesEntity(facilityId, fs)));
+    }
   }
 }

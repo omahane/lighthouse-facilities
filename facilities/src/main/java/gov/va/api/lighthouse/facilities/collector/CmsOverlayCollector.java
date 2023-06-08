@@ -1,6 +1,7 @@
 package gov.va.api.lighthouse.facilities.collector;
 
 import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.google.common.collect.Streams;
@@ -27,10 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +41,15 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@AllArgsConstructor(onConstructor = @__(@Autowired))
-public class CmsOverlayCollector {
-  private final CmsOverlayRepository cmsOverlayRepository;
+public class CmsOverlayCollector extends BaseCmsOverlayHandler {
+  private final CmsOverlayMapper cmsOverlayMapper;
+
+  public CmsOverlayCollector(
+      @Autowired CmsOverlayRepository cmsOverlayRepository,
+      @Autowired CmsOverlayMapper cmsOverlayMapper) {
+    super(cmsOverlayRepository);
+    this.cmsOverlayMapper = cmsOverlayMapper;
+  }
 
   /** Method for determining whether Covid service is contained within detailed services. */
   public static boolean containsCovidService(List<DatamartDetailedService> detailedServices) {
@@ -65,39 +74,53 @@ public class CmsOverlayCollector {
     List<Service<BenefitsService>> benefitsServices = new ArrayList<>();
     List<Service<HealthService>> healthServices = new ArrayList<>();
     List<Service<OtherService>> otherServices = new ArrayList<>();
-
     cmsOverlayEntity.overlayServices().stream()
         .forEach(
             s -> {
               if (EnumUtils.isValidEnum(BenefitsService.class, capitalize(s))) {
+                final BenefitsService benefitsService = BenefitsService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(benefitsService.serviceId());
                 benefitsServices.add(
                     Service.<BenefitsService>builder()
-                        .serviceType(BenefitsService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent()
+                                ? cmsServiceName.get()
+                                : benefitsService.name())
+                        .serviceType(benefitsService)
                         .source(Source.CMS)
                         .build());
               }
-
               if (EnumUtils.isValidEnum(HealthService.class, capitalize(s))) {
+                final HealthService healthService = HealthService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(healthService.serviceId());
                 healthServices.add(
                     Service.<HealthService>builder()
-                        .serviceType(HealthService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent()
+                                ? cmsServiceName.get()
+                                : healthService.name())
+                        .serviceType(healthService)
                         .source(Source.CMS)
                         .build());
               }
-
               if (EnumUtils.isValidEnum(OtherService.class, capitalize(s))) {
+                final OtherService otherService = OtherService.fromString(capitalize(s));
+                final Optional<String> cmsServiceName =
+                    cmsOverlayMapper.serviceNameForServiceId(otherService.serviceId());
                 otherServices.add(
                     Service.<OtherService>builder()
-                        .serviceType(OtherService.fromString(capitalize(s)))
+                        .name(
+                            cmsServiceName.isPresent() ? cmsServiceName.get() : otherService.name())
+                        .serviceType(otherService)
                         .source(Source.CMS)
                         .build());
               }
             });
-
     if (healthServices.isEmpty() && benefitsServices.isEmpty() && otherServices.isEmpty()) {
       return null;
     }
-
     return new AbstractMap.SimpleEntry<>(
         cmsOverlayEntity.id().toIdString(),
         Services.builder()
@@ -115,6 +138,57 @@ public class CmsOverlayCollector {
             .filter(Objects::nonNull)
             .collect(convertOverlayToMap());
     return cmsOverlayServices;
+  }
+
+  /** Obtain CMS sourced benefits service with most up-to-date service name. */
+  @SneakyThrows
+  public Set<Service<BenefitsService>> getCmsSourcedBenefitsServices(
+      @NonNull List<Service<BenefitsService>> benefitsServices) {
+    return benefitsServices.stream()
+        .filter(dfhs -> cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).isPresent())
+        .map(
+            dfhs ->
+                Service.<BenefitsService>builder()
+                    .name(cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).get())
+                    .serviceId(dfhs.serviceId())
+                    .serviceType(BenefitsService.fromServiceId(dfhs.serviceId()).get())
+                    .source(Service.Source.CMS)
+                    .build())
+        .collect(toSet());
+  }
+
+  /** Obtain CMS sourced health service with most up-to-date service name. */
+  @SneakyThrows
+  public Set<Service<HealthService>> getCmsSourcedHealthServices(
+      @NonNull List<Service<HealthService>> healthServices) {
+    return healthServices.stream()
+        .filter(dfhs -> cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).isPresent())
+        .map(
+            dfhs ->
+                Service.<HealthService>builder()
+                    .name(cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).get())
+                    .serviceId(dfhs.serviceId())
+                    .serviceType(HealthService.fromServiceId(dfhs.serviceId()).get())
+                    .source(Service.Source.CMS)
+                    .build())
+        .collect(toSet());
+  }
+
+  /** Obtain CMS sourced other service with most up-to-date service name. */
+  @SneakyThrows
+  public Set<Service<OtherService>> getCmsSourcedOtherServices(
+      @NonNull List<Service<OtherService>> otherServices) {
+    return otherServices.stream()
+        .filter(dfhs -> cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).isPresent())
+        .map(
+            dfhs ->
+                Service.<OtherService>builder()
+                    .name(cmsOverlayMapper.serviceNameForServiceId(dfhs.serviceId()).get())
+                    .serviceId(dfhs.serviceId())
+                    .serviceType(OtherService.fromServiceId(dfhs.serviceId()).get())
+                    .source(Service.Source.CMS)
+                    .build())
+        .collect(toSet());
   }
 
   /** Load and return map of CMS overlays for each facility id. */
@@ -172,6 +246,11 @@ public class CmsOverlayCollector {
       return null;
     }
     return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), overlay);
+  }
+
+  /** Rebuild CMS service id to service name mapping. */
+  public boolean reload() {
+    return cmsOverlayMapper.reload();
   }
 
   /** Update CMS Detailed Service with wait times data from ATC during reload. */

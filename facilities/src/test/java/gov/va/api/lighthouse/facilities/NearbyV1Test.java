@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.api.TypedService;
 import gov.va.api.lighthouse.facilities.api.pssg.PathEncoder;
 import gov.va.api.lighthouse.facilities.api.pssg.PssgDriveTimeBand;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
@@ -27,10 +28,10 @@ import java.util.Optional;
 import java.util.zip.DataFormatException;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -41,9 +42,11 @@ import org.springframework.web.client.RestTemplate;
 public class NearbyV1Test {
   @Autowired FacilityRepository facilityRepository;
 
+  @Autowired FacilityServicesRepository facilityServicesRepository;
+
   @Autowired DriveTimeBandRepository driveTimeBandRepository;
 
-  @Mock RestTemplate restTemplate = mock(RestTemplate.class);
+  private RestTemplate mockRestTemplate;
 
   private String baseUrl;
 
@@ -53,7 +56,7 @@ public class NearbyV1Test {
 
   private NearbyControllerV1 _controller() {
     InsecureRestTemplateProvider restTemplateProvider = mock(InsecureRestTemplateProvider.class);
-    when(restTemplateProvider.restTemplate()).thenReturn(restTemplate);
+    when(restTemplateProvider.restTemplate()).thenReturn(mockRestTemplate);
     return NearbyControllerV1.builder()
         .facilityRepository(facilityRepository)
         .driveTimeBandRepository(driveTimeBandRepository)
@@ -185,7 +188,15 @@ public class NearbyV1Test {
 
   @Test
   void empty() {
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var facilityId = "vha_757";
+    final DatamartFacility facility = _facilityHealth(facilityId);
+    // Setup facility
     facilityRepository.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    // Setup facility services
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().benefits());
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().health());
+    setupFacilityServices(facilityId, linkerUrl, facility.attributes().services().other());
     NearbyResponse response =
         _controller().nearbyLatLong(BigDecimal.ZERO, BigDecimal.ZERO, null, null);
     assertThat(response)
@@ -198,8 +209,28 @@ public class NearbyV1Test {
 
   @Test
   void filterMaxDriveTime() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 50, 60, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -214,8 +245,28 @@ public class NearbyV1Test {
 
   @Test
   void filterServices() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -226,7 +277,7 @@ public class NearbyV1Test {
                 .data(
                     List.of(
                         NearbyResponse.Nearby.builder()
-                            .id("vha_666")
+                            .id(vha666FacilityId)
                             .type(NearbyFacility)
                             .attributes(
                                 NearbyResponse.NearbyAttributes.builder()
@@ -264,8 +315,28 @@ public class NearbyV1Test {
 
   @Test
   void hit() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_entity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(_entity(_diamondBand("777", 80, 90, 5)));
     NearbyResponse response =
@@ -289,8 +360,28 @@ public class NearbyV1Test {
 
   @Test
   void hitWithDeprecatedPssgDriveBands() {
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_666")));
-    facilityRepository.save(_facilityEntity(_facilityHealth("vha_777")));
+    final var linkerUrl = buildLinkerUrlV1("http://foo/", "bar");
+    final var vha666FacilityId = "vha_666";
+    final var vha777FacilityId = "vha_777";
+    final DatamartFacility vha666Facility = _facilityHealth(vha666FacilityId);
+    final DatamartFacility vha777Facility = _facilityHealth(vha777FacilityId);
+    // Setup facility
+    facilityRepository.save(_facilityEntity(vha666Facility));
+    facilityRepository.save(_facilityEntity(vha777Facility));
+    // Setup facility services
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().health());
+    setupFacilityServices(
+        vha666FacilityId, linkerUrl, vha666Facility.attributes().services().other());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().benefits());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().health());
+    setupFacilityServices(
+        vha777FacilityId, linkerUrl, vha777Facility.attributes().services().other());
+    // Setup drive time band
     driveTimeBandRepository.save(_deprecatedPssgDriveTimeBandEntity(_diamondBand("666", 0, 10, 0)));
     driveTimeBandRepository.save(
         _deprecatedPssgDriveTimeBandEntity(_diamondBand("777", 80, 90, 5)));
@@ -304,6 +395,21 @@ public class NearbyV1Test {
     baseUrl = "http://foo/";
     basePath = "bp";
     linkerUrl = buildLinkerUrlV1(baseUrl, basePath);
+    mockRestTemplate = mock(RestTemplate.class);
+  }
+
+  private <T extends TypedService> void setupFacilityServices(
+      @NonNull String facilityId,
+      @NonNull String linkerUrl,
+      List<DatamartFacility.Service<T>> facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      facilityServices.stream()
+          .forEach(
+              fs ->
+                  facilityServicesRepository.save(
+                      FacilitySamples.defaultSamples(linkerUrl)
+                          .facilityServicesEntity(facilityId, fs)));
+    }
   }
 
   @Test

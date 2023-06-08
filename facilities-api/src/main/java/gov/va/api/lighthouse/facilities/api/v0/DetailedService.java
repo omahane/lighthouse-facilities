@@ -2,13 +2,13 @@ package gov.va.api.lighthouse.facilities.api.v0;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -36,7 +36,8 @@ import lombok.NonNull;
   "online_scheduling_available",
   "referral_required",
   "walk_ins_accepted",
-  "service_locations"
+  "service_locations",
+  "last_updated"
 })
 @Schema(description = "Detailed information of a facility service.", nullable = true)
 public class DetailedService {
@@ -53,12 +54,13 @@ public class DetailedService {
   @Schema(hidden = true)
   boolean active;
 
-  @JsonIgnore
   @Schema(
-      description = "Timestamp of last time detailed service was updated.",
-      example = "2021-02-04T22:36:49+00:00",
+      description = "Date and time of most recent upload of detailed service from CMS.",
+      example = "2022-12-12T14:40:01.490949",
       nullable = true)
-  String changed;
+  @JsonProperty("last_updated")
+  @JsonAlias("lastUpdated")
+  LocalDateTime lastUpdated;
 
   @Schema(description = "Deprecated until further notice.", example = "null", nullable = true)
   @JsonProperty("description_facility")

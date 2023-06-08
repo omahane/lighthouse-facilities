@@ -5,13 +5,17 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
+import gov.va.api.lighthouse.facilities.api.v0.Facility;
 import gov.va.api.lighthouse.facilities.api.v0.GeoFacilitiesResponse;
+import gov.va.api.lighthouse.facilities.api.v0.GeoFacility;
 import gov.va.api.lighthouse.facilities.api.v0.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v0.Pagination;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
+import org.apache.commons.lang3.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +27,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 public class FacilitiesByLatLongTest {
   @Autowired private FacilityRepository repo;
+
+  @Autowired private FacilityServicesRepository facilityServicesRepository;
 
   private String baseUrl;
 
@@ -40,9 +46,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void geoFacilities() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final GeoFacility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha691GbFacilityId);
+    final GeoFacility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha740GaFacilityId);
+    final GeoFacility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().other());
     // Query for facilities without constraining to a specified radius
     assertThat(
             controller(baseUrl, basePath)
@@ -59,11 +85,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757"),
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA"),
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_691GB")))
+                .features(List.of(vha757Facility, vha740GaFacility, vha691GbFacility))
                 .build());
     // Query for facilities within a 75 mile radius of (35.4423637, -119.77646693)
     assertThat(
@@ -81,8 +103,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_691GB")))
+                .features(List.of(vha691GbFacility))
                 .build());
     // Query for facilities within a 50 mile radius of (29.112464, -80.7015994)
     assertThat(
@@ -106,9 +127,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void geoFacilities_ids() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final GeoFacility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha691GbFacilityId);
+    final GeoFacility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha740GaFacilityId);
+    final GeoFacility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .geoFacilitiesByLatLong(
@@ -124,7 +165,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
+                .features(List.of(vha757Facility))
                 .build());
   }
 
@@ -149,9 +190,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void geoFacilities_radiusOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final GeoFacility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha691GbFacilityId);
+    final GeoFacility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha740GaFacilityId);
+    final GeoFacility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).geoFacility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.properties().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.properties().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.properties().services().other());
     // Query for facilities within a 2500 mile radius of (28.112464, -80.7015994)
     assertThat(
             controller(baseUrl, basePath)
@@ -168,11 +229,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757"),
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA"),
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_691GB")))
+                .features(List.of(vha757Facility, vha740GaFacility, vha691GbFacility))
                 .build());
     // Query for facilities within a 2000 mile radius of (28.112464, -80.7015994)
     assertThat(
@@ -190,10 +247,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757"),
-                        FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_740GA")))
+                .features(List.of(vha757Facility, vha740GaFacility))
                 .build());
     // Query for facilities within a 1000 mile radius of (28.112464, -80.7015994)
     assertThat(
@@ -211,7 +265,7 @@ public class FacilitiesByLatLongTest {
         .isEqualTo(
             GeoFacilitiesResponse.builder()
                 .type(GeoFacilitiesResponse.Type.FeatureCollection)
-                .features(List.of(FacilitySamples.defaultSamples(linkerUrl).geoFacility("vha_757")))
+                .features(List.of(vha757Facility))
                 .build());
     // Query for facilities within a 500 mile radius of (28.112464, -80.7015994)
     assertThat(
@@ -235,9 +289,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void json_ids() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
@@ -251,7 +325,7 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(List.of(vha757Facility));
   }
 
   @Test
@@ -311,9 +385,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void json_noFilter() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
@@ -327,18 +421,34 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")));
+        .isEqualTo(List.of(vha757Facility, vha740GaFacility, vha691GbFacility));
   }
 
   @Test
   void json_perPageZero() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     // Query for facilities without constraining to a specified radius
     assertThat(
             controller(baseUrl, basePath)
@@ -442,9 +552,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void json_radiusOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     // Query for facilities within a 2500 mile radius of (28.112464, -80.7015994)
     assertThat(
             controller(baseUrl, basePath)
@@ -459,11 +589,7 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")));
+        .isEqualTo(List.of(vha757Facility, vha740GaFacility, vha691GbFacility));
     // Query for facilities within a 2000 mile radius of (28.112464, -80.7015994)
     assertThat(
             controller(baseUrl, basePath)
@@ -478,10 +604,7 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA")));
+        .isEqualTo(List.of(vha757Facility, vha740GaFacility));
     // Query for facilities within a 1000 mile radius of (28.112464, -80.7015994)
     assertThat(
             controller(baseUrl, basePath)
@@ -496,7 +619,7 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(List.of(FacilitySamples.defaultSamples(linkerUrl).facility("vha_757")));
+        .isEqualTo(List.of(vha757Facility));
     // Query for facilities within a 500 mile radius of (28.112464, -80.7015994)
     assertThat(
             controller(baseUrl, basePath)
@@ -516,9 +639,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void json_serviceOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
@@ -532,18 +675,34 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")));
+        .isEqualTo(List.of(vha757Facility, vha740GaFacility, vha691GbFacility));
   }
 
   @Test
   void json_typeAndService() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     String linkBase =
         "http://foo/v0/facilities?lat=28.112464&long=-80.7015994&services%5B%5D=primarycare&type=HEALTH";
     assertThat(
@@ -560,11 +719,7 @@ public class FacilitiesByLatLongTest {
                     10))
         .isEqualTo(
             FacilitiesResponse.builder()
-                .data(
-                    List.of(
-                        FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                        FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA"),
-                        FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")))
+                .data(List.of(vha757Facility, vha740GaFacility, vha691GbFacility))
                 .links(
                     PageLinks.builder()
                         .self(linkBase + "&page=1&per_page=10")
@@ -600,9 +755,29 @@ public class FacilitiesByLatLongTest {
 
   @Test
   void json_typeOnly() {
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_691GB"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"));
-    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_757"));
+    final var vha691GbFacilityId = "vha_691GB";
+    final var vha740GaFacilityId = "vha_740GA";
+    final var vha757FacilityId = "vha_757";
+    final Facility vha691GbFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha691GbFacilityId);
+    final Facility vha740GaFacility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha740GaFacilityId);
+    final Facility vha757Facility =
+        FacilitySamples.defaultSamples(linkerUrl).facility(vha757FacilityId);
+    // Setup facility
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha691GbFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha740GaFacilityId));
+    repo.save(FacilitySamples.defaultSamples(linkerUrl).facilityEntity(vha757FacilityId));
+    // Setup facility services
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().benefits());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().health());
+    setupFacilityServices(vha691GbFacilityId, vha691GbFacility.attributes().services().other());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().benefits());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().health());
+    setupFacilityServices(vha740GaFacilityId, vha740GaFacility.attributes().services().other());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().benefits());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().health());
+    setupFacilityServices(vha757FacilityId, vha757Facility.attributes().services().other());
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByLatLong(
@@ -616,11 +791,7 @@ public class FacilitiesByLatLongTest {
                     1,
                     10)
                 .data())
-        .isEqualTo(
-            List.of(
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_757"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_740GA"),
-                FacilitySamples.defaultSamples(linkerUrl).facility("vha_691GB")));
+        .isEqualTo(List.of(vha757Facility, vha740GaFacility, vha691GbFacility));
   }
 
   @BeforeEach
@@ -628,5 +799,17 @@ public class FacilitiesByLatLongTest {
     baseUrl = "http://foo/";
     basePath = "";
     linkerUrl = buildLinkerUrlV0(baseUrl, basePath);
+  }
+
+  private <T extends ServiceType> void setupFacilityServices(
+      @NonNull String facilityId, List<T> facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      facilityServices.stream()
+          .forEach(
+              fs ->
+                  facilityServicesRepository.save(
+                      FacilitySamples.defaultSamples(linkerUrl)
+                          .facilityServicesEntity(facilityId, fs)));
+    }
   }
 }

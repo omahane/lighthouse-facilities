@@ -14,10 +14,10 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceSearchCriteria;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesIdsResponse;
 import gov.va.api.lighthouse.facilities.api.v0.FacilitiesResponse;
@@ -39,6 +39,7 @@ import java.util.function.Function;
 import javax.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -83,7 +84,7 @@ public class FacilitiesControllerV0 {
   }
 
   @SneakyThrows
-  private static Facility facility(HasFacilityPayload entity) {
+  private static Facility facility(@NonNull HasFacilityPayload entity) {
     return FACILITY_OVERLAY.apply(entity);
   }
 
@@ -134,41 +135,28 @@ public class FacilitiesControllerV0 {
     }
   }
 
-  private Set<String> buildServiceFilterStrings(Set<ServiceType> datamartServices) {
-    Set<String> serviceStrings = new HashSet<>();
+  private Set<FacilityServiceSearchCriteria> buildServiceSearchCriteria(
+      Set<ServiceType> datamartServices) {
+    Set<FacilityServiceSearchCriteria> serviceStrings = new HashSet<>();
     datamartServices.stream()
         .forEach(
             serviceType -> {
-              try {
-                if (serviceType.serviceId().equals(HealthService.Covid19Vaccine.serviceId())) {
-                  String service =
-                      MAPPER_V0.writeValueAsString(
-                          DatamartFacility.Service.builder()
-                              .serviceId(serviceType.serviceId())
-                              .name(serviceType.name())
-                              .source(Source.CMS)
-                              .build());
-                  serviceStrings.add(service);
-                } else {
-                  serviceSources.stream()
-                      .forEach(
-                          source -> {
-                            try {
-                              String service =
-                                  MAPPER_V0.writeValueAsString(
-                                      DatamartFacility.Service.builder()
-                                          .serviceId(serviceType.serviceId())
-                                          .name(serviceType.name())
-                                          .source(Source.valueOf(source))
-                                          .build());
-                              serviceStrings.add(service);
-                            } catch (final JsonProcessingException ex) {
-                              throw new RuntimeException(ex);
-                            }
-                          });
-                }
-              } catch (final JsonProcessingException ex) {
-                throw new RuntimeException(ex);
+              if (serviceType.serviceId().equals(HealthService.Covid19Vaccine.serviceId())) {
+                serviceStrings.add(
+                    FacilityServiceSearchCriteria.builder()
+                        .serviceId(serviceType.serviceId())
+                        .source(Source.CMS)
+                        .build());
+              } else {
+                serviceSources.stream()
+                    .forEach(
+                        source -> {
+                          serviceStrings.add(
+                              FacilityServiceSearchCriteria.builder()
+                                  .serviceId(serviceType.serviceId())
+                                  .source(Source.valueOf(source))
+                                  .build());
+                        });
               }
             });
     return serviceStrings;
@@ -181,7 +169,8 @@ public class FacilitiesControllerV0 {
     }
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = buildServiceFilterStrings(datamartServices);
+    Set<FacilityServiceSearchCriteria> serviceStrings =
+        buildServiceSearchCriteria(datamartServices);
     // lng lat lng lat
     List<FacilityEntity> allEntities =
         facilityRepository.findAll(
@@ -226,7 +215,8 @@ public class FacilitiesControllerV0 {
       Boolean rawMobile) {
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = buildServiceFilterStrings(datamartServices);
+    Set<FacilityServiceSearchCriteria> serviceStrings =
+        buildServiceSearchCriteria(datamartServices);
     List<FacilityEntity> entities =
         facilityRepository.findAll(
             FacilityRepository.FacilitySpecificationHelper.builder()
@@ -269,7 +259,8 @@ public class FacilitiesControllerV0 {
     String state = rawState.trim().toUpperCase(Locale.US);
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = buildServiceFilterStrings(datamartServices);
+    Set<FacilityServiceSearchCriteria> serviceStrings =
+        buildServiceSearchCriteria(datamartServices);
     return facilityRepository.findAll(
         FacilityRepository.FacilitySpecificationHelper.builder()
             .state(FacilityRepository.StateSpecification.builder().state(state).build())
@@ -291,7 +282,8 @@ public class FacilitiesControllerV0 {
     checkArgument(perPage >= 1);
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = buildServiceFilterStrings(datamartServices);
+    Set<FacilityServiceSearchCriteria> serviceStrings =
+        buildServiceSearchCriteria(datamartServices);
     String zip = rawZip.substring(0, Math.min(rawZip.length(), 5));
     return facilityRepository.findAll(
         FacilityRepository.FacilitySpecificationHelper.builder()

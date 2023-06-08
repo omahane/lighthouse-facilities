@@ -3,7 +3,6 @@ package gov.va.api.lighthouse.facilities;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.lighthouse.facilities.api.v1.DetailedService;
-import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -18,7 +17,7 @@ public class DetailedServiceTransformerV1 {
         .serviceInfo(toDetailedServiceInfo(dds.serviceInfo()))
         .waitTime(toPatientWaitTime(dds.waitTime()))
         .active(dds.active())
-        .changed(dds.changed())
+        .lastUpdated(dds.lastUpdated())
         .appointmentLeadIn(dds.appointmentLeadIn())
         .onlineSchedulingAvailable(dds.onlineSchedulingAvailable())
         .path(dds.path())
@@ -119,7 +118,7 @@ public class DetailedServiceTransformerV1 {
       DatamartDetailedService.@NonNull ServiceInfo datamartDetailedServiceInfo) {
     return DetailedService.ServiceInfo.builder()
         .serviceId(datamartDetailedServiceInfo.serviceId())
-        .name(toDetailedServiceName(datamartDetailedServiceInfo.name()))
+        .name(datamartDetailedServiceInfo.name())
         .serviceType(datamartDetailedServiceInfo.serviceType())
         .build();
   }
@@ -161,20 +160,6 @@ public class DetailedServiceTransformerV1 {
   }
 
   /**
-   * If DatamartDetailedService name is recognized as enum name, transform to version 1
-   * DetailedService enum value name. Otherwise, do not alter name.
-   */
-  public static String toDetailedServiceName(String name) {
-    return Facility.HealthService.isRecognizedServiceNameException(name)
-        ? Facility.HealthService.fromString(name).name()
-        : Facility.BenefitsService.isRecognizedServiceEnum(name)
-            ? Facility.BenefitsService.fromString(name).name()
-            : Facility.OtherService.isRecognizedServiceEnum(name)
-                ? Facility.OtherService.fromString(name).name()
-                : name;
-  }
-
-  /**
    * Transform a list of DatamartDetailedService.AppointmentPhoneNumber to a list of version 1
    * DetailedService.AppointmentPhoneNumber.
    */
@@ -196,7 +181,7 @@ public class DetailedServiceTransformerV1 {
         ? null
         : !detailedServices.isEmpty()
             ? detailedServices.stream()
-                .map(DetailedServiceTransformerV1::toDetailedService)
+                .map(dds -> toDetailedService(dds))
                 .collect(Collectors.toList())
             : emptyList();
   }
@@ -222,7 +207,7 @@ public class DetailedServiceTransformerV1 {
         .serviceInfo(toVersionAgnosticServiceInfo(ds.serviceInfo()))
         .waitTime(toVersionAgnosticPatientWaitTime(ds.waitTime()))
         .active(ds.active())
-        .changed(ds.changed())
+        .lastUpdated(ds.lastUpdated())
         .appointmentLeadIn(ds.appointmentLeadIn())
         .onlineSchedulingAvailable(ds.onlineSchedulingAvailable())
         .path(ds.path())
@@ -408,7 +393,7 @@ public class DetailedServiceTransformerV1 {
       DetailedService.@NonNull ServiceInfo serviceInfo) {
     return DatamartDetailedService.ServiceInfo.builder()
         .serviceId(serviceInfo.serviceId())
-        .name(toVersionAgnosticDetailedServiceName(serviceInfo.name()))
+        .name(serviceInfo.name())
         .serviceType(serviceInfo.serviceType())
         .build();
   }

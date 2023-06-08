@@ -99,6 +99,8 @@ public class InternalFacilitiesController {
 
   private final FacilityRepository facilityRepository;
 
+  private final FacilityServicesRepository facilityServicesRepository;
+
   // Max distance in miles where two facilities are considered to be duplicates
   private final Double duplicateFacilityOverlapRange = 0.02;
 
@@ -267,7 +269,6 @@ public class InternalFacilitiesController {
       cmsOverlayRepository.save(overlayEntity);
     }
     FacilityEntity facilityEntity = facilityEntityById(id).orElse(null);
-
     if (facilityEntity != null) {
       facilityEntity
           .cmsOperatingStatus(overlayEntity.cmsOperatingStatus())
@@ -287,7 +288,6 @@ public class InternalFacilitiesController {
                   .collect(Collectors.toList());
           Collections.sort(healthServicesWithoutCovid19Vaccine);
           df.attributes().services().health(healthServicesWithoutCovid19Vaccine);
-
           if (ObjectUtils.isNotEmpty(facilityEntity.services())) {
             // Remove Covid-19 expressed in service object format
             facilityEntity
@@ -448,16 +448,16 @@ public class InternalFacilitiesController {
       saveAsMissing(response, entity);
       return;
     }
-
     facilityRepository.delete(entity);
   }
 
   /** Reload all facility information. */
   @GetMapping(value = "/reload")
   ResponseEntity<ReloadResponse> reload() {
+    // Reload facilities
     var response = ReloadResponse.start();
     var collectedFacilities =
-        collector.collectFacilities().stream()
+        collector.collectFacilities(true).stream()
             .map(
                 df -> {
                   if (ObjectUtils.isNotEmpty(df.attributes().detailedServices())) {
@@ -677,6 +677,60 @@ public class InternalFacilitiesController {
               ReloadResponse.Problem.of(
                   datamartFacility.id(), "Failed to save record: " + e.getMessage()));
       throw e;
+    }
+    updateAndSaveFacilityServices(response, record, datamartFacility.attributes().services());
+  }
+
+  @SneakyThrows
+  private void updateAndSaveFacilityServices(
+      ReloadResponse response, FacilityEntity record, Services facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      updateAndSaveFacilityServices(response, record, facilityServices.benefits());
+      updateAndSaveFacilityServices(response, record, facilityServices.health());
+      updateAndSaveFacilityServices(response, record, facilityServices.other());
+    }
+  }
+
+  @SneakyThrows
+  private <T extends TypedService> void updateAndSaveFacilityServices(
+      ReloadResponse response, FacilityEntity record, List<Service<T>> facilityServices) {
+    if (ObjectUtils.isNotEmpty(facilityServices)) {
+      // Update facility services
+      facilityServices.stream()
+          .forEach(
+              fs -> {
+                FacilityServicesEntity.Pk id =
+                    FacilityServicesEntity.Pk.of(
+                        record.id().type(),
+                        record.id().stationNumber(),
+                        Service.<T>builder()
+                            .name(fs.name())
+                            .serviceId(fs.serviceId())
+                            .source(fs.source())
+                            .build()
+                            .toJson());
+                Optional<FacilityServicesEntity> existing = facilityServicesRepository.findById(id);
+                if (existing.isPresent()) {
+                  try {
+                    facilityServicesRepository.save(
+                        FacilityServicesUtils.populate(existing.get(), fs));
+                  } catch (final Exception e) {
+                    e.printStackTrace();
+                    log.error(
+                        "Failed to save update to facility services record {}: {}",
+                        id,
+                        e.getMessage());
+                    response
+                        .problems()
+                        .add(
+                            ReloadResponse.Problem.of(
+                                id.toIdString(),
+                                "Failed to save updated facility services record: "
+                                    + e.getMessage()));
+                    throw e;
+                  }
+                }
+              });
     }
   }
 

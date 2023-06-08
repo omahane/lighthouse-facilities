@@ -3,8 +3,10 @@ package gov.va.api.lighthouse.facilities.collector;
 import static com.google.common.base.Preconditions.checkState;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.HealthService;
 import static gov.va.api.lighthouse.facilities.DatamartFacility.Service;
+import static gov.va.api.lighthouse.facilities.api.UrlFormatHelper.withTrailingSlash;
 import static gov.va.api.lighthouse.facilities.collector.CsvLoader.loadWebsites;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -26,10 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -48,28 +52,28 @@ public class FacilitiesCollector {
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final String atcBaseUrl;
-
-  protected final String atpBaseUrl;
-
   protected final String cemeteriesBaseUrl;
 
   private final CmsOverlayCollector cmsOverlayCollector;
 
+  private final AccessToCareCollector accessToCareCollector;
+
+  private final AccessToPwtCollector accessToPwtCollector;
+
   /** Primary facilities collector constructor. */
   public FacilitiesCollector(
-      @Autowired InsecureRestTemplateProvider insecureRestTemplateProvider,
-      @Autowired JdbcTemplate jdbcTemplate,
-      @Autowired CmsOverlayCollector cmsOverlayCollector,
-      @Value("${access-to-care.url}") String atcBaseUrl,
-      @Value("${access-to-pwt.url}") String atpBaseUrl,
+      @Autowired @NonNull InsecureRestTemplateProvider insecureRestTemplateProvider,
+      @Autowired @NonNull JdbcTemplate jdbcTemplate,
+      @Autowired @NonNull CmsOverlayCollector cmsOverlayCollector,
+      @Autowired @NonNull AccessToCareCollector accessToCareCollector,
+      @Autowired @NonNull AccessToPwtCollector accessToPwtCollector,
       @Value("${cemeteries.url}") String cemeteriesBaseUrl) {
     this.insecureRestTemplateProvider = insecureRestTemplateProvider;
     this.jdbcTemplate = jdbcTemplate;
-    this.atcBaseUrl = withTrailingSlash(atcBaseUrl);
-    this.atpBaseUrl = withTrailingSlash(atpBaseUrl);
     this.cemeteriesBaseUrl = withTrailingSlash(cemeteriesBaseUrl);
     this.cmsOverlayCollector = cmsOverlayCollector;
+    this.accessToCareCollector = accessToCareCollector;
+    this.accessToPwtCollector = accessToPwtCollector;
   }
 
   /** Returns list of vha facilities contained in a file. */
@@ -137,73 +141,78 @@ public class FacilitiesCollector {
         .build();
   }
 
-  static String withTrailingSlash(@NonNull String url) {
-    return url.endsWith("/") ? url : url + "/";
-  }
-
   /** Collect datamart facilities. */
   @SneakyThrows
-  public List<DatamartFacility> collectFacilities() {
-    Map<String, String> websites;
-    Collection<VastEntity> vastEntities;
-    ArrayList<String> cscFacilities;
-    try {
-      websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
-      vastEntities = loadVast();
-      cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
-    } catch (Exception e) {
-      throw new CollectorExceptions.CollectorException(e);
+  public List<DatamartFacility> collectFacilities(boolean reloadAtcAndCmsServiceNameMappings) {
+    if (!reloadAtcAndCmsServiceNameMappings
+        || (accessToCareCollector.reload() && cmsOverlayCollector.reload())) {
+      Map<String, String> websites;
+      Collection<VastEntity> vastEntities;
+      ArrayList<String> cscFacilities;
+      try {
+        websites = loadWebsites(WEBSITES_CSV_RESOURCE_NAME);
+        vastEntities = loadVast();
+        cscFacilities = loadFacilitiesFromResource(CSC_STATIONS_RESOURCE_NAME);
+      } catch (Exception e) {
+        throw new CollectorExceptions.CollectorException(e);
+      }
+
+      Collection<DatamartFacility> healths =
+          HealthsCollector.builder()
+              .accessToCareCollector(accessToCareCollector)
+              .accessToPwtCollector(accessToPwtCollector)
+              .cscFacilities(cscFacilities)
+              .jdbcTemplate(jdbcTemplate)
+              .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
+              .vastEntities(vastEntities)
+              .websites(websites)
+              .build()
+              .collect();
+      Collection<DatamartFacility> stateCems =
+          StateCemeteriesCollector.builder()
+              .baseUrl(cemeteriesBaseUrl)
+              .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
+              .websites(websites)
+              .build()
+              .collect();
+      Collection<DatamartFacility> vetCenters =
+          VetCentersCollector.builder()
+              .vastEntities(vastEntities)
+              .websites(websites)
+              .build()
+              .collect();
+      Collection<DatamartFacility> benefits =
+          BenefitsCollector.builder()
+              .websites(websites)
+              .jdbcTemplate(jdbcTemplate)
+              .build()
+              .collect();
+      Collection<DatamartFacility> cemeteries =
+          CemeteriesCollector.builder()
+              .baseUrl(cemeteriesBaseUrl)
+              .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
+              .websites(websites)
+              .jdbcTemplate(jdbcTemplate)
+              .build()
+              .collect();
+      log.info(
+          "Collected V0: Health {},  Benefits {},  Vet centers {}, "
+              + "Non-national cemeteries {}, Cemeteries {}",
+          healths.size(),
+          benefits.size(),
+          vetCenters.size(),
+          stateCems.size(),
+          cemeteries.size());
+      List<DatamartFacility> datamartFacilities =
+          Streams.stream(Iterables.concat(benefits, cemeteries, healths, stateCems, vetCenters))
+              .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
+              .collect(toList());
+      updateOperatingAndActiveStatusFromCmsOverlay(datamartFacilities);
+      updateServicesFromCmsOverlay(datamartFacilities);
+      cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
+      return datamartFacilities;
     }
-    Collection<DatamartFacility> healths =
-        HealthsCollector.builder()
-            .atcBaseUrl(atcBaseUrl)
-            .atpBaseUrl(atpBaseUrl)
-            .cscFacilities(cscFacilities)
-            .jdbcTemplate(jdbcTemplate)
-            .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
-            .vastEntities(vastEntities)
-            .websites(websites)
-            .build()
-            .collect();
-    Collection<DatamartFacility> stateCems =
-        StateCemeteriesCollector.builder()
-            .baseUrl(cemeteriesBaseUrl)
-            .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
-            .websites(websites)
-            .build()
-            .collect();
-    Collection<DatamartFacility> vetCenters =
-        VetCentersCollector.builder()
-            .vastEntities(vastEntities)
-            .websites(websites)
-            .build()
-            .collect();
-    Collection<DatamartFacility> benefits =
-        BenefitsCollector.builder().websites(websites).jdbcTemplate(jdbcTemplate).build().collect();
-    Collection<DatamartFacility> cemeteries =
-        CemeteriesCollector.builder()
-            .baseUrl(cemeteriesBaseUrl)
-            .insecureRestTemplate(insecureRestTemplateProvider.restTemplate())
-            .websites(websites)
-            .jdbcTemplate(jdbcTemplate)
-            .build()
-            .collect();
-    log.info(
-        "Collected V0: Health {},  Benefits {},  Vet centers {}, "
-            + "Non-national cemeteries {}, Cemeteries {}",
-        healths.size(),
-        benefits.size(),
-        vetCenters.size(),
-        stateCems.size(),
-        cemeteries.size());
-    List<DatamartFacility> datamartFacilities =
-        Streams.stream(Iterables.concat(benefits, cemeteries, healths, stateCems, vetCenters))
-            .sorted((left, right) -> left.id().compareToIgnoreCase(right.id()))
-            .collect(toList());
-    updateOperatingAndActiveStatusFromCmsOverlay(datamartFacilities);
-    updateServicesFromCmsOverlay(datamartFacilities);
-    cmsOverlayCollector.updateCmsServicesWithAtcWaitTimes(datamartFacilities);
-    return datamartFacilities;
+    return Collections.emptyList();
   }
 
   private List<VastEntity> loadVast() {
@@ -332,35 +341,56 @@ public class FacilitiesCollector {
                 df.attributes().services(Services.builder().build());
               }
 
-              if (!facilityCmsServicesMap.get(df.id()).benefits().isEmpty()) {
-                List<Service<BenefitsService>> facilityBenefitsServices =
-                    facilityCmsServicesMap.get(df.id()).benefits();
+              if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).benefits())) {
+                Set<Service<BenefitsService>> facilityBenefitsServicesSet =
+                    facilityCmsServicesMap.get(df.id()).benefits().stream().collect(toSet());
                 if (df.attributes().services().benefits() != null) {
-                  facilityBenefitsServices.addAll(df.attributes().services().benefits());
+                  // Add CMS sourced equivalent for existing facility benefits services
+                  facilityBenefitsServicesSet.addAll(
+                      cmsOverlayCollector.getCmsSourcedBenefitsServices(
+                          df.attributes().services().benefits()));
+                  // Add all existing facility benefits services
+                  facilityBenefitsServicesSet.addAll(df.attributes().services().benefits());
                 }
 
+                List<Service<BenefitsService>> facilityBenefitsServices =
+                    facilityBenefitsServicesSet.stream().collect(toList());
                 Collections.sort(facilityBenefitsServices);
                 df.attributes().services().benefits(facilityBenefitsServices);
               }
 
-              if (!facilityCmsServicesMap.get(df.id()).health().isEmpty()) {
-                List<Service<HealthService>> facilityHealthServices =
-                    facilityCmsServicesMap.get(df.id()).health();
+              if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).health())) {
+                Set<Service<HealthService>> facilityHealthServicesSet =
+                    facilityCmsServicesMap.get(df.id()).health().stream().collect(toSet());
                 if (df.attributes().services().health() != null) {
-                  facilityHealthServices.addAll(df.attributes().services().health());
+                  // Add CMS sourced equivalent for existing facility health services
+                  facilityHealthServicesSet.addAll(
+                      cmsOverlayCollector.getCmsSourcedHealthServices(
+                          df.attributes().services().health()));
+                  // Add all existing facility health services
+                  facilityHealthServicesSet.addAll(df.attributes().services().health());
                 }
 
+                List<Service<HealthService>> facilityHealthServices =
+                    facilityHealthServicesSet.stream().collect(toList());
                 Collections.sort(facilityHealthServices);
                 df.attributes().services().health(facilityHealthServices);
               }
 
-              if (!facilityCmsServicesMap.get(df.id()).other().isEmpty()) {
-                List<Service<OtherService>> facilityOtherServices =
-                    facilityCmsServicesMap.get(df.id()).other();
+              if (ObjectUtils.isNotEmpty(facilityCmsServicesMap.get(df.id()).other())) {
+                Set<Service<OtherService>> facilityOtherServicesSet =
+                    facilityCmsServicesMap.get(df.id()).other().stream().collect(toSet());
                 if (df.attributes().services().other() != null) {
-                  facilityOtherServices.addAll(df.attributes().services().other());
+                  // Add CMS sourced equivalent for existing facility other services
+                  facilityOtherServicesSet.addAll(
+                      cmsOverlayCollector.getCmsSourcedOtherServices(
+                          df.attributes().services().other()));
+                  // Add all existing facility other services
+                  facilityOtherServicesSet.addAll(df.attributes().services().other());
                 }
 
+                List<Service<OtherService>> facilityOtherServices =
+                    facilityOtherServicesSet.stream().collect(toList());
                 Collections.sort(facilityOtherServices);
                 df.attributes().services().other(facilityOtherServices);
               }

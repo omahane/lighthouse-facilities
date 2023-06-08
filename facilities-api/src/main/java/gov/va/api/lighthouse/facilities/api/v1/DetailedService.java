@@ -29,6 +29,7 @@ import gov.va.api.lighthouse.facilities.api.v1.serializers.PatientWaitTimeSerial
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -67,12 +68,12 @@ public class DetailedService implements CanBeEmpty {
   @Schema(hidden = true)
   boolean active;
 
-  @JsonIgnore
   @Schema(
-      description = "Timestamp of last time service was updated.",
-      example = "2021-02-04T22:36:49+00:00",
+      description = "Date and time of most recent upload of detailed service from CMS.",
+      example = "2022-12-12T14:40:01.490949",
       nullable = true)
-  String changed;
+  @JsonAlias("last_updated")
+  LocalDateTime lastUpdated;
 
   @Schema(
       description =
@@ -125,7 +126,7 @@ public class DetailedService implements CanBeEmpty {
   @JsonIgnore
   public boolean isEmpty() {
     return (serviceInfo() == null || serviceInfo().isEmpty())
-        && isBlank(changed())
+        && (lastUpdated() == null)
         && isBlank(appointmentLeadIn())
         && isBlank(path())
         && ObjectUtils.isEmpty(phoneNumbers())

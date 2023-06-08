@@ -1,16 +1,14 @@
 package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
-import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.NearbyId;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.intersections;
 import static gov.va.api.lighthouse.facilities.NearbyUtils.validateDriveTime;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceSearchCriteria;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.NearbyResponse;
 import java.math.BigDecimal;
@@ -39,8 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/v1/nearby")
 @Slf4j
 public class NearbyControllerV1 {
-
-  private static final ObjectMapper MAPPER_V1 = createMapper();
   private final FacilityRepository facilityRepository;
 
   private final DriveTimeBandRepository driveTimeBandRepository;
@@ -62,19 +58,35 @@ public class NearbyControllerV1 {
     ;
   }
 
+  private Set<FacilityServiceSearchCriteria> buildServiceSearchCriteria(
+      Set<ServiceType> datamartServices) {
+    Set<FacilityServiceSearchCriteria> serviceStrings = new HashSet<>();
+    datamartServices.stream()
+        .forEach(
+            serviceType -> {
+              serviceSources.stream()
+                  .forEach(
+                      source -> {
+                        serviceStrings.add(
+                            FacilityServiceSearchCriteria.builder()
+                                .serviceId(serviceType.serviceId())
+                                .source(Source.valueOf(source))
+                                .build());
+                      });
+            });
+    return serviceStrings;
+  }
+
   private String getMonthYearFromBandIds(List<NearbyId> ids) {
     String monthYear;
-
     if (!ids.isEmpty() && driveTimeBandRepository.findById(ids.get(0).bandId).isPresent()) {
       monthYear = driveTimeBandRepository.findById(ids.get(0).bandId).get().monthYear();
     } else {
       monthYear = driveTimeBandRepository.getDefaultBandVersion();
     }
-
     if (monthYear == null) {
       monthYear = "Unknown";
     }
-
     return monthYear;
   }
 
@@ -97,29 +109,6 @@ public class NearbyControllerV1 {
       List<String> rawServices,
       Integer rawMaxDriveTime) {
     Set<ServiceType> services = validateServices(rawServices);
-    Set<String> serviceStrings = new HashSet<>();
-    services.stream()
-        .forEach(
-            serviceType -> {
-              serviceSources.stream()
-                  .forEach(
-                      source -> {
-                        try {
-                          String service =
-                              MAPPER_V1.writeValueAsString(
-                                  DatamartFacility.Service.builder()
-                                      .serviceId(serviceType.serviceId())
-                                      .name(serviceType.name())
-                                      .source(Source.valueOf(source))
-                                      .build());
-                          serviceStrings.add(service);
-
-                        } catch (final JsonProcessingException ex) {
-                          throw new RuntimeException(ex);
-                        }
-                      });
-            });
-
     Integer maxDriveTime = validateDriveTime(rawMaxDriveTime);
     log.info(
         "Searching near {},{} within {} minutes with {} services",
@@ -143,7 +132,7 @@ public class NearbyControllerV1 {
             FacilityRepository.StationNumbersSpecification.builder()
                 .stationNumbers(bandsByStation.keySet())
                 .facilityType(FacilityEntity.Type.vha)
-                .services(serviceStrings)
+                .services(buildServiceSearchCriteria(services))
                 .build());
     return facilityEntities.stream()
         .map(
@@ -166,7 +155,6 @@ public class NearbyControllerV1 {
       @RequestParam(value = "services[]", required = false) List<String> services,
       @RequestParam(value = "drive_time", required = false) Integer maxDriveTime) {
     List<NearbyId> ids = nearbyIds(longitude, latitude, services, maxDriveTime);
-
     return NearbyResponse.builder()
         .data(ids.stream().map(this::nearbyFacility).collect(toList()))
         .meta(NearbyResponse.Meta.builder().bandVersion(getMonthYearFromBandIds(ids)).build())

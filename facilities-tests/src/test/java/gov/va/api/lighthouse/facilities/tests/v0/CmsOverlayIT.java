@@ -45,8 +45,7 @@ public class CmsOverlayIT {
   @SneakyThrows
   private static void assertUpdate(
       OperatingStatusCode code, String message, ActiveStatus expectedActiveStatus) {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     log.info("Updating facility {} operating status to be {}", id, code);
     OperatingStatus op =
         OperatingStatus.builder().code(code).additionalInfo(message + " " + code).build();
@@ -92,8 +91,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByServiceApiId() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -133,8 +131,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByServiceId() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -174,8 +171,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveOverlayWithDetailedServicesIdentifiedByService_Id() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -215,8 +211,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveV1OverlayWithDetailedServicesIdentifiedByServiceApiIdUsingV0Endpoint() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -256,8 +251,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveV1OverlayWithDetailedServicesIdentifiedByServiceIdUsingV0Endpoint() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -297,8 +291,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void addAndRemoveV1OverlayWithDetailedServicesIdentifiedByService_IdUsingV0Endpoint() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -352,8 +345,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void deleteOverlayAndFacility() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Create detailed service for facility then remove it
@@ -437,8 +429,7 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -603,8 +594,7 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -769,8 +759,7 @@ public class CmsOverlayIT {
             .covidUrl("https://www.va.gov/example/programs/covid-19-vaccine")
             .healthConnectPhone("123-456-7890 x123")
             .build();
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // make sure the overlay doesn't exist is cleaned up before running the rest of the test
@@ -923,8 +912,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void noDetailedServiceLocationsForV0() {
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     ExpectedResponse.of(
             requestSpecification()
@@ -987,8 +975,7 @@ public class CmsOverlayIT {
             .code(OperatingStatusCode.CLOSED)
             .additionalInfo("Update1")
             .build();
-    // vha_517
-    var id = systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     SystemDefinitions.Service svc = systemDefinition().facilities();
     SystemDefinitions.Service svcInternal = systemDefinition().facilitiesInternal();
     // Clean up overlay before test
@@ -1050,8 +1037,7 @@ public class CmsOverlayIT {
   @Test
   @SneakyThrows
   void validation() {
-    // vha_517
-    var id = SystemDefinitions.systemDefinition().ids().facility();
+    var id = systemDefinition().ids().facility(); // vha_517
     StringBuilder longMessage = new StringBuilder();
     for (int i = 1; i <= 301; i++) {
       longMessage.append(i % 10);

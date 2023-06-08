@@ -6,15 +6,13 @@ import static gov.va.api.lighthouse.facilities.ControllersV1.validateBoundingBox
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateFacilityType;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateLatLong;
 import static gov.va.api.lighthouse.facilities.ControllersV1.validateServices;
-import static gov.va.api.lighthouse.facilities.FacilitiesJacksonConfigV1.createMapper;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.distance;
 import static gov.va.api.lighthouse.facilities.FacilityUtils.haversine;
 import static gov.va.api.lighthouse.facilities.api.ServiceLinkBuilder.buildLinkerUrlV1;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartFacility.Service.Source;
+import gov.va.api.lighthouse.facilities.FacilityRepository.FacilityServiceSearchCriteria;
 import gov.va.api.lighthouse.facilities.api.ServiceType;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesIdsResponse;
 import gov.va.api.lighthouse.facilities.api.v1.FacilitiesResponse;
@@ -49,10 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/v1")
 public class FacilitiesControllerV1 {
-
-  private static final ObjectMapper MAPPER_V1 = createMapper();
-
-  private static FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
+  private static final FacilityOverlayV1 FACILITY_OVERLAY = FacilityOverlayV1.builder().build();
 
   private final FacilityRepository facilityRepository;
 
@@ -157,6 +152,26 @@ public class FacilitiesControllerV1 {
     }
   }
 
+  @SneakyThrows
+  private Set<FacilityServiceSearchCriteria> buildServiceSearchCriteria(
+      Set<ServiceType> datamartServices) {
+    Set<FacilityServiceSearchCriteria> serviceStrings = new HashSet<>();
+    datamartServices.stream()
+        .forEach(
+            serviceType -> {
+              serviceSources.stream()
+                  .forEach(
+                      source -> {
+                        serviceStrings.add(
+                            FacilityServiceSearchCriteria.builder()
+                                .serviceId(serviceType.serviceId())
+                                .source(Source.valueOf(source))
+                                .build());
+                      });
+            });
+    return serviceStrings;
+  }
+
   private FacilityEntity entityById(String id) {
     FacilityEntity.Pk pk = null;
     try {
@@ -222,35 +237,6 @@ public class FacilitiesControllerV1 {
   }
 
   @SneakyThrows
-  private Set<String> getServices(List<String> rawServices) {
-    Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
-    Set<String> serviceStrings = new HashSet<>();
-    datamartServices.stream()
-        .forEach(
-            serviceType -> {
-              serviceSources.stream()
-                  .forEach(
-                      source -> {
-                        try {
-                          String service =
-                              MAPPER_V1.writeValueAsString(
-                                  DatamartFacility.Service.builder()
-                                      .serviceId(serviceType.serviceId())
-                                      .name(serviceType.name())
-                                      .source(Source.valueOf(source))
-                                      .build());
-                          serviceStrings.add(service);
-
-                        } catch (final JsonProcessingException ex) {
-                          throw new RuntimeException(ex);
-                        }
-                      });
-            });
-
-    return serviceStrings;
-  }
-
-  @SneakyThrows
   @GetMapping(
       value = "/facilities",
       produces = {"application/json"})
@@ -276,16 +262,21 @@ public class FacilitiesControllerV1 {
             .zip(getZipSpec(zip))
             .facilityType(getFacilityTypeSpec(rawType))
             .ids(getIdsSpec(ids))
-            .services(getServices(rawServices))
+            .services(
+                buildServiceSearchCriteria(
+                    convertToDatamartServices(validateServices(rawServices))))
             .mobile(getMobileSpec(mobile))
             .visn(getVisnSpec(visn))
             .build();
     List<FacilityEntity> entities = facilityRepository.findAll(spec);
     List<FacilitiesResponse.Distance> distances = null;
     List<Facility> facilitiesPage;
+    int totalEntries;
     if (bbox == null && latitude != null && longitude != null) {
-      List<DistanceEntity> entitiesPage =
-          page(filterByLatLong(latitude, longitude, radius, entities), page, perPage);
+      final List<DistanceEntity> filteredEntities =
+          filterByLatLong(latitude, longitude, radius, entities);
+      totalEntries = filteredEntities.size();
+      final List<DistanceEntity> entitiesPage = page(filteredEntities, page, perPage);
       distances =
           entitiesPage.stream()
               .map(
@@ -303,6 +294,7 @@ public class FacilitiesControllerV1 {
       } else {
         entities.sort(Comparator.comparing(e -> e.id().toIdString()));
       }
+      totalEntries = entities.size();
       facilitiesPage =
           page(entities, page, perPage).parallelStream()
               .map(e -> facility(e, linkerUrl, serviceSources))
@@ -327,7 +319,7 @@ public class FacilitiesControllerV1 {
                     .addIgnoreNull("page", page)
                     .addIgnoreNull("per_page", perPage)
                     .build())
-            .totalEntries(entities.size())
+            .totalEntries(totalEntries)
             .build();
     return FacilitiesResponse.builder()
         .data(facilitiesPage)
@@ -362,7 +354,6 @@ public class FacilitiesControllerV1 {
     Facility facility;
 
     Facility facility() {
-
       if (facility == null) {
         facility = FacilitiesControllerV1.facility(entity, linkerUrl, serviceSources);
       }

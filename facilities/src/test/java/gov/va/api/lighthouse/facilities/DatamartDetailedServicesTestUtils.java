@@ -85,7 +85,6 @@ public class DatamartDetailedServicesTestUtils {
                 .serviceType(healthService.serviceType())
                 .build())
         .active(isActive)
-        .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .path("replaceable path here")
         .phoneNumbers(

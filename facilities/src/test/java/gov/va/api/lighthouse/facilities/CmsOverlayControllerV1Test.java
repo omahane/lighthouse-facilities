@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -32,6 +34,7 @@ import gov.va.api.lighthouse.facilities.api.v1.DetailedServicesResponse;
 import gov.va.api.lighthouse.facilities.api.v1.Facility;
 import gov.va.api.lighthouse.facilities.api.v1.PageLinks;
 import gov.va.api.lighthouse.facilities.api.v1.Pagination;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -58,6 +61,8 @@ import org.springframework.http.ResponseEntity;
 public class CmsOverlayControllerV1Test {
   @Mock FacilityRepository mockFacilityRepository;
 
+  @Mock FacilityServicesRepository mockFacilityServicesRepository;
+
   @Mock CmsOverlayRepository mockCmsOverlayRepository;
 
   private String baseUrl;
@@ -67,6 +72,7 @@ public class CmsOverlayControllerV1Test {
   CmsOverlayControllerV1 controller() {
     return CmsOverlayControllerV1.builder()
         .facilityRepository(mockFacilityRepository)
+        .facilityServicesRepository(mockFacilityServicesRepository)
         .cmsOverlayRepository(mockCmsOverlayRepository)
         .baseUrl(baseUrl)
         .basePath(basePath)
@@ -80,6 +86,7 @@ public class CmsOverlayControllerV1Test {
   }
 
   @Test
+  @SneakyThrows
   public void exceptions() {
     var id = "vha_041";
     var pk = FacilityEntity.Pk.fromIdString(id);
@@ -88,6 +95,7 @@ public class CmsOverlayControllerV1Test {
     var serviceIds = Collections.singletonList("vha_041");
     var serviceType = "health";
     when(mockCmsOverlayRepository.findById(pk)).thenThrow(new NullPointerException("oh noes"));
+
     assertThatThrownBy(() -> controller().getExistingOverlayEntity(pk))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("oh noes");
@@ -104,6 +112,226 @@ public class CmsOverlayControllerV1Test {
                 controller().getDetailedServices("vha_000", serviceIds, serviceType, page, perPage))
         .isInstanceOf(ExceptionsUtils.NotFound.class)
         .hasMessage("The record identified by vha_000 could not be found");
+
+    final Method getServiceIdFromServiceNameMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod("getServiceIdFromServiceName", String.class);
+    getServiceIdFromServiceNameMethod.setAccessible(true);
+    final String nullServiceName = null;
+    assertThatThrownBy(
+            () -> getServiceIdFromServiceNameMethod.invoke(controller(), nullServiceName))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("serviceName is marked non-null but is null"));
+
+    final Method markDateWhenCmsUploadedOverlayServicesMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod(
+            "markDateWhenCmsUploadedOverlayServices", CmsOverlay.class);
+    markDateWhenCmsUploadedOverlayServicesMethod.setAccessible(true);
+    final CmsOverlay nullOverlay = null;
+    assertThatThrownBy(
+            () -> markDateWhenCmsUploadedOverlayServicesMethod.invoke(controller(), nullOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("overlay is marked non-null but is null"));
+
+    final Method populateServiceInfoAndFilterOutInvalidMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod(
+            "populateServiceInfoAndFilterOutInvalid", CmsOverlay.class);
+    populateServiceInfoAndFilterOutInvalidMethod.setAccessible(true);
+    assertThatThrownBy(
+            () -> populateServiceInfoAndFilterOutInvalidMethod.invoke(controller(), nullOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("overlay is marked non-null but is null"));
+
+    final Method updateFacilityDataMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod(
+            "updateFacilityData",
+            FacilityEntity.class,
+            Optional.class,
+            String.class,
+            DatamartCmsOverlay.class);
+    updateFacilityDataMethod.setAccessible(true);
+    final FacilityEntity nullFacilityEntity = null;
+    final FacilityEntity mockFacilityEntity = mock(FacilityEntity.class);
+    final Optional<CmsOverlayEntity> mockCmsOverlayEntity =
+        Optional.of(mock(CmsOverlayEntity.class));
+    final DatamartCmsOverlay mockDatamartCmsOverlay = mock(DatamartCmsOverlay.class);
+    assertThatThrownBy(
+            () ->
+                updateFacilityDataMethod.invoke(
+                    controller(),
+                    nullFacilityEntity,
+                    mockCmsOverlayEntity,
+                    id,
+                    mockDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("facilityEntity is marked non-null but is null"));
+    assertThatThrownBy(
+            () ->
+                updateFacilityDataMethod.invoke(
+                    controller(), mockFacilityEntity, null, id, mockDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(
+            new NullPointerException("existingCmsOverlayEntity is marked non-null but is null"));
+    final DatamartCmsOverlay nullDatamartCmsOverlay = null;
+    assertThatThrownBy(
+            () ->
+                updateFacilityDataMethod.invoke(
+                    controller(),
+                    mockFacilityEntity,
+                    mockCmsOverlayEntity,
+                    id,
+                    nullDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("overlay is marked non-null but is null"));
+
+    final Method updateFacilityServicesDataMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod(
+            "updateFacilityServicesData", FacilityEntity.class, Services.class);
+    updateFacilityServicesDataMethod.setAccessible(true);
+    assertThatThrownBy(
+            () ->
+                updateFacilityServicesDataMethod.invoke(
+                    controller(), nullFacilityEntity, Services.builder().build()))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("record is marked non-null but is null"));
+    final Services nullServices = null;
+    assertDoesNotThrow(
+        () ->
+            updateFacilityServicesDataMethod.invoke(
+                controller(), mockFacilityEntity, nullServices));
+
+    final Method updateFacilityServicesDataListMethod =
+        CmsOverlayControllerV1.class.getDeclaredMethod(
+            "updateFacilityServicesData", FacilityEntity.class, List.class);
+    updateFacilityServicesDataListMethod.setAccessible(true);
+    assertThatThrownBy(
+            () ->
+                updateFacilityServicesDataListMethod.invoke(
+                    controller(), nullFacilityEntity, List.of()))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("record is marked non-null but is null"));
+    final List nullList = null;
+    assertDoesNotThrow(
+        () ->
+            updateFacilityServicesDataListMethod.invoke(
+                controller(), mockFacilityEntity, nullList));
+
+    final Method applyAtcWaitTimeToCmsServicesMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("applyAtcWaitTimeToCmsServices", List.class, String.class);
+    applyAtcWaitTimeToCmsServicesMethod.setAccessible(true);
+    assertDoesNotThrow(
+        () -> applyAtcWaitTimeToCmsServicesMethod.invoke(controller(), nullList, "vha_777"));
+    final String nullFacilityId = null;
+    assertDoesNotThrow(
+        () -> applyAtcWaitTimeToCmsServicesMethod.invoke(controller(), List.of(), nullFacilityId));
+    assertDoesNotThrow(
+        () -> applyAtcWaitTimeToCmsServicesMethod.invoke(controller(), List.of(), "invalid_id"));
+
+    final Method containsSimilarServiceMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("containsSimilarService", Set.class, String.class, Source.class);
+    containsSimilarServiceMethod.setAccessible(true);
+    final Set nullSet = null;
+    final var mockServiceId = "cardiology";
+    assertThatThrownBy(
+        () ->
+            containsSimilarServiceMethod.invoke(controller(), nullSet, mockServiceId, Source.CMS));
+    final String nullServiceId = null;
+    assertThatThrownBy(
+        () ->
+            containsSimilarServiceMethod.invoke(controller(), Set.of(), nullServiceId, Source.CMS));
+    final Source nullSource = null;
+    assertThatThrownBy(
+        () ->
+            containsSimilarServiceMethod.invoke(controller(), Set.of(), mockServiceId, nullSource));
+
+    final Method convertToSetOfVersionAgnosticStringsMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("convertToSetOfVersionAgnosticStrings", List.class);
+    containsSimilarServiceMethod.setAccessible(true);
+    assertThatThrownBy(
+            () -> convertToSetOfVersionAgnosticStringsMethod.invoke(controller(), nullList))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("facilityServices is marked non-null but is null"));
+
+    final Method filterOutUnrecognizedServicesFromOverlayMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod(
+                "filterOutUnrecognizedServicesFromOverlay", DatamartCmsOverlay.class);
+    filterOutUnrecognizedServicesFromOverlayMethod.setAccessible(true);
+    assertThatThrownBy(
+            () ->
+                filterOutUnrecognizedServicesFromOverlayMethod.invoke(
+                    controller(), nullDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("overlay is marked non-null but is null"));
+
+    final Method getExistingOverlayEntityMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("getExistingOverlayEntity", FacilityEntity.Pk.class);
+    getExistingOverlayEntityMethod.setAccessible(true);
+    final FacilityEntity.Pk nullPk = null;
+    assertThatThrownBy(() -> getExistingOverlayEntityMethod.invoke(controller(), nullPk))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("pk is marked non-null but is null"));
+
+    final Method getOverlayDetailedServiceMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("getOverlayDetailedService", String.class, String.class);
+    getOverlayDetailedServiceMethod.setAccessible(true);
+    assertThatThrownBy(
+            () ->
+                getOverlayDetailedServiceMethod.invoke(controller(), nullFacilityId, "cardiology"))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("facilityId is marked non-null but is null"));
+    assertThatThrownBy(
+            () -> getOverlayDetailedServiceMethod.invoke(controller(), "vha_777", nullServiceId))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("serviceId is marked non-null but is null"));
+
+    final Method getOverlayDetailedServicesMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("getOverlayDetailedServices", String.class);
+    getOverlayDetailedServicesMethod.setAccessible(true);
+    assertThatThrownBy(() -> getOverlayDetailedServicesMethod.invoke(controller(), nullFacilityId))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("facilityId is marked non-null but is null"));
+
+    final Method getTypedServiceForServiceIdMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod("getTypedServiceForServiceId", String.class);
+    getTypedServiceForServiceIdMethod.setAccessible(true);
+    assertThatThrownBy(() -> getTypedServiceForServiceIdMethod.invoke(controller(), nullServiceId))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("serviceId is marked non-null but is null"));
+
+    final Method updateCmsOverlayDataMethod =
+        CmsOverlayControllerV1.class
+            .getSuperclass()
+            .getDeclaredMethod(
+                "updateCmsOverlayData", Optional.class, String.class, DatamartCmsOverlay.class);
+    updateCmsOverlayDataMethod.setAccessible(true);
+    assertThatThrownBy(
+            () ->
+                updateCmsOverlayDataMethod.invoke(
+                    controller(), null, "vha_777", mockDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(
+            new NullPointerException("existingCmsOverlayEntity is marked non-null but is null"));
+    assertThatThrownBy(
+            () ->
+                updateCmsOverlayDataMethod.invoke(
+                    controller(), mockCmsOverlayEntity, "vha_777", nullDatamartCmsOverlay))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("overlay is marked non-null but is null"));
   }
 
   private List<DatamartDetailedService> getDatamartBenefitsDetailedServices(
@@ -119,7 +347,6 @@ public class CmsOverlayControllerV1Test {
                             .serviceType(bs.serviceType())
                             .build())
                     .active(isActive)
-                    .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
                     .path("replaceable path here")
@@ -193,7 +420,6 @@ public class CmsOverlayControllerV1Test {
                 .serviceType(healthService.serviceType())
                 .build())
         .active(isActive)
-        .changed(null)
         .appointmentLeadIn("Your VA health care team will contact you if you...more text")
         .path("replaceable path here")
         .phoneNumbers(
@@ -283,7 +509,6 @@ public class CmsOverlayControllerV1Test {
                             .serviceType(os.serviceType())
                             .build())
                     .active(isActive)
-                    .changed(null)
                     .appointmentLeadIn(
                         "Your VA health care team will contact you if you...more text")
                     .path("replaceable path here")
@@ -362,6 +587,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     assertThat(controller().getDetailedService(facilityId, serviceId))
         .usingRecursiveComparison()
         .isEqualTo(
@@ -398,6 +624,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     // Obtain first page of detailed services - cardiology detailed service
     ResponseEntity<DetailedServicesResponse> test =
         controller().getDetailedServices(facilityId, serviceIds, serviceType, page, perPage);
@@ -723,6 +950,7 @@ public class CmsOverlayControllerV1Test {
             .core(DatamartFacilitiesJacksonConfig.createMapper().writeValueAsString(overlay.core()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     // active will ALWAYS be false when retrieving from the database, the fact the overlay
     // exists means that active was true at the time of insertion
     for (DatamartDetailedService d : overlay.detailedServices()) {
@@ -790,7 +1018,7 @@ public class CmsOverlayControllerV1Test {
     /*
     Because ServiceInfoBuilder serviceId() in ServiceInfo automatically assign a valid id or an INVALID_ID
     for each service if not specified. We have to explicitly force service id and service type to an empty value after calling the builder above to satisfy
-    the condition inpopulateServiceInfoAndFilterOutInvalid to increase code coverage
+    the condition in populateServiceInfoAndFilterOutInvalid to increase code coverage
     */
     overlayWithoutServiceId.detailedServices().parallelStream()
         .forEach(ds -> ds.serviceInfo().serviceId("").serviceType(null));
@@ -969,6 +1197,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     List<DatamartDetailedService> benefitsServices =
         getDatamartBenefitsDetailedServices(
             List.of(BenefitsService.ApplyingForBenefits, BenefitsService.HomelessAssistance), true);
@@ -976,6 +1205,7 @@ public class CmsOverlayControllerV1Test {
         getDatamartOtherDetailedServices(List.of(OtherService.OnlineScheduling), true);
     overlay.detailedServices().addAll(benefitsServices);
     overlay.detailedServices().addAll(otherServices);
+
     controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
@@ -1057,6 +1287,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     controller().saveOverlay(pk.toIdString(), CmsOverlayTransformerV1.toCmsOverlay(overlay));
     var response = controller().getOverlay(pk.toIdString());
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -1082,6 +1313,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(FacilityTransformerV1.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
+
     DatamartCmsOverlay overlay = overlay();
     ResponseEntity<Void> response =
         controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
@@ -1114,6 +1346,7 @@ public class CmsOverlayControllerV1Test {
   void updateIsSkippedForUnknownStation() {
     var pk = FacilityEntity.Pk.fromIdString("vha_666");
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.empty());
+
     ResponseEntity<Void> response =
         controller().saveOverlay("vha_666", CmsOverlayTransformerV1.toCmsOverlay(overlay()));
     verifyNoMoreInteractions(mockFacilityRepository);
@@ -1173,6 +1406,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.detailedServices()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     controller().saveOverlay("vha_402", CmsOverlayTransformerV1.toCmsOverlay(overlay));
     DatamartCmsOverlay updatedCovidPathOverlay = overlay();
     List<DatamartDetailedService> datamartDetailedServices =
@@ -1221,6 +1455,7 @@ public class CmsOverlayControllerV1Test {
             .cmsServices(null)
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     List<DatamartDetailedService> detailedServices =
         List.of(
             DatamartDetailedService.builder()
@@ -1259,6 +1494,7 @@ public class CmsOverlayControllerV1Test {
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
+        .usingElementComparatorIgnoringFields("lastUpdated")
         .containsAll(detailedServices);
   }
 
@@ -1281,6 +1517,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(overlay.healthCareSystem()))
             .build();
     when(mockCmsOverlayRepository.findById(pk)).thenReturn(Optional.of(cmsOverlayEntity));
+
     List<DatamartDetailedService> additionalServices =
         getDatamartDetailedServices(
             List.of(
@@ -1309,6 +1546,7 @@ public class CmsOverlayControllerV1Test {
     assertThat(
             DetailedServiceTransformerV1.toVersionAgnosticDetailedServices(
                 response.getBody().overlay().detailedServices()))
+        .usingElementComparatorIgnoringFields("lastUpdated")
         .containsAll(combinedServices);
     // Verify that facility_url was saved in database
     CmsOverlayEntity savedCmsOverlayEntity = mockCmsOverlayRepository.findById(pk).get();
@@ -1333,6 +1571,7 @@ public class CmsOverlayControllerV1Test {
                     .writeValueAsString(FacilityTransformerV1.toVersionAgnostic(f)))
             .build();
     when(mockFacilityRepository.findById(pk)).thenReturn(Optional.of(entity));
+
     DatamartCmsOverlay overlay = overlay();
     for (DatamartDetailedService d : overlay.detailedServices()) {
       if (d.serviceInfo()

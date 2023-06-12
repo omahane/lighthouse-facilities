@@ -36,8 +36,6 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 public class FacilitiesControllerV0Test {
 
@@ -364,16 +362,6 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void geoFacilitiesByState() {
-    Page mockPage = mock(Page.class);
-    when(mockPage.get())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
-    when(mockPage.getTotalElements()).thenReturn(1L);
-    when(mockPage.stream())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
     when(fr.findAll(
             FacilityRepository.FacilitySpecificationHelper.builder()
                 .state(FacilityRepository.StateSpecification.builder().state("FL").build())
@@ -384,9 +372,8 @@ public class FacilitiesControllerV0Test {
                 .services(facilityServices())
                 .mobile(
                     FacilityRepository.MobileSpecification.builder().mobile(Boolean.FALSE).build())
-                .build(),
-            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
-        .thenReturn(mockPage);
+                .build()))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
             controller(baseUrl, basePath)
                 .geoFacilitiesByState(
@@ -394,7 +381,7 @@ public class FacilitiesControllerV0Test {
                     "health",
                     List.of("Cardiology", "Audiology", "Urology"),
                     Boolean.FALSE,
-                    2,
+                    1,
                     1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
@@ -419,16 +406,6 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void geoFacilitiesByZip() {
-    Page mockPage = mock(Page.class);
-    when(mockPage.get())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
-    when(mockPage.getTotalElements()).thenReturn(1L);
-    when(mockPage.stream())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
     when(fr.findAll(
             FacilityRepository.FacilitySpecificationHelper.builder()
                 .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
@@ -439,9 +416,8 @@ public class FacilitiesControllerV0Test {
                     FacilityRepository.FacilityTypeSpecification.builder()
                         .facilityType(FacilityEntity.Type.vha)
                         .build())
-                .build(),
-            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
-        .thenReturn(mockPage);
+                .build()))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
             controller(baseUrl, basePath)
                 .geoFacilitiesByZip(
@@ -449,7 +425,7 @@ public class FacilitiesControllerV0Test {
                     "health",
                     List.of("Cardiology", "Audiology", "Urology"),
                     Boolean.FALSE,
-                    2,
+                    1,
                     1))
         .isEqualTo(
             GeoFacilitiesResponse.builder()
@@ -785,16 +761,6 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void jsonFacilitiesByState() {
-    Page mockPage = mock(Page.class);
-    when(mockPage.get())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
-    when(mockPage.getTotalElements()).thenReturn(1L);
-    when(mockPage.stream())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
     when(fr.findAll(
             FacilityRepository.FacilitySpecificationHelper.builder()
                 .state(FacilityRepository.StateSpecification.builder().state("FL").build())
@@ -805,9 +771,8 @@ public class FacilitiesControllerV0Test {
                     FacilityRepository.FacilityTypeSpecification.builder()
                         .facilityType(FacilityEntity.Type.vha)
                         .build())
-                .build(),
-            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
-        .thenReturn(mockPage);
+                .build()))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByState(
@@ -815,7 +780,7 @@ public class FacilitiesControllerV0Test {
                     "health",
                     List.of("Cardiology", "Audiology", "Urology"),
                     Boolean.FALSE,
-                    2,
+                    1,
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
@@ -823,11 +788,10 @@ public class FacilitiesControllerV0Test {
                 .links(
                     PageLinks.builder()
                         .self(
-                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&state=FL&type=health&page=2&per_page=1")
+                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&state=FL&type=health&page=1&per_page=1")
                         .first(
                             "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&state=FL&type=health&page=1&per_page=1")
-                        .prev(
-                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&state=FL&type=health&page=1&per_page=1")
+                        .prev(null)
                         .next(null)
                         .last(
                             "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&state=FL&type=health&page=1&per_page=1")
@@ -836,7 +800,7 @@ public class FacilitiesControllerV0Test {
                     FacilitiesResponse.FacilitiesMetadata.builder()
                         .pagination(
                             Pagination.builder()
-                                .currentPage(2)
+                                .currentPage(1)
                                 .entriesPerPage(1)
                                 .totalPages(1)
                                 .totalEntries(1)
@@ -876,16 +840,6 @@ public class FacilitiesControllerV0Test {
 
   @Test
   void jsonFacilitiesByZip() {
-    Page mockPage = mock(Page.class);
-    when(mockPage.get())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
-    when(mockPage.getTotalElements()).thenReturn(1L);
-    when(mockPage.stream())
-        .thenReturn(
-            List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA"))
-                .stream());
     when(fr.findAll(
             FacilityRepository.FacilitySpecificationHelper.builder()
                 .zip(FacilityRepository.ZipSpecification.builder().zip("32934").build())
@@ -896,9 +850,8 @@ public class FacilitiesControllerV0Test {
                     FacilityRepository.FacilityTypeSpecification.builder()
                         .facilityType(FacilityEntity.Type.vha)
                         .build())
-                .build(),
-            PageRequest.of(1, 1, FacilityEntity.naturalOrder())))
-        .thenReturn(mockPage);
+                .build()))
+        .thenReturn(List.of(FacilitySamples.defaultSamples(linkerUrl).facilityEntity("vha_740GA")));
     assertThat(
             controller(baseUrl, basePath)
                 .jsonFacilitiesByZip(
@@ -906,7 +859,7 @@ public class FacilitiesControllerV0Test {
                     "health",
                     List.of("Cardiology", "Audiology", "Urology"),
                     Boolean.FALSE,
-                    2,
+                    1,
                     1))
         .isEqualTo(
             FacilitiesResponse.builder()
@@ -914,11 +867,10 @@ public class FacilitiesControllerV0Test {
                 .links(
                     PageLinks.builder()
                         .self(
-                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&type=health&zip=32934&page=2&per_page=1")
+                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&type=health&zip=32934&page=1&per_page=1")
                         .first(
                             "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&type=health&zip=32934&page=1&per_page=1")
-                        .prev(
-                            "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&type=health&zip=32934&page=1&per_page=1")
+                        .prev(null)
                         .next(null)
                         .last(
                             "http://foo/bp/v0/facilities?mobile=false&services%5B%5D=Cardiology&services%5B%5D=Audiology&services%5B%5D=Urology&type=health&zip=32934&page=1&per_page=1")
@@ -927,7 +879,7 @@ public class FacilitiesControllerV0Test {
                     FacilitiesResponse.FacilitiesMetadata.builder()
                         .pagination(
                             Pagination.builder()
-                                .currentPage(2)
+                                .currentPage(1)
                                 .entriesPerPage(1)
                                 .totalPages(1)
                                 .totalEntries(1)

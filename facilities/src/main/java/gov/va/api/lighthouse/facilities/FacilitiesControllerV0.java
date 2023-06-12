@@ -1,6 +1,5 @@
 package gov.va.api.lighthouse.facilities;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static gov.va.api.lighthouse.facilities.ControllersV0.convertToDatamartServices;
 import static gov.va.api.lighthouse.facilities.ControllersV0.page;
 import static gov.va.api.lighthouse.facilities.ControllersV0.validateFacilityType;
@@ -45,8 +44,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -247,15 +244,8 @@ public class FacilitiesControllerV0 {
         .collect(toList());
   }
 
-  private Page<FacilityEntity> entitiesPageByState(
-      String rawState,
-      String rawType,
-      List<String> rawServices,
-      Boolean rawMobile,
-      int page,
-      int perPage) {
-    checkArgument(page >= 1);
-    checkArgument(perPage >= 1);
+  private List<FacilityEntity> entitiesByState(
+      String rawState, String rawType, List<String> rawServices, Boolean rawMobile) {
     String state = rawState.trim().toUpperCase(Locale.US);
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
@@ -267,19 +257,11 @@ public class FacilitiesControllerV0 {
             .facilityType(getFacilityTypeSpec(facilityType))
             .services(serviceStrings)
             .mobile(getMobileSpec(rawMobile))
-            .build(),
-        PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
+            .build());
   }
 
-  private Page<FacilityEntity> entitiesPageByZip(
-      String rawZip,
-      String rawType,
-      List<String> rawServices,
-      Boolean rawMobile,
-      int page,
-      int perPage) {
-    checkArgument(page >= 1);
-    checkArgument(perPage >= 1);
+  private List<FacilityEntity> entitiesByZip(
+      String rawZip, String rawType, List<String> rawServices, Boolean rawMobile) {
     FacilityEntity.Type facilityType = validateFacilityType(rawType);
     Set<ServiceType> datamartServices = convertToDatamartServices(validateServices(rawServices));
     Set<FacilityServiceSearchCriteria> serviceStrings =
@@ -291,8 +273,7 @@ public class FacilitiesControllerV0 {
             .facilityType(getFacilityTypeSpec(facilityType))
             .services(serviceStrings)
             .mobile(getMobileSpec(rawMobile))
-            .build(),
-        PageRequest.of(page - 1, perPage, FacilityEntity.naturalOrder()));
+            .build());
   }
 
   private FacilityEntity entityById(String id) {
@@ -419,7 +400,7 @@ public class FacilitiesControllerV0 {
         .features(
             perPage == 0
                 ? emptyList()
-                : entitiesPageByState(state, type, services, mobile, page, perPage).stream()
+                : page(entitiesByState(state, type, services, mobile), page, perPage).stream()
                     .map(e -> geoFacility(facility(e)))
                     .collect(toList()))
         .build();
@@ -460,7 +441,7 @@ public class FacilitiesControllerV0 {
         .features(
             perPage == 0
                 ? emptyList()
-                : entitiesPageByZip(zip, type, services, mobile, page, perPage).stream()
+                : page(entitiesByZip(zip, type, services, mobile), page, perPage).stream()
                     .map(e -> geoFacility(facility(e)))
                     .collect(toList()))
         .build();
@@ -613,8 +594,7 @@ public class FacilitiesControllerV0 {
       @RequestParam(value = "mobile", required = false) Boolean mobile,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    Page<FacilityEntity> entitiesPage =
-        entitiesPageByState(state, type, services, mobile, page, Math.max(perPage, 1));
+    List<FacilityEntity> entities = entitiesByState(state, type, services, mobile);
     PageLinkerV0 linker =
         PageLinkerV0.builder()
             .url(linkerUrl + "facilities")
@@ -627,13 +607,13 @@ public class FacilitiesControllerV0 {
                     .add("page", page)
                     .add("per_page", perPage)
                     .build())
-            .totalEntries((int) entitiesPage.getTotalElements())
+            .totalEntries(entities.size())
             .build();
     return FacilitiesResponse.builder()
         .data(
             perPage == 0
                 ? emptyList()
-                : entitiesPage.stream().map(e -> facility(e)).collect(toList()))
+                : page(entities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())
@@ -681,8 +661,7 @@ public class FacilitiesControllerV0 {
       @RequestParam(value = "mobile", required = false) Boolean mobile,
       @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
       @RequestParam(value = "per_page", defaultValue = "10") @Min(0) int perPage) {
-    Page<FacilityEntity> entitiesPage =
-        entitiesPageByZip(zip, type, services, mobile, page, Math.max(perPage, 1));
+    List<FacilityEntity> entities = entitiesByZip(zip, type, services, mobile);
     PageLinkerV0 linker =
         PageLinkerV0.builder()
             .url(linkerUrl + "facilities")
@@ -695,13 +674,13 @@ public class FacilitiesControllerV0 {
                     .add("page", page)
                     .add("per_page", perPage)
                     .build())
-            .totalEntries((int) entitiesPage.getTotalElements())
+            .totalEntries(entities.size())
             .build();
     return FacilitiesResponse.builder()
         .data(
             perPage == 0
                 ? emptyList()
-                : entitiesPage.stream().map(e -> facility(e)).collect(toList()))
+                : page(entities, page, perPage).stream().map(e -> facility(e)).collect(toList()))
         .links(linker.links())
         .meta(
             FacilitiesResponse.FacilitiesMetadata.builder().pagination(linker.pagination()).build())

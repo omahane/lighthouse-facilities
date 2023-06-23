@@ -2,6 +2,8 @@ package gov.va.api.lighthouse.facilities;
 
 import static gov.va.api.lighthouse.facilities.CmsOverlayHelper.convertOverlayToMap;
 import static gov.va.api.lighthouse.facilities.CmsOverlayHelper.makeOverlayFromEntity;
+import static java.util.Collections.emptySet;
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import com.google.common.collect.Streams;
@@ -69,7 +71,10 @@ public class InternalCmsOverlayController {
                           CmsOverlayHelper.serializeOperatingStatus(overlay.operatingStatus()))
                       .cmsServices(
                           CmsOverlayHelper.serializeDetailedServices(overlay.detailedServices()))
-                      .overlayServices(serviceIds(overlay.detailedServices()))
+                      .overlayServices(
+                          isNotEmpty(overlay.detailedServices())
+                              ? serviceIds(overlay.detailedServices())
+                              : emptySet())
                       .healthCareSystem(
                           CmsOverlayHelper.serializeHealthCareSystem(overlay.healthCareSystem()))
                       .build();

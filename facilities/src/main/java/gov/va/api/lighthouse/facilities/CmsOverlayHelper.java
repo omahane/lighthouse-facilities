@@ -6,8 +6,12 @@ import static gov.va.api.lighthouse.facilities.DatamartFacilitiesJacksonConfig.c
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.facilities.DatamartCmsOverlay.Core;
 import gov.va.api.lighthouse.facilities.DatamartFacility.OperatingStatus;
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
@@ -15,6 +19,16 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class CmsOverlayHelper {
   private static final ObjectMapper DATAMART_MAPPER = createMapper();
+
+  /** Convert collection of map entries into hashmap. */
+  public static <K, V>
+      Collector<AbstractMap.SimpleEntry<K, V>, ?, HashMap<K, V>> convertOverlayToMap() {
+    return Collectors.toMap(
+        AbstractMap.SimpleEntry::getKey,
+        AbstractMap.SimpleEntry::getValue,
+        (prev, next) -> next,
+        HashMap::new);
+  }
 
   /** Obtain DatamarOverlay core from JSON string. */
   @SneakyThrows
@@ -47,6 +61,25 @@ public final class CmsOverlayHelper {
     return (operatingStatus == null)
         ? null
         : DATAMART_MAPPER.readValue(operatingStatus, OperatingStatus.class);
+  }
+
+  /** Convert CMS entity to Datamart CMS overlay map entry. */
+  @SneakyThrows
+  public static AbstractMap.SimpleEntry<String, DatamartCmsOverlay> makeOverlayFromEntity(
+      @NonNull CmsOverlayEntity cmsOverlayEntity) {
+    DatamartCmsOverlay overlay =
+        DatamartCmsOverlay.builder()
+            .core(CmsOverlayHelper.getCore(cmsOverlayEntity.core()))
+            .operatingStatus(
+                CmsOverlayHelper.getOperatingStatus(cmsOverlayEntity.cmsOperatingStatus()))
+            .detailedServices(
+                cmsOverlayEntity.cmsServices() != null
+                    ? CmsOverlayHelper.getDetailedServices(cmsOverlayEntity.cmsServices())
+                    : null)
+            .healthCareSystem(
+                CmsOverlayHelper.getHealthCareSystem(cmsOverlayEntity.healthCareSystem()))
+            .build();
+    return new AbstractMap.SimpleEntry<>(cmsOverlayEntity.id().toIdString(), overlay);
   }
 
   /** Obtain JSON string representation of DatamartOverlay core. */

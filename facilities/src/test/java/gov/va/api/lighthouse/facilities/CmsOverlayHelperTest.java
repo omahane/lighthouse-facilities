@@ -5,9 +5,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 public class CmsOverlayHelperTest {
+  @Test
+  @SneakyThrows
+  void exceptions() {
+    final Method makeOverlayFromEntityMethod =
+        CmsOverlayHelper.class.getDeclaredMethod("makeOverlayFromEntity", CmsOverlayEntity.class);
+    makeOverlayFromEntityMethod.setAccessible(true);
+    CmsOverlayEntity nullEntity = null;
+    assertThatThrownBy(() -> makeOverlayFromEntityMethod.invoke(null, nullEntity))
+        .isInstanceOf(InvocationTargetException.class)
+        .hasCause(new NullPointerException("cmsOverlayEntity is marked non-null but is null"));
+  }
+
   @Test
   void getDetailedServices() {
     String ds = "[;]";

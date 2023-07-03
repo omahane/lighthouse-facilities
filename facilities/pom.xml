@@ -21,6 +21,7 @@
     <swagger-maven-plugin.version>2.1.13</swagger-maven-plugin.version>
     <timezonemap.version>4.5</timezonemap.version>
     <talos.version>5.0.7</talos.version>
+    <commons-csv.version>1.8</commons-csv.version>
   </properties>
   <dependencies>
     <dependency>
@@ -75,6 +76,12 @@
       <groupId>gov.va.api.lighthouse</groupId>
       <artifactId>talos</artifactId>
       <version>${talos.version}</version>
+    </dependency>
+    <!-- For internal random input generation to be used for load testing purposes. -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>${commons-csv.version}</version>
     </dependency>
   </dependencies>
   <build>

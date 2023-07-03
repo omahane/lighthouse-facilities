@@ -335,6 +335,8 @@ public final class Facility implements CanBeEmpty, IsAtcAware {
     Telehealth("telehealth"),
     @JsonProperty("thoracicSurgery")
     ThoracicSurgery("thoracicSurgery"),
+    @JsonProperty("toxicExposureScreening")
+    ToxicExposureScreening("toxicExposureScreening"),
     @JsonProperty("transplantSurgery")
     TransplantSurgery("transplantSurgery"),
     @JsonProperty("travelReimbursement")

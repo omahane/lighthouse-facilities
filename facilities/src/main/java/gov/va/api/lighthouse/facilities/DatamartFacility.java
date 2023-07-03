@@ -319,6 +319,8 @@ public class DatamartFacility implements IsAtcAware {
     Telehealth("telehealth"),
     @JsonProperty("thoracicSurgery")
     ThoracicSurgery("thoracicSurgery"),
+    @JsonProperty("toxicExposureScreening")
+    ToxicExposureScreening("toxicExposureScreening"),
     @JsonProperty("transplantSurgery")
     TransplantSurgery("transplantSurgery"),
     @JsonProperty("travelReimbursement")

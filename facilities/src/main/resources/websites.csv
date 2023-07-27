@@ -1029,7 +1029,6 @@ vha_554GF,https://www.va.gov/eastern-colorado-health-care/locations/alamosa-va-c
 vha_554GG,https://www.va.gov/eastern-colorado-health-care/locations/la-junta-va-clinic/
 vha_554GH,https://www.va.gov/eastern-colorado-health-care/locations/lamar-va-clinic/
 vha_554GI,https://www.va.gov/eastern-colorado-health-care/locations/burlington-va-clinic/
-vha_554GJ,https://www.va.gov/eastern-colorado-health-care/locations/denver-va-clinic/
 vha_554GK,https://www.va.gov/eastern-colorado-health-care/locations/union-boulevard-va-clinic/
 vha_554QA,https://www.va.gov/eastern-colorado-health-care/locations/york-street-va-clinic/
 vha_554QB,https://www.va.gov/eastern-colorado-health-care/locations/jewell-va-clinic/
@@ -1106,6 +1105,7 @@ vha_568HF,https://www.va.gov/black-hills-health-care/locations/pine-ridge-va-cli
 vha_568HH,https://www.va.gov/black-hills-health-care/locations/scottsbluff-va-clinic/
 vha_568HK,https://www.va.gov/black-hills-health-care/locations/mclaughlin-va-clinic/
 vha_568HP,https://www.va.gov/black-hills-health-care/locations/winner-va-clinic/
+vha_568QA,https://www.va.gov/black-hills-health-care/locations/fort-yates-va-clinic/
 vha_570,https://www.va.gov/central-california-health-care/locations/fresno-va-medical-center/
 vha_570GA,https://www.va.gov/central-california-health-care/locations/merced-va-clinic/
 vha_570GB,https://www.va.gov/central-california-health-care/locations/tulare-va-clinic/
@@ -1318,10 +1318,8 @@ vha_610,https://www.va.gov/northern-indiana-health-care/locations/marion-va-medi
 vha_610A4,https://www.va.gov/northern-indiana-health-care/locations/fort-wayne-va-medical-center/
 vha_610BY,https://www.va.gov/northern-indiana-health-care/locations/jackie-walorski-va-clinic/
 vha_610GB,https://www.va.gov/northern-indiana-health-care/locations/muncie-va-clinic/
-vha_610GC,https://www.va.gov/northern-indiana-health-care/locations/goshen-va-clinic/
 vha_610GD,https://www.va.gov/northern-indiana-health-care/locations/hoosier-va-clinic/
 vha_610QA,https://www.va.gov/northern-indiana-health-care/locations/fort-wayne-va-clinic/
-vha_610QB,https://www.va.gov/northern-indiana-health-care/locations/columbia-place-va-clinic/
 vha_612A4,https://www.va.gov/northern-california-health-care/locations/sacramento-va-medical-center/
 vha_612B4,https://www.va.gov/northern-california-health-care/locations/redding-va-clinic/
 vha_612GD,https://www.va.gov/northern-california-health-care/locations/fairfield-va-clinic/
@@ -1405,6 +1403,7 @@ vha_621QC,https://www.va.gov/mountain-home-health-care/locations/vansant-va-clin
 vha_621QD,https://www.va.gov/mountain-home-health-care/locations/knox-county-va-clinic/
 vha_621QE,https://www.va.gov/mountain-home-health-care/locations/downtown-west-va-clinic/
 vha_621QF,https://www.va.gov/mountain-home-health-care/locations/johnson-city-va-clinic/
+vha_621QG,https://www.va.gov/mountain-home-health-care/locations/knox-west-va-clinic/
 vha_623,https://www.va.gov/eastern-oklahoma-health-care/locations/jack-c-montgomery-department-of-veterans-affairs-medical/
 vha_623BY,https://www.va.gov/eastern-oklahoma-health-care/locations/ernest-childers-department-of-veterans-affairs-outpatient/
 vha_623GA,https://www.va.gov/eastern-oklahoma-health-care/locations/mcalester-va-clinic/
@@ -1413,6 +1412,7 @@ vha_623GC,https://www.va.gov/eastern-oklahoma-health-care/locations/mccurtain-co
 vha_623QA,https://www.va.gov/eastern-oklahoma-health-care/locations/muskogee-east-va-clinic/
 vha_623QB,https://www.va.gov/eastern-oklahoma-health-care/locations/tulsa-eleventh-street-va-clinic/
 vha_623QC,https://www.va.gov/eastern-oklahoma-health-care/locations/yale-avenue-va-clinic/
+vha_623QD,https://www.va.gov/eastern-oklahoma-health-care/locations/bartlesville-va-clinic/
 vha_626,https://www.va.gov/tennessee-valley-health-care/locations/nashville-va-medical-center/
 vha_626A4,https://www.va.gov/tennessee-valley-health-care/locations/alvin-c-york-veterans-administration-medical-center/
 vha_626GA,https://www.va.gov/tennessee-valley-health-care/locations/dover-va-clinic/
@@ -1721,7 +1721,7 @@ vha_667GB,https://www.va.gov/shreveport-health-care/locations/monroe-va-clinic/
 vha_667GC,https://www.va.gov/shreveport-health-care/locations/longview-va-clinic/
 vha_667QA,https://www.va.gov/shreveport-health-care/locations/knight-street-va-clinic/
 vha_668,https://www.va.gov/spokane-health-care/locations/mann-grandstaff-department-of-veterans-affairs-medical-center/
-vha_668GA,https://www.va.gov/spokane-health-care/locations/wenatchee-va-clinic/
+vha_668GA,https://www.va.gov/spokane-health-care/locations/elwood-bud-link-department-of-veterans-affairs-outpatient-clinic/
 vha_668GB,https://www.va.gov/spokane-health-care/locations/coeur-d-alene-va-clinic/
 vha_668GC,https://www.va.gov/spokane-health-care/locations/east-front-avenue-va-clinic/
 vha_668QB,https://www.va.gov/spokane-health-care/locations/libby-va-clinic/
@@ -1729,7 +1729,6 @@ vha_668QD,https://www.va.gov/spokane-health-care/locations/bonner-county-va-clin
 vha_668QE,https://www.va.gov/spokane-health-care/locations/spokane-va-clinic/
 vha_671,https://www.va.gov/south-texas-health-care/locations/audie-l-murphy-memorial-veterans-hospital/
 vha_671A4,https://www.va.gov/south-texas-health-care/locations/kerrville-va-medical-center/
-vha_671BY,https://www.va.gov/south-texas-health-care/locations/frank-m-tejeda-department-of-veterans-affairs-outpatient-clinic/
 vha_671GB,https://www.va.gov/south-texas-health-care/locations/victoria-va-clinic/
 vha_671GF,https://www.va.gov/south-texas-health-care/locations/south-bexar-county-va-clinic/
 vha_671GK,https://www.va.gov/south-texas-health-care/locations/san-antonio-va-clinic/
